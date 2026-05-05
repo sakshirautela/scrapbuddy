@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
 
+import javax.validation.constraints.Email;
+
 @Setter
 @Getter
 @AllArgsConstructor
@@ -18,11 +20,18 @@ public class User {
     private long id;
     @Column(unique = true)
     private String username;
-
+    @Email(regexp = "[a-z0-9.-%+-]+@[a-z0-9.-]+\\.[a-z]{2,3")
     private String email;
     private String role;
     private String password;
     private String phone;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private PasswordResetToken passwordResetToken;
+
     @Embedded
     private Address address;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isverified = false;
 }
