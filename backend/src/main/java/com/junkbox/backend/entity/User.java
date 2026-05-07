@@ -5,8 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 
-import javax.validation.constraints.Email;
+import java.util.List;
 
 @Setter
 @Getter
@@ -25,13 +26,12 @@ public class User {
     private String role;
     private String password;
     private String phone;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private PasswordResetToken passwordResetToken;
-
     @Embedded
     private Address address;
-
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean isverified = false;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pickups> pickups;
+    @Embedded
+    private Catgories catgories;
 }
