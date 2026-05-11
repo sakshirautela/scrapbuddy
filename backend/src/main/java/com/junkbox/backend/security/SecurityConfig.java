@@ -13,20 +13,22 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
+import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
+    @Autowired CustomCorsConfiguration customCorsConfiguration;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
+                .cors(c -> c.configurationSource(customCorsConfiguration))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/**").permitAll().anyRequest().authenticated()
+                        //.anyRequest().hasRole("admin")
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
