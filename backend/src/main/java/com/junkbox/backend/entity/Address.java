@@ -1,22 +1,29 @@
 package com.junkbox.backend.entity;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Embeddable
+@Entity
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Address {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long  id;
     private String apartment;
+    @Column(nullable = false)
     private String city;
     private String state;
     private String zip;
     private String country;
+    private String receiverFirstName;
+    private String receiverLastName;
+    private String receiverPhone;
+    private String receiverEmail;
     private String countryCode;
-
 }

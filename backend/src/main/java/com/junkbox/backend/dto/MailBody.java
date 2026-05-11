@@ -7,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class MailBody {
     private String to;
-    private String subject;
     private String body;
+    private String subject;
 }

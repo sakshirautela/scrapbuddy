@@ -2,6 +2,7 @@ package com.junkbox.backend.service;
 
 import com.junkbox.backend.entity.User;
 import com.junkbox.backend.repository.UserRepository;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,7 +16,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository repo;
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    public UserDetails loadUserByUsername(@NonNull String username) {
         User user = repo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
