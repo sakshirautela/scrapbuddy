@@ -9,7 +9,6 @@ import java.util.Date;
 @Getter
 @Setter
 public class OrderRequest {
-private Long Id;
     private boolean status;
 
     @NotNull(message = "Pickup date is required")

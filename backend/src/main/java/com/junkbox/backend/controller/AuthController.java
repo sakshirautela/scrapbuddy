@@ -15,8 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -28,28 +31,39 @@ public class AuthController {
     private final UserServiceImp userService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    // LOGIN
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @Valid @RequestBody AuthRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
 
-        UserResponse user =
-                userService.getUserByUsername(request.getUsername());
+        try {
+            Authentication authentication =
+                    authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(
+                                    request.getUsername(),
+                                    request.getPassword()
+                            )
+                    );
 
-        String token = jwtUtil.generateToken(user);
-        return ResponseEntity.ok(
-                Map.of(
-                        "token", token,
-                        "role", user.getRole(),
-                        "username", user.getUsername()
-                )
-        );
+            UserDetails userDetails =
+                    (UserDetails) authentication.getPrincipal();
+
+            UserResponse user =
+                    userService.getUserByUsername(userDetails.getUsername());
+
+            String token = jwtUtil.generateToken(user);
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "token", token,
+                            "role", user.getRole(),
+                            "username", user.getUsername(),
+                            "user",user
+                    )
+            );
+
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid username or password"));
+        }
     }
 
     // REGISTER USER
