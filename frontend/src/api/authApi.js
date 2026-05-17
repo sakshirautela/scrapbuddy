@@ -1,17 +1,18 @@
 import apiClient from '../utils/apiClient';
 
 const authApi = {
-  login: async (email, password) => {
-    const response = await apiClient.post('/api/auth/login', {
-      email,
-      password
-    });
-
-    return response.data;
-  },
+ login: async (email, password) => {
+  const response = await apiClient.post('/api/auth/login', {
+    username: email,
+    password: password
+  });
+console.log("Login response:", response);
+  return response.data;
+},
 
   register: async (userData) => {
     const response = await apiClient.post('/api/auth/signup', userData);
+    console.log("Registration response:", response);
     return response.data;
   },
 

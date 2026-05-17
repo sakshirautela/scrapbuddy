@@ -1,297 +1,171 @@
-import '../styles/AdminDashboard.css';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import apiClient from "../utils/apiClient";
+import "../styles/SuperAdminDashboard.css";
 
-import React, { useState } from "react";
+const SuperAdminDashboard = () => {
+  const navigate = useNavigate();
 
-export default function AdminDashboard() {
-  const [activeModule, setActiveModule] = useState("products");
-const[user, setUser] = useState(null);
-  const [products, setProducts] = useState([
-    { id: 1, subId: "A101", name: "Laptop", price: 55000 },
-    { id: 2, subId: "B202", name: "Phone", price: 25000 },
-  ]);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-  const [orders] = useState([
-    {
-      orderId: 1001,
-      customer: "Rahul",
-      total: 78000,
-      status: "Delivered",
-    },
-    {
-      orderId: 1002,
-      customer: "Priya",
-      total: 25000,
-      status: "Pending",
-    },
-  ]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "Admin",
-      email: "admin@example.com",
-      role: "Admin",
-    },
-    {
-      id: 2,
-      name: "User",
-      email: "user@example.com",
-      role: "Customer",
-    },
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [users, setUsers] = useState([]);
 
-  const [form, setForm] = useState({
-    id: "",
-    subId: "",
+  // ================= USER MODAL =================
+  const [openUserModal, setOpenUserModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState({
+    id: null,
     name: "",
-    price: "",
+    email: "",
+    password: "",
+    role: "USER",
   });
 
-  const [editingId, setEditingId] = useState(null);
+  // ================= SAFE ARRAY =================
+  const safeArray = (data) => (Array.isArray(data) ? data : []);
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
+  // ================= FETCH DATA =================
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
-  const addOrUpdateProduct = () => {
-    if (!form.id || !form.subId || !form.name || !form.price) {
-      alert("Please fill all fields");
-      return;
-    }
+  const fetchAll = async () => {
+    setLoading(true);
+    setError("");
 
-    if (editingId !== null) {
-      setProducts(
-        products.map((product) =>
-          product.id === editingId
-            ? {
-                id: Number(form.id),
-                subId: form.subId,
-                name: form.name,
-                price: Number(form.price),
-              }
-            : product
-        )
-      );
-
-      setEditingId(null);
-    } else {
-      setProducts([
-        ...products,
-        {
-          id: Number(form.id),
-          subId: form.subId,
-          name: form.name,
-          price: Number(form.price),
-        },
+    try {
+      const [o, c, ci, a, u] = await Promise.all([
+        apiClient.get("/api/orders"),
+        apiClient.get("/api/categories"),
+        apiClient.get("/api/cities"),
+        apiClient.get("/api/addresses"),
+        apiClient.get("/api/users"),
       ]);
+
+      setOrders(safeArray(o.data));
+      setCategories(safeArray(c.data));
+      setCities(safeArray(ci.data));
+      setAddresses(safeArray(a.data));
+      setUsers(safeArray(u.data));
+    } catch (err) {
+      setError("Failed to load data");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setForm({
-      id: "",
-      subId: "",
+  // ================= USER CRUD =================
+  const createUser = async () => {
+    setSubmitting(true);
+    try {
+      await apiClient.post("/api/users", currentUser);
+      resetUserForm();
+      fetchAll();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const updateUser = async () => {
+    setSubmitting(true);
+    try {
+      await apiClient.put(`/api/users/${currentUser.id}`, currentUser);
+      resetUserForm();
+      fetchAll();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      await apiClient.delete(`/api/users/${id}`);
+      fetchAll();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const editUser = (user) => {
+    setCurrentUser(user);
+    setEditMode(true);
+    setOpenUserModal(true);
+  };
+
+  const resetUserForm = () => {
+    setCurrentUser({
+      id: null,
       name: "",
-      price: "",
+      email: "",
+      password: "",
+      role: "USER",
     });
+    setEditMode(false);
+    setOpenUserModal(false);
   };
 
-  const editProduct = (product) => {
-    setEditingId(product.id);
-
-    setForm({
-      id: product.id,
-      subId: product.subId,
-      name: product.name,
-      price: product.price,
-    });
-  };
-
-  const deleteProduct = (id) => {
-    setProducts(products.filter((product) => product.id !== id));
-  };
-
-  const deleteUser = (id) => {
-    setUsers(users.filter((user) => user.id !== id));
-  };
-
-  const createUser = () => {
-    const name = prompt("Enter user name");
-    const email = prompt("Enter email");
-    const role = prompt("Enter role");
-
-    if (!name || !email || !role) return;
-
-    setUsers([
-      ...users,
-      {
-        id: users.length + 1,
-        name,
-        email,
-        role,
-      },
-    ]);
-  };
-
+  // ================= UI =================
   return (
-    <div className="admin-dashboard">
+    <div className="admin-layout">
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside className="sidebar">
-        <h2 className="logo">Admin Panel</h2>
+        <h2 className="logo">⚡ SUPER ADMIN</h2>
 
-        <ul className="menu">
-          <li
-            className={activeModule === "products" ? "active" : ""}
-            onClick={() => setActiveModule("products")}
-          >
-            Products
-          </li>
+        <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
+        <button onClick={() => setActiveTab("orders")}>Orders</button>
+        <button onClick={() => setActiveTab("categories")}>Categories</button>
+        <button onClick={() => setActiveTab("cities")}>Cities</button>
+        <button onClick={() => setActiveTab("addresses")}>Addresses</button>
+        <button onClick={() => setActiveTab("users")}>Users</button>
 
-          <li
-            className={activeModule === "orders" ? "active" : ""}
-            onClick={() => setActiveModule("orders")}
-          >
-            Orders
-          </li>
-
-          <li
-            className={activeModule === "users" ? "active" : ""}
-            onClick={() => setActiveModule("users")}
-          >
-            Users
-          </li>
-
-          <li className="submenu-title">Submodules</li>
-
-          <li
-            className={activeModule === "analytics" ? "active" : ""}
-            onClick={() => setActiveModule("analytics")}
-          >
-            Analytics
-          </li>
-
-          <li
-            className={activeModule === "reports" ? "active" : ""}
-            onClick={() => setActiveModule("reports")}
-          >
-            Reports
-          </li>
-        </ul>
+        <button className="logout" onClick={() => navigate("/")}>
+          Logout
+        </button>
       </aside>
 
-      {/* Main Content */}
-      <main className="dashboard-content">
+      {/* MAIN */}
+      <main className="main">
 
-        {/* Header */}
-        <div className="topbar">
-          <h1>Admin Dashboard</h1>
-        </div>
+        {loading && <p>Loading...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
-        {/* PRODUCTS */}
-        {activeModule === "products" && (
-          <div className="card">
-            <h2>Product Management</h2>
-
-            <div className="form-grid">
-              <input
-                type="number"
-                name="id"
-                placeholder="Product ID"
-                value={form.id}
-                onChange={handleChange}
-              />
-
-              <input
-                type="text"
-                name="subId"
-                placeholder="Sub ID"
-                value={form.subId}
-                onChange={handleChange}
-              />
-
-              <input
-                type="text"
-                name="name"
-                placeholder="Product Name"
-                value={form.name}
-                onChange={handleChange}
-              />
-
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                value={form.price}
-                onChange={handleChange}
-              />
-
-              <button onClick={addOrUpdateProduct}>
-                {editingId ? "Update Product" : "Add Product"}
-              </button>
-            </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Sub ID</th>
-                  <th>Name</th>
-                  <th>Price</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td>{product.id}</td>
-                    <td>{product.subId}</td>
-                    <td>{product.name}</td>
-                    <td>₹{product.price}</td>
-
-                    <td>
-                      <button onClick={() => editProduct(product)}>
-                        Edit
-                      </button>
-
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteProduct(product.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* DASHBOARD */}
+        {activeTab === "dashboard" && (
+          <div className="cards">
+            <div className="card"><h3>Orders</h3><p>{orders.length}</p></div>
+            <div className="card"><h3>Users</h3><p>{users.length}</p></div>
+            <div className="card"><h3>Categories</h3><p>{categories.length}</p></div>
+            <div className="card"><h3>Cities</h3><p>{cities.length}</p></div>
           </div>
         )}
 
         {/* ORDERS */}
-        {activeModule === "orders" && (
-          <div className="card">
+        {activeTab === "orders" && (
+          <div className="table-box">
             <h2>Orders</h2>
-
             <table>
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.orderId}>
-                    <td>{order.orderId}</td>
-                    <td>{order.customer}</td>
-                    <td>₹{order.total}</td>
-                    <td>{order.status}</td>
+                {safeArray(orders).map((o) => (
+                  <tr key={o.id}>
+                    <td>{o.id}</td>
+                    <td>{o.customerName}</td>
+                    <td>{o.city}</td>
+                    <td>{o.status}</td>
                   </tr>
                 ))}
               </tbody>
@@ -300,12 +174,15 @@ const[user, setUser] = useState(null);
         )}
 
         {/* USERS */}
-        {activeModule === "users" && (
-          <div className="card">
-            <div className="user-header">
+        {activeTab === "users" && (
+          <div className="table-box">
+
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <h2>Users</h2>
 
-              <button onClick={createUser}>Create User</button>
+              <button onClick={() => setOpenUserModal(true)}>
+                + Add User
+              </button>
             </div>
 
             <table>
@@ -315,25 +192,20 @@ const[user, setUser] = useState(null);
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
 
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>{user.role}</td>
-
+                {safeArray(users).map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.id}</td>
+                    <td>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>{u.role}</td>
                     <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteUser(user.id)}
-                      >
-                        Delete
-                      </button>
+                      <button onClick={() => editUser(u)}>Edit</button>
+                      <button onClick={() => deleteUser(u.id)}>Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -342,22 +214,113 @@ const[user, setUser] = useState(null);
           </div>
         )}
 
-        {/* ANALYTICS */}
-        {activeModule === "analytics" && (
-          <div className="card">
-            <h2>Analytics Module</h2>
-            <p>Analytics data and charts will appear here.</p>
+        {/* CATEGORIES */}
+        {activeTab === "categories" && (
+          <div className="grid">
+            <h2>Categories</h2>
+            {safeArray(categories).map((c) => (
+              <div key={c.id} className="card-item">
+                <h3>{c.name}</h3>
+                <p>{c.description}</p>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* REPORTS */}
-        {activeModule === "reports" && (
-          <div className="card">
-            <h2>Reports Module</h2>
-            <p>Reports and exports will appear here.</p>
+        {/* CITIES */}
+        {activeTab === "cities" && (
+          <div className="grid">
+            <h2>Cities</h2>
+            {safeArray(cities).map((city) => (
+              <div key={city.id} className="card-item">
+                <h3>{city.name}</h3>
+                <p>{city.description}</p>
+              </div>
+            ))}
           </div>
         )}
+
+        {/* ADDRESSES */}
+        {activeTab === "addresses" && (
+          <div className="table-box">
+            <h2>Addresses</h2>
+            <table>
+              <tbody>
+                {safeArray(addresses).map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.street}</td>
+                    <td>{a.city}</td>
+                    <td>{a.zipCode}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
       </main>
+
+      {/* ================= USER MODAL ================= */}
+      {openUserModal && (
+        <div className="modal-bg">
+          <div className="modal">
+
+            <h2>{editMode ? "Edit User" : "Add User"}</h2>
+
+            <input
+              placeholder="Name"
+              value={currentUser.name}
+              onChange={(e) =>
+                setCurrentUser({ ...currentUser, name: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="Email"
+              value={currentUser.email}
+              onChange={(e) =>
+                setCurrentUser({ ...currentUser, email: e.target.value })
+              }
+            />
+
+            {!editMode && (
+              <input
+                type="password"
+                placeholder="Password"
+                value={currentUser.password}
+                onChange={(e) =>
+                  setCurrentUser({ ...currentUser, password: e.target.value })
+                }
+              />
+            )}
+
+            <select
+              value={currentUser.role}
+              onChange={(e) =>
+                setCurrentUser({ ...currentUser, role: e.target.value })
+              }
+            >
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+
+            <div style={{ marginTop: "10px" }}>
+              <button
+                disabled={submitting}
+                onClick={editMode ? updateUser : createUser}
+              >
+                {submitting ? "Processing..." : editMode ? "Update" : "Create"}
+              </button>
+
+              <button onClick={resetUserForm}>Cancel</button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
-}
+};
+
+export default SuperAdminDashboard;

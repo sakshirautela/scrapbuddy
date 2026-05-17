@@ -6,7 +6,7 @@ import UserDetails from './pages/UserDetails';
 import DefaultDashboard from './pages/DefaultDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
-
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 function App() {
   return (
     <Router>
@@ -17,6 +17,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/user" element={<UserDetails />} />
+          <Route path="/superadmin" element={<SuperAdminDashboard />} /> {/* Reusing AdminDashboard for SuperAdmin for now */}
         </Routes>
       </div>
     </Router>
