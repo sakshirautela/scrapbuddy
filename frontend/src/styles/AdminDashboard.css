@@ -1,0 +1,208 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f4f6f9;
+}
+
+.admin-dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ================= SIDEBAR ================= */
+.dashboard-navbar {
+  width: 260px;
+  background: #1e293b;
+  color: white;
+  padding: 20px;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.dashboard-navbar h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  color: #38bdf8;
+}
+
+.dashboard-navbar ul {
+  list-style: none;
+}
+
+.dashboard-navbar ul li {
+  margin-bottom: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.dashboard-navbar ul li:hover {
+  background: #334155;
+}
+
+.dashboard-navbar ul li a {
+  text-decoration: none;
+  color: white;
+  display: block;
+  font-size: 16px;
+}
+
+/* ================= SUBMODULE DROPDOWN ================= */
+.dashboard-navbar ul li ul {
+  margin-top: 10px;
+  margin-left: 15px;
+  display: none;
+}
+
+.dashboard-navbar ul li:hover ul {
+  display: block;
+}
+
+.dashboard-navbar ul li ul li {
+  background: #475569;
+  margin-bottom: 8px;
+  padding: 10px;
+}
+
+.dashboard-navbar ul li ul li:hover {
+  background: #64748b;
+}
+
+/* ================= MAIN CONTENT ================= */
+.dashboard-content {
+  margin-left: 280px;
+  padding: 30px;
+  width: calc(100% - 280px);
+}
+
+/* ================= GRID CARDS ================= */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: 0.3s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+}
+
+.dashboard-card h2 {
+  margin-bottom: 10px;
+  color: #1e293b;
+}
+
+.dashboard-card p {
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+/* ================= TABLES ================= */
+.table-container {
+  margin-top: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table-container h2 {
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  background: #1e293b;
+  color: white;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: 0.3s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.edit-btn {
+  background: #0ea5e9;
+  color: white;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.add-btn {
+  background: #22c55e;
+  color: white;
+}
+
+/* ================= FORM ================= */
+.form-container {
+  margin-top: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-container input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .dashboard-navbar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .dashboard-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

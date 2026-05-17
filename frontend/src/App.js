@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import AdminPanel from './components/admin/AdminPanel';
-import UserPanel from './components/user/UserPanel';
+import Login from './components/auth/Login/Login';
+import Signup from './components/auth/Register/Register'; 
+import UserDetails from './pages/UserDetails';
+import DefaultDashboard from './pages/DefaultDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 function App() {
@@ -11,11 +12,11 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          <Route path="/" element={<DefaultDashboard   />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/admin/*" element={<AdminPanel />} />
-          <Route path="/user/*" element={<UserPanel />} />
-          <Route path="/" element={<Login />} />
+          <Route path="/user" element={<UserDetails />} />
         </Routes>
       </div>
     </Router>

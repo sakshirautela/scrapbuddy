@@ -1,0 +1,33 @@
+.dashboard {
+  display: flex;
+}
+
+/* Sidebar fixed and always visible */
+.sidenav {
+  width: 250px;
+  height: 100vh;
+  background-color: #111;
+  color: white;
+  padding-top: 20px;
+
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.sidenav a {
+  display: block;
+  padding: 12px 20px;
+  color: #bbb;
+  text-decoration: none;
+}
+
+.sidenav a:hover {
+  color: white;
+}
+
+/* Main content stays beside sidebar */
+.main {
+  margin-left: 250px;
+  padding: 20px;
+}

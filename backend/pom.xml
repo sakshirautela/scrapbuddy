@@ -27,8 +27,8 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
-		<maven.test.skip>true</maven.test.skip>
+		<java.version>17</java.version>
+		<maven.test.skip>false</maven.test.skip>
 	</properties>
 	<dependencies>
 		<!-- API -->
@@ -37,19 +37,11 @@
 			<artifactId>jjwt-api</artifactId>
 			<version>0.11.5</version>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/javax.validation/validation-api -->
+		<!-- Jakarta Validation API for request validation -->
 		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>2.0.1.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/javax.mail/mail -->
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4.7</version>
-			<scope>compile</scope>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			<version>3.0.2</version>
 		</dependency>
 		<!-- Implementation -->
 		<dependency>

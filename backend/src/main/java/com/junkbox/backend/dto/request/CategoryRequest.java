@@ -10,5 +10,8 @@ public class CategoryRequest {
 
     @NotBlank(message = "Category name is required")
     private String category;
+
     private Long createdUserID;
+
+    private Long updatedCategoryID;
 }

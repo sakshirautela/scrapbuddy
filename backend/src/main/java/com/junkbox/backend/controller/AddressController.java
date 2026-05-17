@@ -1,124 +1,86 @@
 package com.junkbox.backend.controller;
 
 import com.junkbox.backend.dto.request.AddressRequest;
-import com.junkbox.backend.dto.request.CategoryRequest;
 import com.junkbox.backend.dto.response.AddressResponse;
-import com.junkbox.backend.dto.response.CategoryResponse;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.service.AddressService;
-import com.junkbox.backend.service.CategoryService;
+
 import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
-@RequestMapping("/auth/address")
+@RequestMapping("/api/addresses")
+@RequiredArgsConstructor
 public class AddressController {
 
-private final AddressService  addressService;
-    public AddressController(AddressService addressService) {
-        this.addressService = addressService;
-    }
+    private final AddressService addressService;
 
-    // CREATE CATEGORY
+    // CREATE ADDRESS
     @PostMapping
-    public ResponseEntity<?> createAddress(@Valid @RequestBody AddressRequest request) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AddressResponse> createAddress(
+            @Valid @RequestBody AddressRequest request) {
 
-        try {
+        AddressResponse response = addressService.createAddress(request);
 
-            AddressResponse response = addressService.createAddress(request);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity.badRequest().body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create Address");
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    // GET ALL CATEGORIES
+    // GET ALL ADDRESSES (ADMIN ONLY)
     @GetMapping
-    public ResponseEntity<?> getAllAddress() {
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<List<AddressResponse>> getAllAddresses() {
 
-        try {
+        List<AddressResponse> addresses =
+                addressService.getAllAddress();
 
-            List<AddressResponse> items = addressService.getAllAddress();
-
-            return ResponseEntity.ok(items);
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch categories");
-        }
+        return ResponseEntity.ok(addresses);
     }
 
-    // GET CATEGORY BY ID
+    // GET ADDRESS BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> getItemById(@PathVariable Long id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AddressResponse> getAddressById(
+            @PathVariable Long id) {
 
-        try {
+        AddressResponse response =
+                addressService.getAddressById(id);
 
-            AddressResponse response = addressService.getAddressById(id);
-
-            return ResponseEntity.ok(response);
-
-        } catch (ResourceNotFoundException e) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch category");
-        }
+        return ResponseEntity.ok(response);
     }
 
-    // UPDATE CATEGORY
+    // UPDATE ADDRESS
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateItem(@PathVariable Long id, @Valid @RequestBody AddressRequest request) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AddressResponse> updateAddress(
+            @PathVariable Long id,
+            @Valid @RequestBody AddressRequest request) {
 
-        try {
+        AddressResponse response =
+                addressService.updateAddress(id, request);
 
-            AddressResponse response = addressService.updateAddress(id, request);
-
-            return ResponseEntity.ok(response);
-
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity.badRequest().body(e.getMessage());
-
-        } catch (ResourceNotFoundException e) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update category");
-        }
+        return ResponseEntity.ok(response);
     }
 
-    // DELETE CATEGORY
+    // DELETE ADDRESS
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteItem(@PathVariable Long id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> deleteAddress(
+            @PathVariable Long id) {
 
-        try {
+        addressService.deleteAddress(id);
 
-            addressService.deleteAddress(id);
-
-            return ResponseEntity.ok("Category deleted successfully");
-
-        } catch (ResourceNotFoundException e) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete category");
-        }
+        return ResponseEntity.ok("Address deleted successfully");
     }
 }

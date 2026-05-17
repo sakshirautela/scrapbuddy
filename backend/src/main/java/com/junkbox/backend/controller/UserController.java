@@ -1,40 +1,38 @@
 package com.junkbox.backend.controller;
 
-import com.junkbox.backend.dto.request.AuthRequest;
-import com.junkbox.backend.dto.request.CategoryRequest;
-import com.junkbox.backend.dto.request.RegisterRequest;
-import com.junkbox.backend.dto.request.UserDetailsRequest;
-import com.junkbox.backend.dto.response.CategoryResponse;
-import com.junkbox.backend.dto.response.TokenResponse;
-import com.junkbox.backend.dto.response.UserDetailsResponse;
-import com.junkbox.backend.entity.User;
+import com.junkbox.backend.dto.request.UserRequest;
+import com.junkbox.backend.dto.response.UserResponse;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.service.UserServiceImp;
 import com.junkbox.backend.util.JwtUtil;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
-@RestController
-@RequestMapping("/auth/u")
-public class UserController {
-private final UserServiceImp userServiceImp;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-    public UserController(UserServiceImp userServiceImp, AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserServiceImp userServiceImp1) {
-        this.userServiceImp = userServiceImp1;
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    private final UserServiceImp userServiceImp;
+    private final JwtUtil jwtUtil;
+
+    public UserController(UserServiceImp userServiceImp, JwtUtil jwtUtil) {
+        this.userServiceImp = userServiceImp;
+        this.jwtUtil = jwtUtil;
     }
+
+    // UPDATE USER
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUserDetails(@PathVariable Long id, @Valid @RequestBody UserDetailsRequest request) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateUserDetails(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
 
         try {
 
-            UserDetailsResponse response = userServiceImp.updateDetails(id, request);
+            UserResponse response = userServiceImp.updateDetails(id, request);
 
             return ResponseEntity.ok(response);
 
@@ -48,15 +46,18 @@ private final UserServiceImp userServiceImp;
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update user");
         }
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getItemById(@PathVariable Long id) {
+
+    // GET USER BY ID
+    @GetMapping("/id/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
 
         try {
 
-            UserDetailsResponse response = userServiceImp.getItemById(id);
+            UserResponse response = userServiceImp.getUserById(id);
 
             return ResponseEntity.ok(response);
 
@@ -66,18 +67,40 @@ private final UserServiceImp userServiceImp;
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch user");
         }
     }
-    // DELETE CATEGORY
+
+    @GetMapping("/token")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getUserByToken(@RequestHeader("Authorization") String authHeader) {
+
+        try {
+            String token = authHeader.substring(7); // remove "Bearer "
+            String username = jwtUtil.extractUsername(token);
+
+            UserResponse response = userServiceImp.getUserByUsername(username);
+
+            return ResponseEntity.ok(response);
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch user " + e.getMessage());
+        }
+    }
+
+    // DELETE USER
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
 
         try {
 
-            userServiceImp.deleteItem(id);
+            userServiceImp.deleteUser(id);
 
-            return ResponseEntity.ok("Category deleted successfully");
+            return ResponseEntity.ok("User deleted successfully");
 
         } catch (ResourceNotFoundException e) {
 
@@ -85,8 +108,7 @@ private final UserServiceImp userServiceImp;
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete user");
         }
     }
-
 }

@@ -1,6 +1,5 @@
 package com.junkbox.backend.dto.request;
 
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -19,10 +18,8 @@ public class AddressRequest {
     @NotBlank(message = "City is required")
     private String city;
 
-    @NotBlank(message = "State is required")
     private String state;
 
-    @NotBlank(message = "Zip is required")
     private String zip;
 
     @NotBlank(message = "Country is required")
@@ -31,7 +28,6 @@ public class AddressRequest {
     @NotBlank(message = "Receiver first name is required")
     private String receiverFirstName;
 
-    @NotBlank(message = "Receiver last name is required")
     private String receiverLastName;
 
     @NotBlank(message = "Receiver phone is required")

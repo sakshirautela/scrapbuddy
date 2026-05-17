@@ -33,7 +33,6 @@ public class User {
     private String phone;
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean verified = false;
-    private String token;
     private String tokenExpiration;
     private  String firstName;
     private String lastName;

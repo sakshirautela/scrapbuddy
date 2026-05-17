@@ -1,8 +1,8 @@
 package com.junkbox.backend.dto.response;
 
-
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -13,9 +13,11 @@ public class CategoryResponse {
 
     private String category;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdDateTime;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedDateTime;
 
     private Long createdUserID;
+
+    private Long updatedCategoryID;
 }
