@@ -1,126 +1,95 @@
 package com.junkbox.backend.controller;
 
-import com.junkbox.backend.dto.request.OderRequest;
+import com.junkbox.backend.dto.request.OrderRequest;
 import com.junkbox.backend.dto.response.OrderResponse;
-import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.service.OrderService;
 
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/auth/api/schedule")
+@RequestMapping("/api/orders")
+@RequiredArgsConstructor
 public class PickupScheduleController {
 
     private final OrderService orderService;
 
-    public PickupScheduleController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+    // CREATE ORDER / SCHEDULE PICKUP
+    @PostMapping
+    public ResponseEntity<OrderResponse> createOrder(
+            @Valid @RequestBody OrderRequest request) {
 
-    // CREATE ORDER
-    @PostMapping("/new")
-    public ResponseEntity<?> schedulePickup(@Valid @RequestBody OderRequest request) {
+        OrderResponse response =
+                orderService.createOrder(request);
 
-        try {
-
-            OrderResponse response = orderService.createOrder(request);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity.badRequest().body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to schedule pickup");
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     // GET ORDER BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> getSchedule(@PathVariable Long id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponse> getOrderById(
+            @PathVariable Long id) {
 
-        try {
+        OrderResponse response =
+                orderService.getOrderById(id);
 
-            OrderResponse response = orderService.getOrderById(id);
-
-            return ResponseEntity.ok(response);
-
-        } catch (ResourceNotFoundException e) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to retrieve schedule");
-        }
+        return ResponseEntity.ok(response);
     }
 
     // UPDATE ORDER
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateSchedulePickup(@PathVariable Long id, @Valid @RequestBody OderRequest request) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponse> updateOrder(
+            @PathVariable Long id,
+            @Valid @RequestBody OrderRequest request) {
 
-        try {
+        OrderResponse response =
+                orderService.updateOrder(id, request);
 
-            OrderResponse response = orderService.updateOrder(id, request);
-
-            return ResponseEntity.ok(response);
-
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity.badRequest().body(e.getMessage());
-
-        } catch (ResourceNotFoundException e) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update pickup");
-        }
+        return ResponseEntity.ok(response);
     }
 
-    // DELETE ORDER
+    // DELETE / CANCEL ORDER
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelPickup(@PathVariable Long id) {
+    public ResponseEntity<String> cancelOrder(
+            @PathVariable Long id) {
 
-        try {
+        orderService.deleteOrder(id);
 
-            orderService.deleteOrder(id);
-
-            return ResponseEntity.ok("Pickup cancelled successfully");
-
-        } catch (ResourceNotFoundException e) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to cancel pickup");
-        }
+        return ResponseEntity.ok("Pickup cancelled successfully");
     }
 
     // GET ALL ORDERS
-    @GetMapping("/getPickups")
-    public ResponseEntity<?> getAllSchedulePickups() {
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
 
-        try {
+        List<OrderResponse> orders =
+                orderService.getAllOrders();
 
-            List<OrderResponse> orders = orderService.getAllOrders();
-
-            return ResponseEntity.ok(orders);
-
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch pickups");
+        return ResponseEntity.ok(orders);
+    }
+    @GetMapping("/orderByUser/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<OrderResponse>> getAllOrderByUser(@PathVariable Long id) {
+        try{
+            return ResponseEntity.ok(orderService.getAllOrderByUser(id));
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().build();
         }
     }
 }

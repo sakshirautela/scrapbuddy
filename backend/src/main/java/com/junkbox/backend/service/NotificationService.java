@@ -14,7 +14,7 @@ import java.util.Optional;
 public class NotificationService {
 
     private  final JavaMailSender mailSender;
-private final UserRepository userRepository;
+    private final UserRepository userRepository;
     public NotificationService(JavaMailSender mailSender, UserRepository userRepository) {
         this.mailSender = mailSender;
         this.userRepository = userRepository;

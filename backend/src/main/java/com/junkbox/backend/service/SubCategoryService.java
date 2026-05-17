@@ -6,100 +6,138 @@ import com.junkbox.backend.entity.SubCategories;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.CategoriesRepo;
 import com.junkbox.backend.repository.SubCategoryRepo;
+
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class SubCategoryService {
+
     private final CategoriesRepo categoriesRepo;
     private final SubCategoryRepo subCategoryRepo;
 
     public SubCategoryService(CategoriesRepo categoriesRepo, SubCategoryRepo subCategoryRepo) {
+
         this.categoriesRepo = categoriesRepo;
         this.subCategoryRepo = subCategoryRepo;
     }
 
-    // CREATE
-    public SubCategoryResponse createItemSubCategory(SubCategoryRequest request) {
+    // CREATE SUBCATEGORY
+    public SubCategoryResponse createSubCategory(SubCategoryRequest request) {
 
-        validateRequestItem(request);
+        validateRequest(request);
+
         SubCategories subCategory = new SubCategories();
-        subCategory.setSubCategory(request.getSubCategory());
-        subCategory.setPrice(request.getPrice());
-        subCategory.setCategoryId(request.getCategoryId());
+
+        mapRequestToEntity(request, subCategory);
+
         subCategory.setSubCreatedUserID(request.getUserId());
-        subCategory.setUpdatedDateTime(LocalDateTime.now());
-        SubCategories savedItem = subCategoryRepo.save(subCategory);
 
-        return mapToResponse(savedItem);
+        subCategory.setCreatedDateTime(LocalDateTime.now());
+
+        SubCategories savedSubCategory = subCategoryRepo.save(subCategory);
+
+        return mapToResponse(savedSubCategory);
     }
 
-    // DELETE
-    public boolean deleteItem(Long itemId) {
+    // GET ALL SUBCATEGORIES
+    public List<SubCategoryResponse> getAllSubCategories() {
 
-        SubCategories item = subCategoryRepo.findById(itemId).orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
-
-        subCategoryRepo.delete(item);
-
-        return true;
-    }
-
-    // UPDATE
-    public SubCategoryResponse updateItem(Long id, SubCategoryRequest request) {
-
-        validateRequestItem(request);
-
-        SubCategories item = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + id));
-         item.setCategoryId(request.getCategoryId());
-        item.setSubCategory(request.getSubCategory());
-        item.setPrice(request.getPrice());
-        item.setCategoryId(request.getCategoryId());
-        item.setUpdatedDateTime(LocalDateTime.now());
-        item.setUpdatedSubCategoryID(request.getUserId());
-        SubCategories updatedItem = subCategoryRepo.save(item);
-
-        return mapToResponse(updatedItem);
-    }
-
-    // GET ALL
-    public List<SubCategoryResponse> getAllItems() {
         return subCategoryRepo.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // GET BY ID
-    public SubCategoryResponse getItemById(Long id) {
+    // GET SUBCATEGORY BY ID
+    public SubCategoryResponse getSubCategoryById(Long id) {
 
-        SubCategories item = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + id));
+        SubCategories subCategory = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
 
-        return mapToResponse(item);
+        return mapToResponse(subCategory);
+    }
+
+    // GET SUBCATEGORIES BY CATEGORY ID
+    public List<SubCategories> getSubCategoryByCategoryId(Long categoryId) {
+
+        return subCategoryRepo.findAllByCategoryId(categoryId);
+    }
+
+    // UPDATE SUBCATEGORY
+    public SubCategoryResponse updateSubCategory(Long id, SubCategoryRequest request) {
+
+        validateRequest(request);
+
+        SubCategories subCategory = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
+
+        mapRequestToEntity(request, subCategory);
+
+        subCategory.setUpdatedSubCategoryID(request.getUserId());
+
+        subCategory.setUpdatedDateTime(LocalDateTime.now());
+
+        SubCategories updatedSubCategory = subCategoryRepo.save(subCategory);
+
+        return mapToResponse(updatedSubCategory);
+    }
+
+    // DELETE SUBCATEGORY
+    public void deleteSubCategory(Long id) {
+
+        SubCategories subCategory = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
+
+        subCategoryRepo.delete(subCategory);
     }
 
     // VALIDATION
-    private void validateRequestItem(SubCategoryRequest request) {
+    private void validateRequest(SubCategoryRequest request) {
 
         if (request == null) {
-            throw new IllegalArgumentException("Request cannot be null");
+            throw new IllegalArgumentException("SubCategory request cannot be null");
         }
+
+        if (request.getCategoryId() == null) {
+            throw new IllegalArgumentException("Category ID is required");
+        }
+
         if (categoriesRepo.findById(request.getCategoryId()).isEmpty()) {
-            throw new IllegalArgumentException("Category not found");
+            throw new IllegalArgumentException("Category not found with ID: " + request.getCategoryId());
         }
+
         if (request.getSubCategory() == null || request.getSubCategory().trim().isEmpty()) {
 
-            throw new IllegalArgumentException("SubCategory cannot be empty");
+            throw new IllegalArgumentException("SubCategory name cannot be empty");
+        }
+
+        if ( request.getPrice() <= 0) {
+
+            throw new IllegalArgumentException("Price must be greater than 0");
         }
     }
 
-    // ENTITY -> RESPONSE DTO
-    private SubCategoryResponse mapToResponse(SubCategories item) {
+    // MAP REQUEST DTO -> ENTITY
+    private void mapRequestToEntity(SubCategoryRequest request, SubCategories subCategory) {
+
+        subCategory.setSubCategory(request.getSubCategory());
+
+        subCategory.setCategoryId(request.getCategoryId());
+
+        subCategory.setPrice(request.getPrice());
+    }
+
+    // MAP ENTITY -> RESPONSE DTO
+    private SubCategoryResponse mapToResponse(SubCategories subCategory) {
 
         SubCategoryResponse response = new SubCategoryResponse();
 
-        response.setId(item.getId());
-        response.setSubCategory(item.getSubCategory());
-        response.setCategoryId(item.getCategoryId());
-        response.setPrice(item.getPrice());
+        response.setId(subCategory.getId());
+
+        response.setSubCategory(subCategory.getSubCategory());
+
+        response.setCategoryId(subCategory.getCategoryId());
+
+        response.setPrice(subCategory.getPrice());
+
         return response;
     }
 }

@@ -4,31 +4,34 @@ import com.junkbox.backend.dto.request.SubCategoryRequest;
 import com.junkbox.backend.dto.response.SubCategoryResponse;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.service.SubCategoryService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/auth/api/subcategories")
+@RequestMapping("/api/subcategories")
 public class SubCategoryController {
 
     private final SubCategoryService subCategoryService;
 
-    public SubCategoryController(SubCategoryService itemService) {
-        this.subCategoryService = itemService;
+    public SubCategoryController(SubCategoryService subCategoryService) {
+        this.subCategoryService = subCategoryService;
     }
 
-    // CREATE CATEGORY
+    // CREATE SUBCATEGORY
     @PostMapping
-    public ResponseEntity<?> createItem(@Valid @RequestBody SubCategoryRequest request) {
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<?> createSubCategory(@Valid @RequestBody SubCategoryRequest request) {
 
         try {
 
-            SubCategoryResponse response = subCategoryService.createItemSubCategory(request);
+            SubCategoryResponse response = subCategoryService.createSubCategory(request);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -38,33 +41,33 @@ public class SubCategoryController {
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create subcategory");
         }
     }
 
-    // GET ALL CATEGORIES
+    // GET ALL SUBCATEGORIES
     @GetMapping
-    public ResponseEntity<?> getAllItems() {
+    public ResponseEntity<?> getAllSubCategories() {
 
         try {
 
-            List<SubCategoryResponse> items = subCategoryService.getAllItems();
+            List<SubCategoryResponse> items = subCategoryService.getAllSubCategories();
 
             return ResponseEntity.ok(items);
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch categories");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch subcategories");
         }
     }
 
-    // GET CATEGORY BY ID
+    // GET SUBCATEGORY BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> getItemById(@PathVariable Long id) {
+    public ResponseEntity<?> getSubCategoryById(@PathVariable Long id) {
 
         try {
 
-            SubCategoryResponse response = subCategoryService.getItemById(id);
+            SubCategoryResponse response = subCategoryService.getSubCategoryById(id);
 
             return ResponseEntity.ok(response);
 
@@ -74,17 +77,18 @@ public class SubCategoryController {
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch subcategory");
         }
     }
 
-    // UPDATE CATEGORY
+    // UPDATE SUBCATEGORY
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateItem(@PathVariable Long id, @Valid @RequestBody SubCategoryRequest request) {
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<?> updateSubCategory(@PathVariable Long id, @Valid @RequestBody SubCategoryRequest request) {
 
         try {
 
-            SubCategoryResponse response = subCategoryService.updateItem(id, request);
+            SubCategoryResponse response = subCategoryService.updateSubCategory(id, request);
 
             return ResponseEntity.ok(response);
 
@@ -98,19 +102,20 @@ public class SubCategoryController {
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update subcategory");
         }
     }
 
-    // DELETE CATEGORY
+    // DELETE SUBCATEGORY
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteItem(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<?> deleteSubCategory(@PathVariable Long id) {
 
         try {
 
-            subCategoryService.deleteItem(id);
+            subCategoryService.deleteSubCategory(id);
 
-            return ResponseEntity.ok("Category deleted successfully");
+            return ResponseEntity.ok("Subcategory deleted successfully");
 
         } catch (ResourceNotFoundException e) {
 
@@ -118,7 +123,7 @@ public class SubCategoryController {
 
         } catch (Exception e) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete category");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete subcategory");
         }
     }
 }

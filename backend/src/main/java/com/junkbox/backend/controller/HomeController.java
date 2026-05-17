@@ -12,7 +12,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/")
 public class HomeController {
-
     @GetMapping
     public ResponseEntity<Map<String, Object>> home() {
         Map<String, Object> response = new HashMap<>();
@@ -29,7 +28,6 @@ public class HomeController {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "JunkBox Backend");
-
         return ResponseEntity.ok(response);
     }
 }

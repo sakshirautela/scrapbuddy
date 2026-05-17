@@ -15,23 +15,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "categories")
 @EntityListeners(AuditingEntityListener.class)
-//    @Column(length = 32)
-    //    @GeneratedValue(generator = "uuid2")
-//    @GeneratedValue(strategy = GenerationType.UUID)
 public class Categories {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String category;
-//    @CreatedDate
-//    @Column(updatable = false)
-//    private LocalDateTime createdDateTime;
-//
-//    @LastModifiedDate
-//    private LocalDateTime updatedDateTime;
-@CreatedDate
-@Column(name = "created_date_time", updatable = false)
-private LocalDateTime createdDateTime;
+    @CreatedDate
+    @Column(name = "created_date_time", updatable = false)
+    private LocalDateTime createdDateTime;
 
     @LastModifiedDate
     @Column(name = "updated_date_time")
