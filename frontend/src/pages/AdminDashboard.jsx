@@ -1,339 +1,115 @@
-import '../styles/AdminDashboard.css';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import apiClient from "../utils/apiClient";
+import "../styles/AdminDashboard.css";
 
-import React, { useState } from "react";
+const AdminDashboard = () => {
+  const navigate = useNavigate();
 
-export default function AdminDashboard() {
-  const [activeModule, setActiveModule] = useState("products");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-  const [products, setProducts] = useState([
-    { id: 1, subId: "A101", name: "Laptop", price: 55000 },
-    { id: 2, subId: "B202", name: "Phone", price: 25000 },
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [addresses, setAddresses] = useState([]);
 
-  const [orders] = useState([
-    {
-      orderId: 1001,
-      customer: "Rahul",
-      total: 78000,
-      status: "Delivered",
-    },
-    {
-      orderId: 1002,
-      customer: "Priya",
-      total: 25000,
-      status: "Pending",
-    },
-  ]);
+  const user = JSON.parse(localStorage.getItem("user")) || null;
 
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "Admin",
-      email: "admin@example.com",
-      role: "Admin",
-    },
-    {
-      id: 2,
-      name: "User",
-      email: "user@example.com",
-      role: "Customer",
-    },
-  ]);
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
-  const [form, setForm] = useState({
-    id: "",
-    subId: "",
-    name: "",
-    price: "",
-  });
-
-  const [editingId, setEditingId] = useState(null);
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const addOrUpdateProduct = () => {
-    if (!form.id || !form.subId || !form.name || !form.price) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    if (editingId !== null) {
-      setProducts(
-        products.map((product) =>
-          product.id === editingId
-            ? {
-                id: Number(form.id),
-                subId: form.subId,
-                name: form.name,
-                price: Number(form.price),
-              }
-            : product
-        )
-      );
-
-      setEditingId(null);
-    } else {
-      setProducts([
-        ...products,
-        {
-          id: Number(form.id),
-          subId: form.subId,
-          name: form.name,
-          price: Number(form.price),
-        },
+  const fetchAll = async () => {
+    try {
+      const [o, c, ci, a] = await Promise.all([
+        apiClient.get("/api/orders"),
+        apiClient.get("/api/categories"),
+        apiClient.get("/api/cities"),
+        apiClient.get("/api/addresses"),
       ]);
+
+      setOrders(o.data);
+      setCategories(c.data);
+      setCities(ci.data);
+      setAddresses(a.data);
+    } catch (err) {
+      console.error(err);
     }
-
-    setForm({
-      id: "",
-      subId: "",
-      name: "",
-      price: "",
-    });
-  };
-
-  const editProduct = (product) => {
-    setEditingId(product.id);
-
-    setForm({
-      id: product.id,
-      subId: product.subId,
-      name: product.name,
-      price: product.price,
-    });
-  };
-
-  const deleteProduct = (id) => {
-    setProducts(products.filter((product) => product.id !== id));
-  };
-
-  const deleteUser = (id) => {
-    setUsers(users.filter((user) => user.id !== id));
-  };
-
-  const createUser = () => {
-    const name = prompt("Enter user name");
-    const email = prompt("Enter email");
-    const role = prompt("Enter role");
-
-    if (!name || !email || !role) return;
-
-    setUsers([
-      ...users,
-      {
-        id: users.length + 1,
-        name,
-        email,
-        role,
-      },
-    ]);
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-layout">
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside className="sidebar">
-        <h2 className="logo">Admin Panel</h2>
+        <h2 className="logo">♻ SCRAP ADMIN</h2>
 
-        <ul className="menu">
-          <li
-            className={activeModule === "products" ? "active" : ""}
-            onClick={() => setActiveModule("products")}
-          >
-            Products
-          </li>
+        <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
+        <button onClick={() => setActiveTab("orders")}>Orders</button>
+        <button onClick={() => setActiveTab("categories")}>Categories</button>
+        <button onClick={() => setActiveTab("cities")}>Cities</button>
+        <button onClick={() => setActiveTab("addresses")}>Addresses</button>
 
-          <li
-            className={activeModule === "orders" ? "active" : ""}
-            onClick={() => setActiveModule("orders")}
-          >
-            Orders
-          </li>
-
-          <li
-            className={activeModule === "users" ? "active" : ""}
-            onClick={() => setActiveModule("users")}
-          >
-            Users
-          </li>
-
-          <li className="submenu-title">Submodules</li>
-
-          <li
-            className={activeModule === "analytics" ? "active" : ""}
-            onClick={() => setActiveModule("analytics")}
-          >
-            Analytics
-          </li>
-
-          <li
-            className={activeModule === "reports" ? "active" : ""}
-            onClick={() => setActiveModule("reports")}
-          >
-            Reports
-          </li>
-        </ul>
+        <button className="logout" onClick={() => navigate("/")}>
+          Logout
+        </button>
       </aside>
 
-      {/* Main Content */}
-      <main className="dashboard-content">
+      {/* MAIN */}
+      <main className="main">
 
-        {/* Header */}
-        <div className="topbar">
-          <h1>Admin Dashboard</h1>
-        </div>
+        {/* DASHBOARD */}
+        {activeTab === "dashboard" && (
+          <div className="cards">
 
-        {/* PRODUCTS */}
-        {activeModule === "products" && (
-          <div className="card">
-            <h2>Product Management</h2>
-
-            <div className="form-grid">
-              <input
-                type="number"
-                name="id"
-                placeholder="Product ID"
-                value={form.id}
-                onChange={handleChange}
-              />
-
-              <input
-                type="text"
-                name="subId"
-                placeholder="Sub ID"
-                value={form.subId}
-                onChange={handleChange}
-              />
-
-              <input
-                type="text"
-                name="name"
-                placeholder="Product Name"
-                value={form.name}
-                onChange={handleChange}
-              />
-
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                value={form.price}
-                onChange={handleChange}
-              />
-
-              <button onClick={addOrUpdateProduct}>
-                {editingId ? "Update Product" : "Add Product"}
-              </button>
+            <div className="card">
+              <h3>Total Orders</h3>
+              <p>{orders.length}</p>
             </div>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Sub ID</th>
-                  <th>Name</th>
-                  <th>Price</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
+            <div className="card">
+              <h3>Categories</h3>
+              <p>{categories.length}</p>
+            </div>
 
-              <tbody>
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td>{product.id}</td>
-                    <td>{product.subId}</td>
-                    <td>{product.name}</td>
-                    <td>₹{product.price}</td>
+            <div className="card">
+              <h3>Cities</h3>
+              <p>{cities.length}</p>
+            </div>
 
-                    <td>
-                      <button onClick={() => editProduct(product)}>
-                        Edit
-                      </button>
+            <div className="card">
+              <h3>Addresses</h3>
+              <p>{addresses.length}</p>
+            </div>
 
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteProduct(product.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
 
         {/* ORDERS */}
-        {activeModule === "orders" && (
-          <div className="card">
+        {activeTab === "orders" && (
+          <div className="table-box">
             <h2>Orders</h2>
 
             <table>
               <thead>
                 <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Total</th>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>City</th>
                   <th>Status</th>
                 </tr>
               </thead>
 
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.orderId}>
-                    <td>{order.orderId}</td>
-                    <td>{order.customer}</td>
-                    <td>₹{order.total}</td>
-                    <td>{order.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* USERS */}
-        {activeModule === "users" && (
-          <div className="card">
-            <div className="user-header">
-              <h2>Users</h2>
-
-              <button onClick={createUser}>Create User</button>
-            </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>{user.role}</td>
-
+                {orders.map((o) => (
+                  <tr key={o.id}>
+                    <td>{o.id}</td>
+                    <td>{o.customerName}</td>
+                    <td>{o.city}</td>
                     <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteUser(user.id)}
-                      >
-                        Delete
-                      </button>
+                      <span className={`status ${o.status?.toLowerCase()}`}>
+                        {o.status}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -342,22 +118,64 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* ANALYTICS */}
-        {activeModule === "analytics" && (
-          <div className="card">
-            <h2>Analytics Module</h2>
-            <p>Analytics data and charts will appear here.</p>
+        {/* CATEGORIES */}
+        {activeTab === "categories" && (
+          <div className="grid">
+            <h2>Categories</h2>
+
+            {categories.map((c) => (
+              <div key={c.id} className="card-item">
+                <h3>{c.name}</h3>
+                <p>{c.description}</p>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* REPORTS */}
-        {activeModule === "reports" && (
-          <div className="card">
-            <h2>Reports Module</h2>
-            <p>Reports and exports will appear here.</p>
+        {/* CITIES */}
+        {activeTab === "cities" && (
+          <div className="grid">
+            <h2>Cities</h2>
+
+            {cities.map((city) => (
+              <div key={city.id} className="card-item">
+                <h3>{city.name}</h3>
+                <p>{city.description}</p>
+              </div>
+            ))}
           </div>
         )}
+
+        {/* ADDRESSES */}
+        {activeTab === "addresses" && (
+          <div className="table-box">
+            <h2>Addresses</h2>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Street</th>
+                  <th>City</th>
+                  <th>Zip</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {addresses.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.street}</td>
+                    <td>{a.city}</td>
+                    <td>{a.zipCode}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
       </main>
     </div>
   );
-}
+};
+
+export default AdminDashboard;

@@ -42,7 +42,7 @@ function Login() {
       if (userRole === 'admin' || userRole === 'superadmin' || userRole === 'super_admin') {
         navigate('/admin');
       } else if (userRole === 'user') {
-        navigate('/user');
+        navigate('/');
       } else {
         // Default redirect if role is not recognized
         navigate('/');

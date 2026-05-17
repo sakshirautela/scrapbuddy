@@ -1,62 +1,137 @@
-import axios from 'axios';
+// src/api/orderApi.js
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import apiClient from "./apiClient";
 
 const orderApi = {
+
+  // GET ALL ORDERS
   getOrders: async (params = {}) => {
     try {
-      const queryString = new URLSearchParams(params).toString();
-      const response = await axios.get(`${API_BASE_URL}/orders?${queryString}`);
+
+      const queryString =
+        new URLSearchParams(params).toString();
+
+      const response = await apiClient.get(
+        `/orders?${queryString}`
+      );
+
       return response.data;
+
     } catch (error) {
-      throw error.response?.data || error.message;
+
+      throw (
+        error.response?.data ||
+        error.message
+      );
+
     }
   },
 
+  // GET ORDER BY ID
   getOrderById: async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
+
+      const response =
+        await apiClient.get(`/orders/${id}`);
+
       return response.data;
+
     } catch (error) {
-      throw error.response?.data || error.message;
+
+      throw (
+        error.response?.data ||
+        error.message
+      );
+
     }
   },
 
+  // GET ORDERS BY USER
+  getOrdersByUser: async (id) => {
+    try {
+
+      const response =
+        await apiClient.get(
+          `/orders/orderByUser/${id}`
+        );
+
+      return response.data;
+
+    } catch (error) {
+
+      throw (
+        error.response?.data ||
+        error.message
+      );
+
+    }
+  },
+
+  // CREATE ORDER
   createOrder: async (orderData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
+
+      const response =
+        await apiClient.post(
+          "/orders",
+          orderData
+        );
+
       return response.data;
+
     } catch (error) {
-      throw error.response?.data || error.message;
+
+      throw (
+        error.response?.data ||
+        error.message
+      );
+
     }
   },
 
+  // UPDATE ORDER
   updateOrder: async (id, orderData) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/orders/${id}`, orderData);
+
+      const response =
+        await apiClient.put(
+          `/orders/${id}`,
+          orderData
+        );
+
       return response.data;
+
     } catch (error) {
-      throw error.response?.data || error.message;
+
+      throw (
+        error.response?.data ||
+        error.message
+      );
+
     }
   },
 
-  updateOrderStatus: async (id, status) => {
-    try {
-      const response = await axios.put(`${API_BASE_URL}/orders/${id}/status`, { status });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
+  // DELETE ORDER
   deleteOrder: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/orders/${id}`);
+
+      const response =
+        await apiClient.delete(
+          `/orders/${id}`
+        );
+
       return response.data;
+
     } catch (error) {
-      throw error.response?.data || error.message;
+
+      throw (
+        error.response?.data ||
+        error.message
+      );
+
     }
   }
+
 };
 
 export default orderApi;
