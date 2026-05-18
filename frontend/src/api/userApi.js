@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from "./apiInstance";
 
 // UPDATE USER
 export const updateUser = async (id, data) => {

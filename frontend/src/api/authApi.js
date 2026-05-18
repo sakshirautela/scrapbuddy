@@ -1,44 +1,65 @@
 import apiClient from '../utils/apiClient';
 
+const splitName = (name = '') => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' ')
+  };
+};
+
 const authApi = {
- login: async (email, password) => {
+ login: async (username, password) => {
   const response = await apiClient.post('/api/auth/login', {
-    username: email,
-    password: password
+    username,
+    password
   });
-console.log("Login response:", response);
   return response.data;
-},  loginWithOtp: async (email, otp) => {
-    const response = await apiClient.post('/api/auth/login-otp', {
-      email,
-      otp
+},
+  loginWithOtp: async (phone, otp) => {
+    const response = await apiClient.post('/api/auth/login-otp', null, {
+      params: { phone, otp }
     });
     return response.data;
   },
 
 
   register: async (userData) => {
-    const response = await apiClient.post('/api/auth/signup', userData);
-    console.log("Registration response:", response);
+    const { firstName, lastName } = splitName(userData.name);
+    const response = await apiClient.post('/api/auth/signup', {
+      username: userData.username || userData.email,
+      password: userData.password,
+      email: userData.email,
+      phone: userData.phone || '',
+      firstName,
+      lastName
+    });
     return response.data;
-  }, sendOtp: async (email) => {
-    const response = await apiClient.post('/api/auth/send-otp', { email });
+  },
+
+  sendLoginOtp: async (phone) => {
+    const response = await apiClient.post('/api/auth/send-login-otp', null, {
+      params: { phone }
+    });
     return response.data;
   },
 
 
   logout: async () => {
-    const response = await apiClient.post('/api/auth/logout');
-    return response.data;
+    return { message: 'Logged out' };
   },
 
   forgotPassword: async (email) => {
-    const response = await apiClient.post('/api/auth/forgot-password', { email });
+    const response = await apiClient.post('/api/auth/password/forgot', {
+      to: email,
+      subject: 'JunkBox password reset',
+      body: 'Password reset requested'
+    });
     return response.data;
   },
 
   resetPassword: async (token, newPassword) => {
-    const response = await apiClient.post('/api/auth/reset-password', {
+    const response = await apiClient.post('/api/auth/password/reset', {
       token,
       newPassword
     });
@@ -46,12 +67,10 @@ console.log("Login response:", response);
     return response.data;
   },
 
-  verifyOtp: async (email, otp) => {
-    const response = await apiClient.post('/api/auth/verify-otp', {
-      email,
-      otp
+  validateResetToken: async (token) => {
+    const response = await apiClient.get('/api/auth/password/validate', {
+      params: { token }
     });
-
     return response.data;
   },
 
@@ -62,7 +81,7 @@ console.log("Login response:", response);
       throw new Error('No token found');
     }
 
-    const response = await apiClient.get('/auth/verify');
+    const response = await apiClient.get('/api/users/token');
     return response.data;
   }
 };

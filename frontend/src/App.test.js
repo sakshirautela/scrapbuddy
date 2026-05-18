@@ -1,8 +1,20 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+jest.mock('react-router-dom', () => ({
+  BrowserRouter: ({ children }) => <div>{children}</div>,
+  Routes: ({ children }) => <div>{children}</div>,
+  Route: ({ element }) => <div>{element}</div>,
+  Navigate: ({ to }) => <div>Navigate to {to}</div>,
+  useNavigate: () => jest.fn(),
+}), { virtual: true });
+
+test('renders JunkBox app', () => {
+  render(
+    <AuthProvider>
+      <App />
+    </AuthProvider>,
+  );
+  expect(screen.getByText(/Online Kabadiwala/i)).toBeInTheDocument();
 });

@@ -26,4 +26,8 @@ public class Address {
     private String receiverPhone;
     private String receiverEmail;
     private String countryCode;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

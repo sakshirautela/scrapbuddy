@@ -65,9 +65,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authApi.register(userData);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
+      if (response.token && response.user) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        setUser(response.user);
+      }
       return response;
     } catch (err) {
       const errorMessage = typeof err === 'string' ? err : err.message || 'Registration failed';

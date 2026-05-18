@@ -4,11 +4,14 @@ import com.junkbox.backend.dto.request.OrderRequest;
 import com.junkbox.backend.dto.response.OrderResponse;
 import com.junkbox.backend.entity.Address;
 import com.junkbox.backend.entity.Orders;
+import com.junkbox.backend.entity.User;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.AddressRepo;
 import com.junkbox.backend.repository.OrdersRepo;
+import com.junkbox.backend.repository.UserRepository;
 
-import jakarta.persistence.criteria.Order;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,10 +24,15 @@ public class OrderService {
 
     private final OrdersRepo ordersRepo;
     private final AddressRepo addressRepo;
+    private final UserRepository userRepository;
 
-    public OrderService(OrdersRepo ordersRepo, AddressRepo addressRepo) {
+    public OrderService(
+            OrdersRepo ordersRepo,
+            AddressRepo addressRepo,
+            UserRepository userRepository) {
         this.ordersRepo = ordersRepo;
         this.addressRepo = addressRepo;
+        this.userRepository = userRepository;
     }
 
     // CREATE ORDER
@@ -37,6 +45,7 @@ public class OrderService {
         mapRequestToEntity(request, order);
 
         order.setStatus(false);
+        order.setCreatedByUserID(getCurrentUserId());
         order.setCreatedDateTime(LocalDateTime.now());
 
         Address savedAddress = addressRepo.save(request.getAddress());
@@ -166,11 +175,24 @@ public class OrderService {
     }
 
     public List<OrderResponse> getAllOrderByUser(Long id) {
-        List<Orders> orders = ordersRepo.findALlByCreatedByUserID(id);
+        List<Orders> orders = ordersRepo.findAllByCreatedByUserIDOrderByCreatedDateTimeDesc(id);
         List<OrderResponse> orderResponses = new ArrayList<>();
         for (Orders order : orders) {
             orderResponses.add(mapToResponse(order));
         }
         return orderResponses;
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getName() == null) {
+            throw new IllegalArgumentException("Authenticated user is required to create order");
+        }
+
+        User user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));
+
+        return user.getId();
     }
 }

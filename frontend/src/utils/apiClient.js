@@ -9,23 +9,33 @@ const apiClient = axios.create({
   }
 });
 
-const PUBLIC_AUTH_ROUTES = [
+const PUBLIC_ROUTES = [
   '/api/auth/login',
-  '/api/signup',
-  '/auth/forgot-password',
-  '/auth/reset-password',
-  '/auth/verify-otp',
-  '/api/auth/refresh-token',
-  '/api/address',
+  '/api/auth/login-otp',
+  '/api/auth/send-login-otp',
+  '/api/auth/signup',
+  '/api/auth/password/forgot',
+  '/api/auth/password/reset',
+  '/api/auth/password/validate',
+];
+
+const PUBLIC_GET_ROUTES = [
+  '/api/categories',
+  '/api/subcategories',
+  '/api/cities',
 ];
 
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     const requestPath = config.url || '';
-    const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.some((route) => requestPath.includes(route));
+    const requestMethod = (config.method || 'get').toLowerCase();
+    const isPublicRoute = PUBLIC_ROUTES.some((route) => requestPath.includes(route));
+    const isPublicGetRoute =
+      requestMethod === 'get' &&
+      PUBLIC_GET_ROUTES.some((route) => requestPath.includes(route));
 
-    if (token && !isPublicAuthRoute) {
+    if (token && !isPublicRoute && !isPublicGetRoute) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -40,9 +50,23 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login'; // Redirect to login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
-    return Promise.reject(error.response?.data || error.message);
+
+    const responseData = error.response?.data;
+    if (typeof responseData === 'string') {
+      return Promise.reject(new Error(responseData));
+    }
+    if (responseData?.error) {
+      return Promise.reject(new Error(responseData.error));
+    }
+    if (responseData?.message) {
+      return Promise.reject(new Error(responseData.message));
+    }
+
+    return Promise.reject(error);
   }
 );
 export default apiClient;

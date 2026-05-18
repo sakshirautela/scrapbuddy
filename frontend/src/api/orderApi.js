@@ -17,6 +17,12 @@ const orderApi = {
     );
   },
 
+  getOrdersByUser: async (userId) => {
+    return await apiClient.get(
+      `/api/orders/orderByUser/${userId}`
+    );
+  },
+
   // DELETE ORDER
   deleteOrder: async (id) => {
     return await apiClient.delete(
