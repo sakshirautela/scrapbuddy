@@ -1,5 +1,4 @@
 import './Alert.css';
-import { X } from 'lucide-react';
 
 function Alert({ type = 'info', message, onClose, dismissible = true }) {
   return (
@@ -12,8 +11,8 @@ function Alert({ type = 'info', message, onClose, dismissible = true }) {
         <span className="alert-message">{message}</span>
       </div>
       {dismissible && onClose && (
-        <button className="alert-close" onClick={onClose}>
-          <X size={18} />
+        <button className="alert-close" type="button" onClick={onClose} aria-label="Close alert">
+          ×
         </button>
       )}
     </div>

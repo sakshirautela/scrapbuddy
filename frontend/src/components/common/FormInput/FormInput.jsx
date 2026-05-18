@@ -1,5 +1,4 @@
 import './FormInput.css';
-import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
 function FormInput({
@@ -48,8 +47,9 @@ function FormInput({
             type="button"
             className="password-toggle"
             onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showPassword ? 'Hide' : 'Show'}
           </button>
         )}
       </div>
