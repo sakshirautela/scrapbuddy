@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import java.sql.Time;
 import java.util.Date;
+import java.util.List;
 
 @Setter
 @Getter
@@ -31,6 +32,7 @@ public class User {
     private String username;
     private String password;
     private String phone;
+    private List<Long> addressID;
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean verified = false;
     private String tokenExpiration;

@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.sql.Time;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,7 +18,7 @@ public class UserResponse {
     private String role;
 
     private String username;
-
+private List<Long> addressID;
     private String phone;
 
     private boolean verified;

@@ -1,20 +1,29 @@
 import React, { useState } from "react";
+
 import {
   Phone,
   Recycle,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+} from "react-router-dom";
 
 import "../styles/DefaultHome.css";
 
-import orderApi from "../api/orderApi";
+import CategoriesWithSubCat
+  from "../components/input/CategoriesWithSubCat";
+
+import AddressForm
+  from "../components/input/Address";
+
+import orderApi
+  from "../api/orderApi";
 
 const DefaultDashboard = () => {
 
   const navigate = useNavigate();
 
-  // SAFE USER PARSE
   let user = null;
 
   try {
@@ -26,119 +35,242 @@ const DefaultDashboard = () => {
       storedUser &&
       storedUser !== "undefined"
     ) {
+
       user = JSON.parse(storedUser);
+
     }
 
   } catch (error) {
+
     console.error(error);
+
   }
 
-  // STATES
-  const [activeStep, setActiveStep] =
+  // STEPS
+  const [activeStep,
+    setActiveStep] =
     useState(0);
 
-  const [steps] = useState([
+  const steps = [
     "Product",
     "Mobile No.",
     "Address",
     "Schedule",
-  ]);
+  ];
 
-  const [cities] = useState([
+  // CITY
+  const [city,
+    setCity] =
+    useState("");
+
+  const cities = [
     "DELHI",
     "HARYANA",
     "UTTAR PRADESH",
-  ]);
+  ];
 
-  const [city, setCity] = useState("");
-
-  const [categories] = useState([
-    {
-      id: 1,
-      title: "Plastic",
-    },
-    {
-      id: 2,
-      title: "Paper",
-    },
-    {
-      id: 3,
-      title: "Metal",
-    },
-  ]);
-
-  // ORDER FORM STATE
-  const [orderData, setOrderData] =
+  // ORDER DATA
+  const [orderData,
+    setOrderData] =
     useState({
+
       categoryID: "",
+
+      subCategoryID: "",
+
       phone: "",
-      address: "",
+
+      address: null,
+
       pickupDate: "",
+
       pickupTime: "",
+
     });
 
-  // HANDLE INPUT CHANGE
+  // INPUT CHANGE
   const handleChange = (e) => {
 
     setOrderData({
+
       ...orderData,
-      [e.target.name]: e.target.value,
+
+      [e.target.name]:
+        e.target.value,
+
     });
 
   };
 
-  // SUBMIT ORDER
-  const handleSubmitOrder = async () => {
+  // CATEGORY SELECT
+  const handleCategorySelect = (
+    data
+  ) => {
 
-    try {
+    console.log("CATEGORY DATA:", data);
 
-      const payload = {
+    setOrderData((prev) => ({
 
-        status: true,
+      ...prev,
 
-        pickupDate:
-          `${orderData.pickupDate}T${orderData.pickupTime}:00`,
+      categoryID:
+        data.categoryID,
 
-        addressID: 1,
+      subCategoryID:
+        data.subCategoryID,
 
-        userId: user?.id,
+    }));
 
-        categoryID:
-          orderData.categoryID,
-
-        subCategoryID: 1,
-      };
-
-      console.log(payload);
-
-      await orderApi.createOrder(
-        payload
-      );
-
-      alert(
-        "Pickup scheduled successfully"
-      );
-
-      setOrderData({
-        categoryID: "",
-        phone: "",
-        address: "",
-        pickupDate: "",
-        pickupTime: "",
-      });
-
-      setActiveStep(0);
-
-    } catch (error) {
-
-      console.error(error);
-
-      alert(
-        "Failed to schedule pickup"
-      );
-
-    }
   };
+
+  // ADDRESS SELECT
+  const handleAddressSelect = (
+    address
+  ) => {
+
+
+    setOrderData((prev) => ({
+
+      ...prev,
+
+      address: address,
+
+    }));
+
+  };
+
+  // CREATE ORDER
+  const handleSubmitOrder =
+    async () => {
+
+      try {
+
+        if (
+          !orderData.categoryID
+        ) {
+
+          alert(
+            "Select category"
+          );
+
+          return;
+
+        }
+
+        if (
+          !orderData.subCategoryID
+        ) {
+
+          alert(
+            "Select subcategory"
+          );
+
+          return;
+
+        }
+
+        if (
+          !orderData.phone
+        ) {
+
+          alert(
+            "Enter mobile number"
+          );
+
+          return;
+
+        }
+
+        if (
+          !orderData.address
+        ) {
+
+          alert(
+            "Select address"
+          );
+
+          return;
+
+        }
+
+        if (
+          !orderData.pickupDate ||
+          !orderData.pickupTime
+        ) {
+
+          alert(
+            "Select pickup date & time"
+          );
+
+          return;
+
+        }
+
+        // PAYLOAD
+        const payload = {
+
+          status: true,
+
+          pickupDate:
+            `${orderData.pickupDate}T${orderData.pickupTime}:00`,
+
+          address:
+            orderData.address,
+
+          categoryID:
+            Number(
+              orderData.categoryID
+            ),
+
+          subCategoryID:
+            Number(
+              orderData.subCategoryID
+            ),
+
+        };
+
+        console.log(
+          "ORDER PAYLOAD:",
+          payload
+        );
+
+        await orderApi.createOrder(
+          payload
+        );
+
+        alert(
+          "Pickup Scheduled Successfully"
+        );
+
+        // RESET
+        setOrderData({
+
+          categoryID: "",
+
+          subCategoryID: "",
+
+          phone: "",
+
+          address: null,
+
+          pickupDate: "",
+
+          pickupTime: "",
+
+        });
+
+        setActiveStep(0);
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Failed to create order"
+        );
+
+      }
+    };
 
   return (
 
@@ -154,6 +286,7 @@ const DefaultDashboard = () => {
           </div>
 
           <div>
+
             <h1 className="logo-title">
               SCRAP
             </h1>
@@ -161,21 +294,32 @@ const DefaultDashboard = () => {
             <p className="logo-subtitle">
               Online Kabadiwala
             </p>
+
           </div>
 
         </div>
 
         <div className="nav-links">
 
-          <a href="/">Home</a>
+          <a href="/">
+            Home
+          </a>
 
-          <a href="/">Why Us?</a>
+          <a href="/">
+            Why Us?
+          </a>
 
-          <a href="/">Scrap Rates</a>
+          <a href="/">
+            Scrap Rates
+          </a>
 
-          <a href="/">Services</a>
+          <a href="/">
+            Services
+          </a>
 
-          <a href="/">Contact</a>
+          <a href="/">
+            Contact
+          </a>
 
         </div>
 
@@ -202,7 +346,10 @@ const DefaultDashboard = () => {
                 navigate("/user")
               }
             >
-              {user?.username || "User"}
+
+              {user?.username ||
+                "User"}
+
             </button>
 
           ) : (
@@ -213,7 +360,9 @@ const DefaultDashboard = () => {
                 navigate("/login")
               }
             >
+
               Login
+
             </button>
 
           )}
@@ -222,56 +371,71 @@ const DefaultDashboard = () => {
 
       </nav>
 
-      {/* HERO SECTION */}
+      {/* HERO */}
       <section className="hero-section">
 
         <div className="hero-content">
 
           <h2>
+
             SELL YOUR{" "}
-            <span>SCRAP</span> HERE !
+
+            <span>
+              SCRAP
+            </span>
+
+            {" "}HERE !
+
           </h2>
 
           <p>
-            Plastic - Newspaper -
-            Electronics - Many More
+
+            Plastic -
+            Newspaper -
+            Electronics -
+            Many More
+
           </p>
 
         </div>
 
-        {/* CITY SECTION */}
+        {/* CITIES */}
         <div className="cities">
 
-          {cities.map((c, index) => (
+          {cities.map(
+            (c, index) => (
 
-            <div
-              key={index}
-              className="city-card"
-            >
-
-              <button
-                className={`city-btn ${
-                  city === c
-                    ? "active-step"
-                    : ""
-                }`}
-                onClick={() =>
-                  setCity(c)
-                }
+              <div
+                key={index}
+                className="city-card"
               >
-                {c}
-              </button>
 
-            </div>
+                <button
+                  className={`city-btn ${
+                    city === c
+                      ? "active-step"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setCity(c)
+                  }
+                >
 
-          ))}
+                  {c}
+
+                </button>
+
+              </div>
+
+            )
+          )}
 
         </div>
 
         {/* MAIN CARD */}
         <div className="main-card">
 
-          {/* STEP NAVIGATION */}
+          {/* STEPS */}
           <div className="steps-box">
 
             {steps.map(
@@ -292,10 +456,14 @@ const DefaultDashboard = () => {
                         : ""
                     }`}
                   >
+
                     0{index + 1}
+
                   </div>
 
-                  <p>{step}</p>
+                  <p>
+                    {step}
+                  </p>
 
                 </div>
 
@@ -316,34 +484,22 @@ const DefaultDashboard = () => {
                   Select Product
                 </h2>
 
-                <div className="product-buttons">
+                <CategoriesWithSubCat
+                  onSelect={
+                    handleCategorySelect
+                  }
+                />
 
-                  {categories.map(
-                    (category) => (
+                <button
+                  className="next-btn"
+                  onClick={() =>
+                    setActiveStep(1)
+                  }
+                >
 
-                      <button
-                        key={category.id}
-                        className={
-                          orderData.categoryID ===
-                          category.id
-                            ? "active-product"
-                            : ""
-                        }
-                        onClick={() =>
-                          setOrderData({
-                            ...orderData,
-                            categoryID:
-                              category.id,
-                          })
-                        }
-                      >
-                        {category.title}
-                      </button>
+                  Next
 
-                    )
-                  )}
-
-                </div>
+                </button>
 
               </div>
 
@@ -361,10 +517,25 @@ const DefaultDashboard = () => {
                 <input
                   type="text"
                   name="phone"
-                  placeholder="Enter phone number"
-                  value={orderData.phone}
-                  onChange={handleChange}
+                  placeholder="Enter mobile number"
+                  value={
+                    orderData.phone
+                  }
+                  onChange={
+                    handleChange
+                  }
                 />
+
+                <button
+                  className="next-btn"
+                  onClick={() =>
+                    setActiveStep(2)
+                  }
+                >
+
+                  Next
+
+                </button>
 
               </div>
 
@@ -379,13 +550,22 @@ const DefaultDashboard = () => {
                   Select Address
                 </h2>
 
-                <input
-                  type="text"
-                  name="address"
-                  placeholder="Enter address"
-                  value={orderData.address}
-                  onChange={handleChange}
+                <AddressForm
+                  onSelectAddress={
+                    handleAddressSelect
+                  }
                 />
+
+                <button
+                  className="next-btn"
+                  onClick={() =>
+                    setActiveStep(3)
+                  }
+                >
+
+                  Next
+
+                </button>
 
               </div>
 
@@ -406,7 +586,9 @@ const DefaultDashboard = () => {
                   value={
                     orderData.pickupDate
                   }
-                  onChange={handleChange}
+                  onChange={
+                    handleChange
+                  }
                 />
 
                 <input
@@ -415,7 +597,9 @@ const DefaultDashboard = () => {
                   value={
                     orderData.pickupTime
                   }
-                  onChange={handleChange}
+                  onChange={
+                    handleChange
+                  }
                 />
 
                 <button
@@ -424,7 +608,9 @@ const DefaultDashboard = () => {
                     handleSubmitOrder
                   }
                 >
+
                   Schedule Pickup
+
                 </button>
 
               </div>
@@ -439,7 +625,9 @@ const DefaultDashboard = () => {
 
       {/* FLOATING BUTTON */}
       <div className="whatsapp-btn">
+
         <Phone />
+
       </div>
 
       {/* HELP BOX */}

@@ -9,24 +9,37 @@ import com.junkbox.backend.repository.UserRepository;
 
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImp {
 
     private final UserRepository repo;
-
     private final PasswordEncoder passwordEncoder;
+    private final PhoneOtpService phoneOtpService;
 
-    public UserServiceImp(UserRepository repo, PasswordEncoder passwordEncoder) {
-
-        this.repo = repo;
-        this.passwordEncoder = passwordEncoder;
+    public void sendLoginOtp(String phone) {
+        User user = repo.findByPhone(phone)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
+        phoneOtpService.sendOtp(phone);
     }
 
+    public UserResponse loginWithOtp(String phone, String otp) {
+        boolean isVerified = phoneOtpService.verifyOtp(phone, otp);
+        if (!isVerified) {
+            throw new IllegalArgumentException("Invalid or expired OTP");
+        }
+
+        User user = repo.findByPhone(phone)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
+
+        return mapToResponse(user);
+    }
     // REGISTER USER
     public UserResponse register(RegisterRequest request) {
 
@@ -175,4 +188,5 @@ public class UserServiceImp {
 
         return response;
     }
+
 }

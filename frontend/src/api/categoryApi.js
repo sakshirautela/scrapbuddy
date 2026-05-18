@@ -1,11 +1,10 @@
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import apiClient from './apiClient';
 
 const categoryApi = {
+  // Category endpoints
   getCategories: async (page = 1, limit = 10) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/categories?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(`/categories?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -14,7 +13,7 @@ const categoryApi = {
 
   getCategoryById: async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/categories/${id}`);
+      const response = await apiClient.get(`/categories/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -23,7 +22,7 @@ const categoryApi = {
 
   createCategory: async (categoryData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/categories`, categoryData);
+      const response = await apiClient.post(`/categories`, categoryData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -32,7 +31,7 @@ const categoryApi = {
 
   updateCategory: async (id, categoryData) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/categories/${id}`, categoryData);
+      const response = await apiClient.put(`/categories/${id}`, categoryData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -41,25 +40,69 @@ const categoryApi = {
 
   deleteCategory: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/categories/${id}`);
+      const response = await apiClient.delete(`/categories/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
+  // Subcategory endpoints
   getSubCategories: async (parentId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/categories/${parentId}/subcategories`);
+      const response = await apiClient.get(`/categories/${parentId}/subcategories`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+getAllCategoryWithSubcategories: async () => {
+    try {
+      const response = await apiClient.get(`/categories/with-subcategories`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+  createSubCategory: async (parentId, subCategoryData) => {
+    try {
+      const response = await apiClient.post(`/categories/${parentId}/subcategories`, subCategoryData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  createSubCategory: async (parentId, subCategoryData) => {
+  getAllSubcategories: async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/categories/${parentId}/subcategories`, subCategoryData);
+      const response = await apiClient.get('/subcategories');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  createSubcategoryGlobal: async (subCategoryData) => {
+    try {
+      const response = await apiClient.post('/subcategories', subCategoryData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  updateSubcategory: async (id, subCategoryData) => {
+    try {
+      const response = await apiClient.put(`/subcategories/${id}`, subCategoryData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  deleteSubcategory: async (id) => {
+    try {
+      const response = await apiClient.delete(`/subcategories/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

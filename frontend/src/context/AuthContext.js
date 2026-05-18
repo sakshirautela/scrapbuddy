@@ -16,20 +16,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Verify token on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await verifyToken();
-      } else {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-  }, []);
-
   const verifyToken = useCallback(async () => {
     try {
       setError(null);
@@ -45,6 +31,20 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+
+  // Verify token on mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await verifyToken();
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, [verifyToken]);
 
   const login = useCallback(async (email, password) => {
     try {

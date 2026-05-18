@@ -2,8 +2,10 @@ package com.junkbox.backend.service;
 
 import com.junkbox.backend.dto.request.OrderRequest;
 import com.junkbox.backend.dto.response.OrderResponse;
+import com.junkbox.backend.entity.Address;
 import com.junkbox.backend.entity.Orders;
 import com.junkbox.backend.exception.ResourceNotFoundException;
+import com.junkbox.backend.repository.AddressRepo;
 import com.junkbox.backend.repository.OrdersRepo;
 
 import jakarta.persistence.criteria.Order;
@@ -18,9 +20,11 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrdersRepo ordersRepo;
+    private final AddressRepo addressRepo;
 
-    public OrderService(OrdersRepo ordersRepo) {
+    public OrderService(OrdersRepo ordersRepo, AddressRepo addressRepo) {
         this.ordersRepo = ordersRepo;
+        this.addressRepo = addressRepo;
     }
 
     // CREATE ORDER
@@ -34,7 +38,9 @@ public class OrderService {
 
         order.setStatus(false);
         order.setCreatedDateTime(LocalDateTime.now());
-        order.setCreatedByUserID(request.getUserID());
+
+        Address savedAddress = addressRepo.save(request.getAddress());
+        order.setAddress(savedAddress);
 
         Orders savedOrder = ordersRepo.save(order);
 
@@ -74,7 +80,6 @@ public class OrderService {
         mapRequestToEntity(request, order);
 
         order.setStatus(request.isStatus());
-        order.setUpdatedByUserID(request.getUserID());
         order.setUpdatedDateTime(LocalDateTime.now());
 
         Orders updatedOrder = ordersRepo.save(order);
@@ -106,10 +111,6 @@ public class OrderService {
                     "Pickup date is required");
         }
 
-        if (request.getAddressID() == null) {
-            throw new IllegalArgumentException(
-                    "Address ID is required");
-        }
 
         if (request.getCategoryID() == null) {
             throw new IllegalArgumentException(
@@ -121,10 +122,6 @@ public class OrderService {
                     "SubCategory ID is required");
         }
 
-        if (request.getUserID() == null) {
-            throw new IllegalArgumentException(
-                    "User ID is required");
-        }
     }
 
     // MAP REQUEST DTO -> ENTITY
@@ -134,7 +131,6 @@ public class OrderService {
 
         order.setPickupDate(request.getPickupDate());
 
-        order.setAddressID(request.getAddressID());
 
         order.setCategoryID(request.getCategoryID());
 
@@ -152,7 +148,7 @@ public class OrderService {
 
         response.setPickupDate(order.getPickupDate());
 
-        response.setAddressID(order.getAddressID());
+        response.setAddress(order.getAddress());
 
         response.setCreatedByUserID(order.getCreatedByUserID());
 

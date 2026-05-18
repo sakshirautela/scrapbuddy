@@ -23,7 +23,9 @@ public class Orders {
     private Long id;
     private boolean status;
     private Date pickupDate;
-    private Long addressID;
+    @ManyToOne
+    @JoinColumn(name = "address_id")
+    private Address address;
     private Long createdByUserID;
     private Long updatedByUserID;
     private Long categoryID;

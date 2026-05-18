@@ -2,16 +2,14 @@ package com.junkbox.backend.service;
 
 import com.junkbox.backend.dto.request.CategoryRequest;
 import com.junkbox.backend.dto.response.CategoryResponse;
-import com.junkbox.backend.dto.response.CategoryWithSubCategoryResponse;
+import com.junkbox.backend.dto.response.SubCategoryResponse;
 import com.junkbox.backend.entity.Categories;
-import com.junkbox.backend.entity.SubCategories;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.CategoriesRepo;
 
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +39,7 @@ public class CategoryService {
 
         Categories savedCategory = categoriesRepo.save(category);
 
-        return mapToResponse(savedCategory);
+        return mapToResponse(savedCategory, null);
     }
 
     // UPDATE CATEGORY
@@ -57,7 +55,7 @@ public class CategoryService {
 
         Categories updatedCategory = categoriesRepo.save(category);
 
-        return mapToResponse(updatedCategory);
+        return mapToResponse(updatedCategory, null);
     }
 
     // DELETE CATEGORY
@@ -71,7 +69,7 @@ public class CategoryService {
     // GET ALL CATEGORIES
     public List<CategoryResponse> getAllCategories() {
 
-        return categoriesRepo.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        return categoriesRepo.findAll().stream().map(category -> mapToResponse(category, null)).collect(Collectors.toList());
     }
 
     // GET CATEGORY BY ID
@@ -79,21 +77,19 @@ public class CategoryService {
 
         Categories category = findCategoryById(id);
 
-        return mapToResponse(category);
+        return mapToResponse(category, null);
     }
 
     // GET ALL CATEGORIES WITH SUBCATEGORIES
-    public CategoryWithSubCategoryResponse getAllCategoriesWithSubCategories() {
+    public List<CategoryResponse> getAllCategoriesWithSubCategories() {
 
         List<Categories> categories = categoriesRepo.findAll();
-        HashMap<Categories, List<SubCategories>> categoriesListHashMap = new HashMap<>();
-        for (Categories category : categories) {
-            List<SubCategories>subCategories=subCategoryService.getSubCategoryByCategoryId(category.getId());
-            categoriesListHashMap.put(category,subCategories);
-        }
-        CategoryWithSubCategoryResponse categoriesWithSubCategoryResponse = new CategoryWithSubCategoryResponse();
-        categoriesWithSubCategoryResponse.setSubCategories(categoriesListHashMap);
-        return  categoriesWithSubCategoryResponse;
+        return categories.stream()
+                .map(category -> {
+                    List<SubCategoryResponse> subCategories = subCategoryService.getSubCategoryByCategoryId(category.getId());
+                    return mapToResponse(category, subCategories);
+                })
+                .collect(Collectors.toList());
     }
 
     // COMMON FIND METHOD
@@ -133,7 +129,7 @@ public class CategoryService {
     }
 
     // ENTITY -> DTO
-    private CategoryResponse mapToResponse(Categories category) {
+    private CategoryResponse mapToResponse(Categories category, List<SubCategoryResponse> subCategories) {
 
         CategoryResponse response = new CategoryResponse();
 
@@ -144,6 +140,8 @@ public class CategoryService {
         response.setCreatedDateTime(category.getCreatedDateTime());
 
         response.setUpdatedDateTime(category.getUpdatedDateTime());
+
+        response.setSubCategories(subCategories);
 
         return response;
     }

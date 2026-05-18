@@ -14,7 +14,9 @@ const PUBLIC_AUTH_ROUTES = [
   '/api/signup',
   '/auth/forgot-password',
   '/auth/reset-password',
-  '/auth/verify-otp'
+  '/auth/verify-otp',
+  '/api/auth/refresh-token',
+  '/api/address',
 ];
 
 apiClient.interceptors.request.use(

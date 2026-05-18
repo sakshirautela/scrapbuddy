@@ -2,7 +2,6 @@ package com.junkbox.backend.controller;
 
 import com.junkbox.backend.dto.request.CategoryRequest;
 import com.junkbox.backend.dto.response.CategoryResponse;
-import com.junkbox.backend.dto.response.CategoryWithSubCategoryResponse;
 import com.junkbox.backend.service.CategoryService;
 
 import jakarta.validation.Valid;
@@ -48,8 +47,8 @@ public class CategoryController {
     }
 
     @GetMapping("/with-subcategories")
-    public ResponseEntity<CategoryWithSubCategoryResponse> getAllCategoriesWithSubCategories() {
-        CategoryWithSubCategoryResponse categories =
+    public ResponseEntity<List<CategoryResponse>> getAllCategoriesWithSubCategories() {
+        List<CategoryResponse> categories =
                 categoryService.getAllCategoriesWithSubCategories();
         return ResponseEntity.ok(categories);
     }

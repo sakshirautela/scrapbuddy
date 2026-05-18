@@ -13,11 +13,18 @@ const AdminDashboard = () => {
   const [cities, setCities] = useState([]);
   const [addresses, setAddresses] = useState([]);
 
-  const user = JSON.parse(localStorage.getItem("user")) || null;
+  const [newCategory, setNewCategory] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   useEffect(() => {
     fetchAll();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
   const fetchAll = async () => {
     try {
@@ -28,60 +35,97 @@ const AdminDashboard = () => {
         apiClient.get("/api/addresses"),
       ]);
 
-      setOrders(o.data);
-      setCategories(c.data);
-      setCities(ci.data);
-      setAddresses(a.data);
+      setOrders(o.data || []);
+      setCategories(c.data || []);
+      setCities(ci.data || []);
+      setAddresses(a.data || []);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch Error:", err);
+    }
+  };
+
+  const handleCategoryAdd = async () => {
+    if (!newCategory.trim()) {
+      alert("Please enter category name");
+      return;
+    }
+
+    try {
+      const payload = {
+        category: newCategory.trim(),
+        createdUserID: user?.id,
+      };
+
+      console.log("Sending Payload:", payload);
+
+      const res = await apiClient.post("/api/categories", payload);
+
+      setCategories([...categories, res.data]);
+
+      setNewCategory("");
+
+      alert("Category Added Successfully");
+    } catch (err) {
+      console.error("Category Add Error:", err);
+      alert("Failed to add category");
     }
   };
 
   return (
     <div className="admin-layout">
-
       {/* SIDEBAR */}
       <aside className="sidebar">
         <h2 className="logo">♻ SCRAP ADMIN</h2>
 
-        <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
-        <button onClick={() => setActiveTab("orders")}>Orders</button>
-        <button onClick={() => setActiveTab("categories")}>Categories</button>
-        <button onClick={() => setActiveTab("cities")}>Cities</button>
-        <button onClick={() => setActiveTab("addresses")}>Addresses</button>
+        <button onClick={() => setActiveTab("dashboard")}>
+          Dashboard
+        </button>
 
-        <button className="logout" onClick={() => navigate("/")}>
+        <button onClick={() => setActiveTab("orders")}>
+          Orders
+        </button>
+
+        <button onClick={() => setActiveTab("categories")}>
+          Categories
+        </button>
+
+        <button onClick={() => setActiveTab("cities")}>
+          Cities
+        </button>
+
+        <button onClick={() => setActiveTab("addresses")}>
+          Addresses
+        </button>
+
+        <button className="logout" onClick={handleLogout}>
           Logout
         </button>
       </aside>
 
       {/* MAIN */}
       <main className="main">
-
         {/* DASHBOARD */}
         {activeTab === "dashboard" && (
           <div className="cards">
-
             <div className="card">
               <h3>Total Orders</h3>
               <p>{orders.length}</p>
             </div>
 
             <div className="card">
-              <h3>Categories</h3>
+              <h3>Total Categories</h3>
               <p>{categories.length}</p>
             </div>
 
             <div className="card">
-              <h3>Cities</h3>
+              <h3>Total Cities</h3>
               <p>{cities.length}</p>
             </div>
 
             <div className="card">
-              <h3>Addresses</h3>
+              <h3>Total Addresses</h3>
               <p>{addresses.length}</p>
             </div>
-
           </div>
         )}
 
@@ -101,18 +145,26 @@ const AdminDashboard = () => {
               </thead>
 
               <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id}>
-                    <td>{o.id}</td>
-                    <td>{o.customerName}</td>
-                    <td>{o.city}</td>
-                    <td>
-                      <span className={`status ${o.status?.toLowerCase()}`}>
-                        {o.status}
-                      </span>
-                    </td>
+                {orders.length === 0 ? (
+                  <tr>
+                    <td colSpan="4">No Orders Found</td>
                   </tr>
-                ))}
+                ) : (
+                  orders.map((o) => (
+                    <tr key={o.id}>
+                      <td>{o.id}</td>
+                      <td>{o.customerName}</td>
+                      <td>{o.city}</td>
+                      <td>
+                        <span
+                          className={`status ${o.status?.toLowerCase()}`}
+                        >
+                          {o.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -123,12 +175,33 @@ const AdminDashboard = () => {
           <div className="grid">
             <h2>Categories</h2>
 
-            {categories.map((c) => (
-              <div key={c.id} className="card-item">
-                <h3>{c.name}</h3>
-                <p>{c.description}</p>
-              </div>
-            ))}
+            {categories.length === 0 ? (
+              <p>No Categories Found</p>
+            ) : (
+              categories.map((c) => (
+                <div key={c.id} className="card-item">
+                  <h3>{c.category || c.name}</h3>
+
+                  <p>{c.description}</p>
+                </div>
+              ))
+            )}
+
+            {/* ADD CATEGORY */}
+            <div className="card-item add-new">
+              <h3>+ Add New Category</h3>
+
+              <input
+                type="text"
+                placeholder="Enter Category Name"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+              />
+
+              <button onClick={handleCategoryAdd}>
+                Add Category
+              </button>
+            </div>
           </div>
         )}
 
@@ -137,12 +210,17 @@ const AdminDashboard = () => {
           <div className="grid">
             <h2>Cities</h2>
 
-            {cities.map((city) => (
-              <div key={city.id} className="card-item">
-                <h3>{city.name}</h3>
-                <p>{city.description}</p>
-              </div>
-            ))}
+            {cities.length === 0 ? (
+              <p>No Cities Found</p>
+            ) : (
+              cities.map((city) => (
+                <div key={city.id} className="card-item">
+                  <h3>{city.name}</h3>
+
+                  <p>{city.description}</p>
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -156,23 +234,28 @@ const AdminDashboard = () => {
                 <tr>
                   <th>Street</th>
                   <th>City</th>
-                  <th>Zip</th>
+                  <th>Zip Code</th>
                 </tr>
               </thead>
 
               <tbody>
-                {addresses.map((a) => (
-                  <tr key={a.id}>
-                    <td>{a.street}</td>
-                    <td>{a.city}</td>
-                    <td>{a.zipCode}</td>
+                {addresses.length === 0 ? (
+                  <tr>
+                    <td colSpan="3">No Addresses Found</td>
                   </tr>
-                ))}
+                ) : (
+                  addresses.map((a) => (
+                    <tr key={a.id}>
+                      <td>{a.street}</td>
+                      <td>{a.city}</td>
+                      <td>{a.zipCode}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         )}
-
       </main>
     </div>
   );

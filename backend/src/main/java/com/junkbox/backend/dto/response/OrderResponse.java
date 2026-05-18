@@ -1,5 +1,6 @@
 package com.junkbox.backend.dto.response;
 
+import com.junkbox.backend.entity.Address;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +17,7 @@ public class OrderResponse {
 
     private Date pickupDate;
 
-    private Long addressID;
+    private Address address;
 
     private Long createdByUserID;
 

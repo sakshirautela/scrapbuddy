@@ -8,13 +8,24 @@ const authApi = {
   });
 console.log("Login response:", response);
   return response.data;
-},
+},  loginWithOtp: async (email, otp) => {
+    const response = await apiClient.post('/api/auth/login-otp', {
+      email,
+      otp
+    });
+    return response.data;
+  },
+
 
   register: async (userData) => {
     const response = await apiClient.post('/api/auth/signup', userData);
     console.log("Registration response:", response);
     return response.data;
+  }, sendOtp: async (email) => {
+    const response = await apiClient.post('/api/auth/send-otp', { email });
+    return response.data;
   },
+
 
   logout: async () => {
     const response = await apiClient.post('/api/auth/logout');

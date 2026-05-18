@@ -58,9 +58,11 @@ public class SubCategoryService {
     }
 
     // GET SUBCATEGORIES BY CATEGORY ID
-    public List<SubCategories> getSubCategoryByCategoryId(Long categoryId) {
+    public List<SubCategoryResponse> getSubCategoryByCategoryId(Long categoryId) {
 
-        return subCategoryRepo.findAllByCategoryId(categoryId);
+        return subCategoryRepo.findAllByCategoryId(categoryId).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     // UPDATE SUBCATEGORY
