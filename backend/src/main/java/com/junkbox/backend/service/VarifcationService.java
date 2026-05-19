@@ -2,15 +2,16 @@ package com.junkbox.backend.service;
 
 import com.junkbox.backend.entity.EmailOtp;
 import com.junkbox.backend.repository.EmailOtpRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Service
 public class VarifcationService {
     private final JavaMailSender mailSender;
-private final PasswordResetService passwordResetService;
+    private final PasswordResetService passwordResetService;
     private final EmailOtpRepo otpRepo;
 
     public VarifcationService(JavaMailSender mailSender, PasswordResetService passwordResetService, EmailOtpRepo otpRepo) {
@@ -21,7 +22,7 @@ private final PasswordResetService passwordResetService;
 
     public void sendOtp(String email) {
 
-        String otp = passwordResetService.generateOTP() ;
+        String otp = passwordResetService.generateOTP();
 
         EmailOtp emailOtp = new EmailOtp();
 
@@ -44,6 +45,7 @@ private final PasswordResetService passwordResetService;
 
         mailSender.send(message);
     }
+
     public boolean verifyOtp(String email, String otp) {
 
         EmailOtp savedOtp = otpRepo

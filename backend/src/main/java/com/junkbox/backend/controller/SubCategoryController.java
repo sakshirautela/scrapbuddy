@@ -81,6 +81,22 @@ public class SubCategoryController {
         }
     }
 
+    // GET SUBCATEGORIES BY CATEGORY ID
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<?> getSubCategoriesByCategoryId(@PathVariable Long categoryId) {
+
+        try {
+
+            List<SubCategoryResponse> items = subCategoryService.getSubCategoryByCategoryId(categoryId);
+
+            return ResponseEntity.ok(items);
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch subcategories");
+        }
+    }
+
     // UPDATE SUBCATEGORY
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")

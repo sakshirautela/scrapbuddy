@@ -107,8 +107,7 @@ const AdminDashboard = () => {
   }, [categoryRows, searchTerm]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.clear();
     navigate("/");
   };
 

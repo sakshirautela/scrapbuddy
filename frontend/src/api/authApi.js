@@ -67,6 +67,21 @@ const authApi = {
     return response.data;
   },
 
+  verifyOtp: async (_email, otp) => {
+    const response = await apiClient.get('/api/auth/password/validate', {
+      params: { token: otp }
+    });
+    return response.data;
+  },
+
+  setPassword: async (_email, newPassword, token) => {
+    const response = await apiClient.post('/api/auth/password/reset', {
+      token,
+      newPassword
+    });
+    return response.data;
+  },
+
   validateResetToken: async (token) => {
     const response = await apiClient.get('/api/auth/password/validate', {
       params: { token }

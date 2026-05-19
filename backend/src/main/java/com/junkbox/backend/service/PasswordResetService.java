@@ -65,6 +65,10 @@ public class PasswordResetService {
         Optional<User> userOpt = userRepository.findByUsername(mailBody.getTo());
 
         if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByEmail(mailBody.getTo());
+        }
+
+        if (userOpt.isEmpty()) {
             return false;
         }
 
@@ -114,5 +118,4 @@ public class PasswordResetService {
         return tokenOpt.isPresent() && !tokenOpt.get().isExpired();
     }
 }
-
 

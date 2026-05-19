@@ -41,11 +41,11 @@ function ForgotPassword() {
       await authApi.verifyOtp(email, otp);
 
       navigate('/reset-password', {
-        state: { email }
+        state: { email, token: otp }
       });
 
     } catch (err) {
-      setError('Invalid OTP');
+      setError(err.message || 'Invalid OTP');
     }
   };
 

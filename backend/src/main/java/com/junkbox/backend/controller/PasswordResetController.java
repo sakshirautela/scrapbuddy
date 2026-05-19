@@ -25,10 +25,13 @@ public class PasswordResetController {
     // SEND RESET EMAIL / OTP
     @PostMapping("/forgot")
     public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody MailBody request) {
+        try{
 
         passwordResetService.sendPasswordResetMail(request);
-
         return ResponseEntity.ok(Map.of("message", "If the email is registered, a reset link/OTP has been sent"));
+        }catch (Exception e){
+            return  ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     // VALIDATE RESET TOKEN

@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/auth/Login/Login';
 import Signup from './components/auth/Register/Register'; 
+import ForgotPassword from './components/auth/ForgotPassword/ForgetPassword';
+import ResetPassword from './components/auth/ResetPassword/ResetPassword';
 import UserDetails from './pages/UserDetails';
 import DefaultDashboard from './pages/DefaultDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -26,6 +28,12 @@ function App() {
             <GuestRoute>
               <Signup />
             </GuestRoute>
+          } />
+          <Route path="/forget-password" element={
+              <ForgotPassword />
+          } />
+          <Route path="/reset-password" element={
+              <ResetPassword />
           } />
 
           {/* Protected Routes */}

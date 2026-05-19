@@ -3,10 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import orderApi from "../api/orderApi";
 import "../styles/ProfileDashboard.css";
-
-const sidebarItems = [
+import { Link } from "react-router-dom";
+const baseSidebarItems = [
   { key: "profile", label: "User Profile", icon: "♙" },
   { key: "orders", label: "Orders", icon: "🛒" },
+];
+
+const adminSidebarItem = [
+  { key: "admin", label: "Admin Dashboard", icon: "⚙️" },
 ];
 
 const formatDateTime = (value) => {
@@ -46,6 +50,9 @@ const ProfileDashboard = () => {
 
   const userInitial = displayName.charAt(0).toUpperCase();
   const recentOrders = orders.slice(0, 5);
+  const userRole = user?.role?.toLowerCase() || "";
+  const isAdminUser = ["admin", "superadmin", "super_admin"].includes(userRole);
+  const sidebarItems = isAdminUser ? [...baseSidebarItems, ...adminSidebarItem] : baseSidebarItems;
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -197,7 +204,7 @@ const ProfileDashboard = () => {
           </div>
         </div>
 
-        <button className="change-password" type="button">
+        <button className="change-password" type="button" onClick={() => navigate("/forget-password")}>
           ▣ Change Password
         </button>
 
@@ -261,8 +268,7 @@ const ProfileDashboard = () => {
       <aside className="profile-sidebar">
         <div className="profile-brand">
           <span>▣</span>
-          <strong>ScrapBuddy</strong>
-        </div>
+<Link to="/">ScrapBuddy</Link>        </div>
 
         <nav>
           {sidebarItems.map((item) => (
@@ -270,7 +276,14 @@ const ProfileDashboard = () => {
               key={item.key}
               className={activeTab === item.key ? "active" : ""}
               type="button"
-              onClick={() => setActiveTab(item.key)}
+              onClick={() => {
+                if (item.key === "admin") {
+                  navigate("/admin");
+                  return;
+                }
+
+                setActiveTab(item.key);
+              }}
             >
               <span>{item.icon}</span>
               {item.label}

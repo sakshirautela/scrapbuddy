@@ -6,8 +6,10 @@ import com.junkbox.backend.dto.response.SubCategoryResponse;
 import com.junkbox.backend.entity.Categories;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.CategoriesRepo;
+import com.junkbox.backend.repository.SubCategoryRepo;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,10 +22,13 @@ public class CategoryService {
 
     private final SubCategoryService subCategoryService;
 
-    public CategoryService(CategoriesRepo categoriesRepo, SubCategoryService subCategoryService) {
+    private final SubCategoryRepo subCategoryRepo;
+
+    public CategoryService(CategoriesRepo categoriesRepo, SubCategoryService subCategoryService, SubCategoryRepo subCategoryRepo) {
 
         this.categoriesRepo = categoriesRepo;
         this.subCategoryService = subCategoryService;
+        this.subCategoryRepo = subCategoryRepo;
     }
 
     // CREATE CATEGORY
@@ -59,9 +64,12 @@ public class CategoryService {
     }
 
     // DELETE CATEGORY
+    @Transactional
     public void deleteCategory(Long id) {
 
         Categories category = findCategoryById(id);
+
+        subCategoryRepo.deleteAllByCategoryId(id);
 
         categoriesRepo.delete(category);
     }

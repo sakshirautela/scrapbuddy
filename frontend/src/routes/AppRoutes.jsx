@@ -9,6 +9,8 @@ import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import Login from '../components/auth/Login/Login';
 import Register from '../components/auth/Register/Register';
 import ProfileDashboard from '../pages/UserDetails';
+import ForgotPassword from '../components/auth/ForgotPassword/ForgetPassword';
+import ResetPassword from '../components/auth/ResetPassword/ResetPassword';
 function AppRoutes() {
   const { user } = useAuth();
 
@@ -18,6 +20,8 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/DefaultDashboard" />} />
       <Route path="/profile" element={<ProfileDashboard />} />
       <Route path="/login" element={user ? ( user.RoleNameEnum === 'User' ? <Navigate to="/DefaultDashboard" /> : (user.RoleNameEnum === 'Admin' ? <Navigate to="/AdminDashboard" /> : <SuperAdminDashboard/>)) : <Login />} />
+      <Route path="/register" element={user ? ( user.RoleNameEnum === 'User' ? <Navigate to="/DefaultDashboard" /> : (user.RoleNameEnum === 'Admin' ? <Navigate to="/AdminDashboard" /> : <SuperAdminDashboard/>)) : <Register />} />
+      <Route path='/reset-password' element={<ResetPassword />} />
     </Routes>
   );
 }

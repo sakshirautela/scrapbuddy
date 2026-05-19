@@ -23,8 +23,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
     } catch (err) {
       console.error('Token verification failed:', err);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    localStorage.clear();
       setUser(null);
       setError('Session expired. Please login again.');
     } finally {
@@ -84,8 +83,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+     localStorage.clear();
       setUser(null);
       setError(null);
     }

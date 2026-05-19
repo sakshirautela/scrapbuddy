@@ -4,11 +4,16 @@ import com.junkbox.backend.service.PhoneOtpService;
 import com.junkbox.backend.service.VarifcationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+@RestController
+@RequestMapping("/api/verification")
 public class VerficationController {
     private final VarifcationService varifcationService;
-private final PhoneOtpService phoneOtpService;
+    private final PhoneOtpService phoneOtpService;
+
     public VerficationController(VarifcationService varifcationService, PhoneOtpService phoneOtpService) {
         this.varifcationService = varifcationService;
         this.phoneOtpService = phoneOtpService;
@@ -22,6 +27,7 @@ private final PhoneOtpService phoneOtpService;
 
         return ResponseEntity.ok("OTP sent");
     }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(
             @RequestParam String email,

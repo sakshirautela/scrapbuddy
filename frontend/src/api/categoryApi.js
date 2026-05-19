@@ -50,7 +50,7 @@ const categoryApi = {
   // Subcategory endpoints
   getSubCategories: async (parentId) => {
     try {
-      const response = await apiClient.get(`/categories/${parentId}/subcategories`);
+      const response = await apiClient.get(`/subcategories/category/${parentId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -66,7 +66,10 @@ getAllCategoryWithSubcategories: async () => {
   },
   createSubCategory: async (parentId, subCategoryData) => {
     try {
-      const response = await apiClient.post(`/categories/${parentId}/subcategories`, subCategoryData);
+      const response = await apiClient.post('/subcategories', {
+        ...subCategoryData,
+        categoryId: subCategoryData.categoryId ?? parentId,
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

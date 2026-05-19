@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import FormInput from '../../common/FormInput/FormInput';
 import Button from '../../common/Button/Button';
@@ -104,13 +104,13 @@ function Login() {
         </form>
 
         <div className="login-links">
-          <a href="/" className="link link-secondary">
+          <Link to="/forget-password" className="link link-secondary">
             Forgot password?
-          </a>
+          </Link>
           <span className="divider">•</span>
-          <a href="/signup" className="link link-secondary">
+          <Link to="/signup" className="link link-secondary">
             Create account
-          </a>
+          </Link>
         </div>
       </div>
 

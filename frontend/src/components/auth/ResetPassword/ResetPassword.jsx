@@ -9,6 +9,7 @@ function ResetPassword() {
   const location = useLocation();
 
   const email = location.state?.email;
+  const token = location.state?.token;
 
   const [formData, setFormData] = useState({
     password: '',
@@ -18,7 +19,10 @@ function ResetPassword() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
+const handleNavigate = () => {
+ localStorage.clear();
+  navigate('/login');
+};
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -32,6 +36,11 @@ function ResetPassword() {
     setError('');
     setMessage('');
 
+    if (!token) {
+      setError('Reset session expired. Please request a new OTP.');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -41,7 +50,7 @@ function ResetPassword() {
 
     try {
 
-      await authApi.setPassword(email, formData.password);
+      await authApi.setPassword(email, formData.password, token);
 
       setMessage('Password reset successfully');
 
@@ -86,7 +95,7 @@ function ResetPassword() {
           required
         />
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} onClick={handleNavigate}>
           {loading ? 'Resetting...' : 'Reset Password'}
         </button>
 
