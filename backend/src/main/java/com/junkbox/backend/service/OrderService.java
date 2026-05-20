@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class OrderService {
 
+    private static final Long GUEST_USER_ID = 0L;
+
     private final OrdersRepo ordersRepo;
     private final AddressRepo addressRepo;
     private final UserRepository userRepository;
