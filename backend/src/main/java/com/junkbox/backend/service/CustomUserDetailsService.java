@@ -23,7 +23,18 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword())
-                .roles(user.getRole())
+                .roles(normalizeRole(user.getRole()))
                 .build();
+    }
+
+    private String normalizeRole(String role) {
+        if (role == null || role.trim().isEmpty()) {
+            return "USER";
+        }
+
+        String normalizedRole = role.trim().toUpperCase();
+        return normalizedRole.startsWith("ROLE_")
+                ? normalizedRole.substring("ROLE_".length())
+                : normalizedRole;
     }
 }

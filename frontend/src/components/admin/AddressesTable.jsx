@@ -16,7 +16,6 @@ const AddressesTable = ({ addresses }) => (
             <th>State</th>
             <th>Zip</th>
             <th>Country</th>
-            <th>Country Code</th>
           </tr>
         </thead>
         <tbody>
@@ -38,7 +37,6 @@ const AddressesTable = ({ addresses }) => (
                   <td>{formatValue(address.state)}</td>
                   <td>{formatValue(address.zip)}</td>
                   <td>{formatValue(address.country)}</td>
-                  <td>{formatValue(address.countryCode)}</td>
                 </tr>
               );
             })

@@ -7,6 +7,8 @@ import CategoriesWithSubCat from "../components/input/CategoriesWithSubCat";
 import AddressForm from "../components/input/Address";
 import orderApi from "../api/orderApi";
 import cityApi from "../api/cityApi";
+import addressApi from "../api/addressApi";
+import { useAuth } from "../context/AuthContext";
 
 const serviceCards = [
  {
@@ -40,25 +42,74 @@ const rateCards = [
 
 const steps = ["Category", "Mobile", "Address", "Schedule"];
 
+const requiredAddressFields = [
+ "receiverFirstName",
+ "receiverLastName",
+ "receiverPhone",
+ "receiverEmail",
+ "apartment",
+ "city",
+ "state",
+ "zip",
+ "country",
+];
+
+const isAddressComplete = (address) => {
+ if (!address) return false;
+
+ return requiredAddressFields.every((field) => {
+ const value = address[field];
+ return typeof value === "string" && value.trim().length > 0;
+ });
+};
+
+const getSavedAddressLabel = (address) => {
+ const name = [address.receiverFirstName, address.receiverLastName]
+ .filter(Boolean)
+ .join(" ");
+ const location = [address.apartment, address.city, address.state]
+ .filter(Boolean)
+ .join(", ");
+
+ return [name, location].filter(Boolean).join(" - ") || "Saved address";
+};
+
+const toOrderAddress = (address) => ({
+ id: address?.id,
+ apartment: address?.apartment || "",
+ city: address?.city || "",
+ state: address?.state || "",
+ zip: address?.zip || "",
+ country: address?.country || "",
+ receiverFirstName: address?.receiverFirstName || "",
+ receiverLastName: address?.receiverLastName || "",
+ receiverPhone: address?.receiverPhone || "",
+ receiverEmail: address?.receiverEmail || "",
+ countryCode: address?.countryCode || "+91",
+});
+
+const getErrorMessage = (error) => {
+ return (
+ error?.response?.data?.error ||
+ error?.response?.data?.message ||
+ error?.response?.data ||
+ error?.message ||
+ "Failed to create order"
+ );
+};
+
 const DefaultDashboard = () => {
  const navigate = useNavigate();
+ const { user } = useAuth();
  const [activeStep, setActiveStep] = useState(0);
  const [cities, setCities] = useState([]);
  const [city, setCity] = useState("");
  const [cityError, setCityError] = useState("");
  const [quickPhone, setQuickPhone] = useState("");
-
- let user = null;
-
- try {
- const storedUser = localStorage.getItem("user");
-
- if (storedUser && storedUser !== "undefined") {
- user = JSON.parse(storedUser);
- }
- } catch (error) {
- console.error(error);
- }
+ const [savedAddresses, setSavedAddresses] = useState([]);
+ const [savedAddressError, setSavedAddressError] = useState("");
+ const [selectedSavedAddressId, setSelectedSavedAddressId] = useState("");
+ const [isSavingAddress, setIsSavingAddress] = useState(false);
 
  const [orderData, setOrderData] = useState({
  categoryID: "",
@@ -66,7 +117,8 @@ const DefaultDashboard = () => {
  phone: "",
  address: null,
  pickupDate: "",
- pickupTime: "",
+ startRange: "",
+ endRange: "",
  });
 
  useEffect(() => {
@@ -99,6 +151,52 @@ const DefaultDashboard = () => {
  };
  }, []);
 
+ useEffect(() => {
+ let isMounted = true;
+
+ const fetchSavedAddresses = async () => {
+ if (!user) {
+ setSavedAddresses([]);
+ setSelectedSavedAddressId("");
+ return;
+ }
+
+ try {
+ const addresses = await addressApi.getMyAddresses();
+
+ if (!isMounted) {
+ return;
+ }
+
+ setSavedAddresses(addresses);
+ setSavedAddressError("");
+
+ if (addresses.length > 0) {
+ const firstAddress = addresses[0];
+ setSelectedSavedAddressId(String(firstAddress.id));
+ setOrderData((prev) => ({
+ ...prev,
+ address: toOrderAddress(firstAddress),
+ phone: prev.phone || firstAddress.receiverPhone || "",
+ }));
+ setQuickPhone((prev) => prev || firstAddress.receiverPhone || "");
+ }
+ } catch {
+ if (isMounted) {
+ setSavedAddresses([]);
+ setSelectedSavedAddressId("");
+ setSavedAddressError("Saved addresses are not available right now.");
+ }
+ }
+ };
+
+ fetchSavedAddresses();
+
+ return () => {
+ isMounted = false;
+ };
+ }, [user]);
+
  const handleChange = (e) => {
  setOrderData({
  ...orderData,
@@ -119,6 +217,93 @@ const DefaultDashboard = () => {
  ...prev,
  address,
  }));
+ };
+
+ const handleSavedAddressChange = (event) => {
+ const addressId = event.target.value;
+ setSelectedSavedAddressId(addressId);
+
+ if (!addressId) {
+ setOrderData((prev) => ({
+ ...prev,
+ address: null,
+ }));
+ return;
+ }
+
+ const selectedAddress = savedAddresses.find(
+ (address) => String(address.id) === addressId
+ );
+
+ if (selectedAddress) {
+ setOrderData((prev) => ({
+ ...prev,
+ address: toOrderAddress(selectedAddress),
+ phone: prev.phone || selectedAddress.receiverPhone || "",
+ }));
+ }
+ };
+
+ const applySavedAddress = (savedAddress) => {
+ const normalizedAddress = toOrderAddress(savedAddress);
+
+ setSavedAddresses((prev) => {
+ const existingIndex = prev.findIndex(
+ (address) => address.id === savedAddress.id
+ );
+
+ if (existingIndex >= 0) {
+ return prev.map((address) =>
+ address.id === savedAddress.id ? savedAddress : address
+ );
+ }
+
+ return [...prev, savedAddress];
+ });
+
+ setSelectedSavedAddressId(String(savedAddress.id));
+ setOrderData((prev) => ({
+ ...prev,
+ address: normalizedAddress,
+ phone: prev.phone || savedAddress.receiverPhone || "",
+ }));
+ };
+
+ const saveCurrentAddressIfNeeded = async () => {
+ if (!user || orderData.address?.id) {
+ return true;
+ }
+
+ try {
+ setIsSavingAddress(true);
+ setSavedAddressError("");
+
+ const savedAddress = await addressApi.createAddress(orderData.address);
+ applySavedAddress(savedAddress);
+
+ return true;
+ } catch (error) {
+ setSavedAddressError(
+ error?.message ||
+ "Failed to save address."
+ );
+ return false;
+ } finally {
+ setIsSavingAddress(false);
+ }
+ };
+
+ const handleAddressNext = async () => {
+ if (!isAddressComplete(orderData.address)) {
+ alert("Complete address details");
+ return;
+ }
+
+ const canContinue = await saveCurrentAddressIfNeeded();
+
+ if (canContinue) {
+ setActiveStep(3);
+ }
  };
 
  const goToBooking = () => {
@@ -155,21 +340,29 @@ const DefaultDashboard = () => {
  return;
  }
 
- if (!orderData.address) {
- alert("Select address");
+ if (!isAddressComplete(orderData.address)) {
+ alert("Complete address details");
  setActiveStep(2);
  return;
  }
 
- if (!orderData.pickupDate || !orderData.pickupTime) {
- alert("Select pickup date and time");
+ if (!orderData.pickupDate || !orderData.startRange || !orderData.endRange) {
+ alert("Select pickup date and time range");
+ setActiveStep(3);
+ return;
+ }
+
+ if (orderData.endRange <= orderData.startRange) {
+ alert("End time must be after start time");
  setActiveStep(3);
  return;
  }
 
  const payload = {
- status: true,
- pickupDate: `${orderData.pickupDate}T${orderData.pickupTime}:00`,
+ status: "Created",
+ pickupDate: `${orderData.pickupDate}T${orderData.startRange}:00`,
+ startRange: `${orderData.startRange}:00`,
+ endRange: `${orderData.endRange}:00`,
  address: orderData.address,
  categoryID: Number(orderData.categoryID),
  subCategoryID: Number(orderData.subCategoryID),
@@ -183,15 +376,17 @@ const DefaultDashboard = () => {
  categoryID: "",
  subCategoryID: "",
  phone: "",
- address: null,
+ address: savedAddresses[0] ? toOrderAddress(savedAddresses[0]) : null,
  pickupDate: "",
- pickupTime: "",
+ startRange: "",
+ endRange: "",
  });
- setQuickPhone("");
+ setSelectedSavedAddressId(savedAddresses[0]?.id ? String(savedAddresses[0].id) : "");
+ setQuickPhone(savedAddresses[0]?.receiverPhone || "");
  setActiveStep(0);
  } catch (error) {
  console.error(error);
- alert("Failed to create order");
+ alert(getErrorMessage(error));
  }
  };
 
@@ -370,9 +565,36 @@ const DefaultDashboard = () => {
  {activeStep === 2 && (
  <div>
  <h3>Select Address</h3>
- <AddressForm onSelectAddress={handleAddressSelect} />
- <button className="next-btn" onClick={() => setActiveStep(3)}>
- Next
+ {savedAddressError ? (
+ <p className="saved-address-error">{savedAddressError}</p>
+ ) : null}
+ {savedAddresses.length > 0 ? (
+ <div className="saved-address-panel">
+ <label htmlFor="saved-address">Use saved address</label>
+ <select
+ id="saved-address"
+ value={selectedSavedAddressId}
+ onChange={handleSavedAddressChange}
+ >
+ {savedAddresses.map((address) => (
+ <option key={address.id} value={address.id}>
+ {getSavedAddressLabel(address)}
+ </option>
+ ))}
+ <option value="">Enter a different address</option>
+ </select>
+ </div>
+ ) : null}
+ <AddressForm
+ initialAddress={orderData.address}
+ onSelectAddress={handleAddressSelect}
+ />
+ <button
+ className="next-btn"
+ onClick={handleAddressNext}
+ disabled={isSavingAddress}
+ >
+ {isSavingAddress ? "Saving..." : "Next"}
  </button>
  </div>
  )}
@@ -389,9 +611,17 @@ const DefaultDashboard = () => {
  />
  <input
  type="time"
- name="pickupTime"
- value={orderData.pickupTime}
+ name="startRange"
+ value={orderData.startRange}
  onChange={handleChange}
+ aria-label="Pickup start time"
+ />
+ <input
+ type="time"
+ name="endRange"
+ value={orderData.endRange}
+ onChange={handleChange}
+ aria-label="Pickup end time"
  />
  </div>
  <button className="submit-order-btn" onClick={handleSubmitOrder}>

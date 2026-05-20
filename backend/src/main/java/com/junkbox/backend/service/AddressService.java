@@ -3,23 +3,38 @@ package com.junkbox.backend.service;
 import com.junkbox.backend.dto.request.AddressRequest;
 import com.junkbox.backend.dto.response.AddressResponse;
 import com.junkbox.backend.entity.Address;
+import com.junkbox.backend.entity.Orders;
+import com.junkbox.backend.entity.User;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.AddressRepo;
+import com.junkbox.backend.repository.OrdersRepo;
+import com.junkbox.backend.repository.UserRepository;
 
 import jakarta.validation.Valid;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class AddressService {
 
     private final AddressRepo addressRepo;
+    private final OrdersRepo ordersRepo;
+    private final UserRepository userRepository;
 
-    public AddressService(AddressRepo addressRepo) {
+    public AddressService(AddressRepo addressRepo,
+                          OrdersRepo ordersRepo,
+                          UserRepository userRepository) {
         this.addressRepo = addressRepo;
+        this.ordersRepo = ordersRepo;
+        this.userRepository = userRepository;
     }
 
     // CREATE ADDRESS
@@ -30,6 +45,7 @@ public class AddressService {
         Address address = new Address();
 
         mapRequestToEntity(request, address);
+        address.setUser(getCurrentUser());
 
         Address savedAddress = addressRepo.save(address);
 
@@ -40,6 +56,38 @@ public class AddressService {
     public List<AddressResponse> getAllAddress() {
 
         return addressRepo.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // GET CURRENT USER ADDRESSES
+    public List<AddressResponse> getCurrentUserAddresses() {
+
+        User user = getCurrentUser();
+
+        Map<Long, Address> addressesById = new LinkedHashMap<>();
+
+        addressRepo.findAllByUserId(user.getId())
+                .forEach(address -> addressesById.put(address.getId(), address));
+
+        List<Address> orderAddresses = ordersRepo
+                .findAllByCreatedByUserIDOrderByCreatedDateTimeDesc(user.getId())
+                .stream()
+                .map(Orders::getAddress)
+                .filter(address -> address != null && address.getId() != null)
+                .collect(Collectors.toList());
+
+        orderAddresses.forEach(address -> {
+            if (address.getUser() == null) {
+                address.setUser(user);
+                addressRepo.save(address);
+            }
+
+            addressesById.putIfAbsent(address.getId(), address);
+        });
+
+        return addressesById.values()
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -83,6 +131,30 @@ public class AddressService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Address not found with ID: " + id));
+    }
+
+    private User getCurrentUser() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || authentication.getName() == null
+                || "anonymousUser".equals(authentication.getName())
+                || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("Authenticated user is required");
+        }
+
+        String principal = authentication.getName();
+
+        Optional<User> user = userRepository.findByUsername(principal);
+
+        if (user.isEmpty()) {
+            user = userRepository.findByEmail(principal);
+        }
+
+        return user.orElseThrow(() ->
+                new ResourceNotFoundException("User not found: " + principal));
     }
 
     // VALIDATION

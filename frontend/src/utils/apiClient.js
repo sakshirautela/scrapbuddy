@@ -17,6 +17,8 @@ const PUBLIC_ROUTES = [
   '/api/auth/password/forgot',
   '/api/auth/password/reset',
   '/api/auth/password/validate',
+  '/api/verification/send-otp',
+  '/api/verification/verify-otp',
 ];
 
 const PUBLIC_GET_ROUTES = [

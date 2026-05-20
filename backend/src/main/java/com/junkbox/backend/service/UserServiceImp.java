@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class UserServiceImp {
     private final UserRepository repo;
     private final PasswordEncoder passwordEncoder;
     private final PhoneOtpService phoneOtpService;
+    private final VarifcationService varifcationService;
 
     public void sendLoginOtp(String phone) {
         User user = repo.findByPhone(phone)
@@ -44,19 +47,20 @@ public class UserServiceImp {
     public UserResponse register(RegisterRequest request) {
 
         validateRegisterRequest(request);
+        String email = request.getEmail().trim().toLowerCase();
 
-        if (repo.findByUsername(request.getUsername()).isPresent()) {
+        if (repo.findByUsername(email).isPresent()) {
 
-            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+            throw new IllegalArgumentException("Username already exists: " + email);
         }
 
         User user = new User();
 
-        user.setUsername(request.getUsername().trim());
+        user.setUsername(email);
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
 
         user.setPhone(request.getPhone());
 
@@ -66,7 +70,11 @@ public class UserServiceImp {
 
         user.setRole("USER");
 
-        user.setVerified(false);
+        if (!varifcationService.isEmailVerified(email)) {
+            throw new IllegalArgumentException("Please verify your email before registration");
+        }
+
+        user.setVerified(true);
 
         user.setCreatedDate(new Date());
 
@@ -109,6 +117,14 @@ public class UserServiceImp {
         return mapToResponse(user);
     }
 
+    public List<UserResponse> getAdmins() {
+        return repo.findAll()
+                .stream()
+                .filter(user -> isAdminRole(user.getRole()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     // DELETE USER
     public void deleteUser(Long id) {
         User user = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
@@ -123,10 +139,6 @@ public class UserServiceImp {
             throw new IllegalArgumentException("Registration request cannot be null");
         }
 
-        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
-
-            throw new IllegalArgumentException("Username cannot be empty");
-        }
 
         if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
 
@@ -187,6 +199,20 @@ public class UserServiceImp {
         response.setCreatedDate(user.getCreatedDate());
 
         return response;
+    }
+
+    private boolean isAdminRole(String role) {
+        if (role == null) {
+            return false;
+        }
+
+        String normalizedRole = role.trim().toUpperCase();
+        return "ADMIN".equals(normalizedRole)
+                || "SUPER_ADMIN".equals(normalizedRole)
+                || "SUPERADMIN".equals(normalizedRole)
+                || "ROLE_ADMIN".equals(normalizedRole)
+                || "ROLE_SUPER_ADMIN".equals(normalizedRole)
+                || "ROLE_SUPERADMIN".equals(normalizedRole);
     }
 
 }

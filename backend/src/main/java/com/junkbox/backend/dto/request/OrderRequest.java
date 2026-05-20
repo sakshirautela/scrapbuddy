@@ -1,23 +1,29 @@
 package com.junkbox.backend.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.junkbox.backend.entity.Address;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Time;
 import java.util.Date;
 
 @Getter
 @Setter
 public class OrderRequest {
-    private boolean status;
     @NotNull(message = "Pickup date is required")
     private Date pickupDate;
+
+    @JsonFormat(pattern = "HH:mm:ss")
+    private Time startRange;
+
+    @JsonFormat(pattern = "HH:mm:ss")
+    private Time endRange;
     private Address address;
+    private String status;
     @NotNull(message = "Category ID is required")
     private Long categoryID;
-
     @NotNull(message = "Subcategory ID is required")
     private Long subCategoryID;
-
 }

@@ -6,6 +6,7 @@ import AdminTopbar from "../components/admin/AdminTopbar";
 import CategoriesManager from "../components/admin/CategoriesManager";
 import CitiesManager from "../components/admin/CitiesManager";
 import OrdersTable from "../components/admin/OrdersTable";
+import orderApi from "../api/orderApi";
 import apiClient from "../utils/apiClient";
 import cityApi from "../api/cityApi";
 import { getCategoryName, menuItems } from "../utils/adminDashboard";
@@ -15,6 +16,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("categories");
   const [orders, setOrders] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [categories, setCategories] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [cities, setCities] = useState([]);
@@ -78,17 +80,19 @@ const AdminDashboard = () => {
     };
 
     try {
-      const [ordersData, categoriesData, addressesData, citiesData] = await Promise.all([
+      const [ordersData, categoriesData, addressesData, citiesData, adminsData] = await Promise.all([
         settle(() => apiClient.get("/api/orders")),
         settle(() => apiClient.get("/api/categories/with-subcategories")),
         settle(() => apiClient.get("/api/addresses")),
         cityApi.getCities(),
+        settle(() => apiClient.get("/api/users/admins")),
       ]);
 
       setOrders(ordersData);
       setCategories(categoriesData);
       setAddresses(addressesData);
       setCities(citiesData);
+      setAdmins(adminsData);
     } catch (err) {
       setError(err.message || "Failed to load admin data");
     } finally {
@@ -126,8 +130,8 @@ const AdminDashboard = () => {
     try {
       const payload = {
         category: categoryForm.category.trim(),
-        createdUserID: Number(user?.id),
-        updatedCategoryID: Number(user?.id),
+        createdUserID: Number(user?.id) || 0,
+        updatedCategoryID: Number(user?.id) || 0,
       };
 
       if (editingCategoryId) {
@@ -367,6 +371,127 @@ const AdminDashboard = () => {
     setCityForm({ name: "" });
   };
 
+  const handleAcceptOrder = async (orderId) => {
+    if (!requireAdminSession("orders")) {
+      return;
+    }
+
+    try {
+      const response = await orderApi.acceptOrder(orderId);
+      setOrders((current) =>
+        current.map((order) =>
+          String(order.id) === String(orderId) ? response.data : order
+        )
+      );
+    } catch (err) {
+      window.alert(err.message || "Failed to accept order");
+    }
+  };
+
+  const replaceOrder = (updatedOrder) => {
+    setOrders((current) =>
+      current.map((order) =>
+        String(order.id) === String(updatedOrder.id) ? updatedOrder : order
+      )
+    );
+  };
+
+  const handleAssignOrder = async (orderId, adminId) => {
+    if (!requireAdminSession("orders")) {
+      return;
+    }
+
+    if (!adminId) {
+      window.alert("Please select an admin");
+      return;
+    }
+
+    try {
+      const response = await orderApi.assignOrder(orderId, Number(adminId));
+      replaceOrder(response.data);
+    } catch (err) {
+      window.alert(err.message || "Failed to assign order");
+    }
+  };
+
+  const handleUnassignOrder = async (orderId) => {
+    if (!requireAdminSession("orders")) {
+      return;
+    }
+
+    try {
+      const response = await orderApi.unassignOrder(orderId);
+      replaceOrder(response.data);
+    } catch (err) {
+      window.alert(err.message || "Failed to remove assignment");
+    }
+  };
+
+  const handleRescheduleOrder = async (orderId, schedule) => {
+    if (!requireAdminSession("orders")) {
+      return;
+    }
+
+    if (!schedule.pickupDate || !schedule.startRange || !schedule.endRange) {
+      window.alert("Please enter pickup date and time range");
+      return;
+    }
+
+    if (schedule.endRange <= schedule.startRange) {
+      window.alert("Pickup end time must be after start time");
+      return;
+    }
+
+    try {
+      const response = await orderApi.rescheduleOrder(orderId, {
+        pickupDate: `${schedule.pickupDate}T${schedule.startRange}:00`,
+        startRange: `${schedule.startRange}:00`,
+        endRange: `${schedule.endRange}:00`,
+      });
+      replaceOrder(response.data);
+    } catch (err) {
+      window.alert(err.message || "Failed to reschedule order");
+    }
+  };
+
+  const handleSendDeliveryOtp = async (orderId) => {
+    if (!requireAdminSession("orders")) {
+      return;
+    }
+
+    try {
+      await orderApi.sendDeliveryOtp(orderId);
+      setOrders((current) =>
+        current.map((order) =>
+          String(order.id) === String(orderId)
+            ? { ...order, status: "Delivery OTP Sent" }
+            : order
+        )
+      );
+      window.alert("Delivery OTP sent to receiver phone");
+    } catch (err) {
+      window.alert(err.message || "Failed to send delivery OTP");
+    }
+  };
+
+  const handleDeliverOrder = async (orderId, otp) => {
+    if (!requireAdminSession("orders")) {
+      return;
+    }
+
+    if (!otp || !otp.trim()) {
+      window.alert("Please enter delivery OTP");
+      return;
+    }
+
+    try {
+      const response = await orderApi.deliverOrder(orderId, otp.trim());
+      replaceOrder(response.data);
+    } catch (err) {
+      window.alert(err.message || "Failed to deliver order");
+    }
+  };
+
   const renderMainContent = () => {
     if (loading) {
       return <section className="admin-card loading-card">Loading admin data...</section>;
@@ -410,7 +535,20 @@ const AdminDashboard = () => {
     }
 
     if (activeTab === "orders") {
-      return <OrdersTable orders={orders} categories={categories} />;
+      return (
+        <OrdersTable
+          orders={orders}
+          admins={admins}
+          categories={categories}
+          currentAdminId={Number(user?.id) || 0}
+          onAcceptOrder={handleAcceptOrder}
+          onAssignOrder={handleAssignOrder}
+          onUnassignOrder={handleUnassignOrder}
+          onRescheduleOrder={handleRescheduleOrder}
+          onSendDeliveryOtp={handleSendDeliveryOtp}
+          onDeliverOrder={handleDeliverOrder}
+        />
+      );
     }
 
     if (activeTab === "cities") {

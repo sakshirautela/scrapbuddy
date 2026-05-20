@@ -31,11 +31,43 @@ const formatDateTime = (value) => {
   });
 };
 
+const formatValue = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  return String(value);
+};
+
+const formatTimeRange = (order) => {
+  if (!order?.startRange && !order?.endRange) {
+    return "-";
+  }
+
+  return `${order.startRange || "-"} - ${order.endRange || "-"}`;
+};
+
+const getAddressSummary = (address = {}) =>
+  [
+    [address.receiverFirstName, address.receiverLastName].filter(Boolean).join(" "),
+    address.receiverPhone,
+    address.receiverEmail,
+    address.apartment,
+    address.city,
+    address.state,
+    address.zip,
+    address.country,
+    address.countryCode,
+  ]
+    .filter((value) => value !== null && value !== undefined && String(value).trim() !== "")
+    .join(", ") || "-";
+
 const ProfileDashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderError, setOrderError] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -132,15 +164,15 @@ const ProfileDashboard = () => {
                       <td>
                         <span
                           className={
-                            order.status ? "pill delivered" : "pill processing"
+                            order.status?.toLowerCase() === "cancelled" ? "pill cancelled" : "pill processing"
                           }
                         >
-                          {order.status ? "Completed" : "Processing"}
+                          {order.status || "Processing"}
                         </span>
                       </td>
 
                       <td>
-                        <button className="view-btn" type="button">
+                        <button className="view-btn" type="button" onClick={() => setSelectedOrder(order)}>
                           View
                         </button>
                       </td>
@@ -161,6 +193,111 @@ const ProfileDashboard = () => {
       </div>
     </section>
   );
+
+  const renderOrderDetailsModal = () => {
+    if (!selectedOrder) {
+      return null;
+    }
+
+    const address = selectedOrder.address || {};
+
+    return (
+      <div className="order-detail-overlay" role="presentation" onClick={() => setSelectedOrder(null)}>
+        <section
+          className="order-detail-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="order-detail-title"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <header className="order-detail-header">
+            <div>
+              <span className="order-detail-eyebrow">Order Details</span>
+              <h2 id="order-detail-title">#ORD{String(selectedOrder.id).padStart(4, "0")}</h2>
+              <p>{selectedOrder.status || "Processing"}</p>
+            </div>
+            <button type="button" aria-label="Close order details" onClick={() => setSelectedOrder(null)}>
+              ×
+            </button>
+          </header>
+
+          <div className="order-detail-grid">
+            <article>
+              <span>Pickup Date</span>
+              <strong>{formatDateTime(selectedOrder.pickupDate)}</strong>
+            </article>
+            <article>
+              <span>Pickup Time</span>
+              <strong>{formatTimeRange(selectedOrder)}</strong>
+            </article>
+            <article>
+              <span>Category ID</span>
+              <strong>{formatValue(selectedOrder.categoryID)}</strong>
+            </article>
+            <article>
+              <span>Subcategory ID</span>
+              <strong>{formatValue(selectedOrder.subCategoryID)}</strong>
+            </article>
+            <article>
+              <span>Assigned Admin</span>
+              <strong>{selectedOrder.pickscheduleById ? `Admin ${selectedOrder.pickscheduleById}` : "Not assigned"}</strong>
+            </article>
+            <article>
+              <span>Created By</span>
+              <strong>{selectedOrder.createdByUserID === 0 ? "Guest" : formatValue(selectedOrder.createdByUserID)}</strong>
+            </article>
+            <article>
+              <span>Created At</span>
+              <strong>{formatDateTime(selectedOrder.createdDateTime)}</strong>
+            </article>
+            <article>
+              <span>Updated At</span>
+              <strong>{formatDateTime(selectedOrder.updatedDateTime)}</strong>
+            </article>
+          </div>
+
+          <section className="order-address-card">
+            <h3>Pickup Address</h3>
+            <p>{getAddressSummary(address)}</p>
+            <dl>
+              <div>
+                <dt>Receiver</dt>
+                <dd>{formatValue([address.receiverFirstName, address.receiverLastName].filter(Boolean).join(" "))}</dd>
+              </div>
+              <div>
+                <dt>Phone</dt>
+                <dd>{formatValue(address.receiverPhone)}</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>{formatValue(address.receiverEmail)}</dd>
+              </div>
+              <div>
+                <dt>Apartment</dt>
+                <dd>{formatValue(address.apartment)}</dd>
+              </div>
+              <div>
+                <dt>City</dt>
+                <dd>{formatValue(address.city)}</dd>
+              </div>
+              <div>
+                <dt>State</dt>
+                <dd>{formatValue(address.state)}</dd>
+              </div>
+              <div>
+                <dt>Zip</dt>
+                <dd>{formatValue(address.zip)}</dd>
+              </div>
+              <div>
+                <dt>Country</dt>
+                <dd>{formatValue(address.country)}</dd>
+              </div>
+            </dl>
+          </section>
+        </section>
+      </div>
+    );
+  };
 
   const renderProfile = () => (
     <div className="profile-grid">
@@ -208,9 +345,6 @@ const ProfileDashboard = () => {
           ▣ Change Password
         </button>
 
-        <button className="delete-account" type="button">
-          ⌫ Delete Account
-        </button>
 
         <small>
           Once you delete your account, all your data will be permanently
@@ -317,6 +451,8 @@ const ProfileDashboard = () => {
           {activeTab === "orders" ? renderOrdersTable() : null}
         </main>
       </section>
+
+      {renderOrderDetailsModal()}
     </div>
   );
 };

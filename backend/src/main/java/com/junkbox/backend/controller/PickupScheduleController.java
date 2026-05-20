@@ -1,6 +1,9 @@
 package com.junkbox.backend.controller;
 
+import com.junkbox.backend.dto.request.OrderAssignmentRequest;
+import com.junkbox.backend.dto.request.OrderDeliveryRequest;
 import com.junkbox.backend.dto.request.OrderRequest;
+import com.junkbox.backend.dto.request.OrderRescheduleRequest;
 import com.junkbox.backend.dto.response.OrderResponse;
 import com.junkbox.backend.service.OrderService;
 
@@ -26,17 +29,20 @@ public class PickupScheduleController {
 
     // CREATE ORDER / SCHEDULE PICKUP
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(
+    public ResponseEntity<?> createOrder(
             @Valid @RequestBody OrderRequest request) {
 
-        OrderResponse response =
-                orderService.createOrder(request);
+        try {
+            OrderResponse response =
+                    orderService.createOrder(request);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-
     // GET ORDER BY ID
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
@@ -60,6 +66,78 @@ public class PickupScheduleController {
                 orderService.updateOrder(id, request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/accept")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> acceptOrder(@PathVariable Long id) {
+        try {
+            OrderResponse response = orderService.acceptOrder(id);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{id}/assign")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> assignOrder(
+            @PathVariable Long id,
+            @RequestBody OrderAssignmentRequest request) {
+        try {
+            OrderResponse response = orderService.assignOrder(id, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{id}/unassign")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> unassignOrder(@PathVariable Long id) {
+        try {
+            OrderResponse response = orderService.unassignOrder(id);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{id}/reschedule")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> rescheduleOrder(
+            @PathVariable Long id,
+            @RequestBody OrderRescheduleRequest request) {
+        try {
+            OrderResponse response = orderService.rescheduleOrder(id, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/delivery-otp")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> sendDeliveryOtp(@PathVariable Long id) {
+        try {
+            orderService.sendDeliveryOtp(id);
+            return ResponseEntity.ok("Delivery OTP sent");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{id}/deliver")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> deliverOrder(
+            @PathVariable Long id,
+            @RequestBody OrderDeliveryRequest request) {
+        try {
+            OrderResponse response = orderService.deliverOrder(id, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // DELETE / CANCEL ORDER

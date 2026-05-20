@@ -11,8 +11,10 @@ import './Register.css';
 function Register() {
   const [step, setStep] = useState('register'); // 'register' or 'verify-otp'
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   });
@@ -22,18 +24,14 @@ function Register() {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const { register } = useAuth();
   const navigate = useNavigate();
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
-    // Update password strength
     if (name === 'password') {
       const strength = getPasswordStrength(value);
       setPasswordStrength(strength.strength);
     }
 
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -42,7 +40,6 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Validate form
     const validationErrors = validateRegisterForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -51,11 +48,10 @@ function Register() {
 
     setLoading(true);
     try {
-      // First, send registration request and get OTP
-      await authApi.register(formData);
+      await authApi.sendRegistrationOtp(formData.email);
       setStep('verify-otp');
     } catch (err) {
-      const errorMessage = typeof err === 'string' ? err : err.message || 'Registration failed';
+      const errorMessage = typeof err === 'string' ? err : err.message || 'Failed to send verification code';
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
@@ -72,23 +68,29 @@ function Register() {
 
     setLoading(true);
     try {
-      await authApi.verifyOtp(formData.email, otp);
-      // OTP verified, now register the user
-      const response = await register(formData);
-      
-      // Redirect based on user role
-      const userRole = response.user?.role?.toLowerCase() || '';
-      if (userRole === 'admin' || userRole === 'superadmin' || userRole === 'super_admin') {
-        navigate('/admin');
-      } else if (userRole === 'user') {
-        navigate('/user');
-      } else {
-        // Default redirect
-        navigate('/');
-      }
+      await authApi.verifyRegistrationOtp(formData.email, otp);
     } catch (err) {
       const errorMessage = typeof err === 'string' ? err : err.message || 'OTP verification failed';
       setErrors({ otp: errorMessage });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await register(formData);
+      
+      const userRole = (response.user?.role || response.role || '').toLowerCase();
+      if (userRole === 'admin' || userRole === 'superadmin' || userRole === 'super_admin') {
+        navigate('/AdminDashboard');
+      } else if (userRole === 'user') {
+        navigate('/DefaultDashboard');
+      } else {
+        // Default redirect
+        navigate('/DefaultDashboard');
+      }
+    } catch (err) {
+      const errorMessage = typeof err === 'string' ? err : err.message || 'Registration failed';
+      setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -122,15 +124,21 @@ function Register() {
           {step === 'register' ? (
             <>
               <FormInput
-                label="Full Name"
+                label="First Name"
                 type="text"
-                name="name"
-                value={formData.name}
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
-                placeholder="John Doe"
-                error={errors.name}
-                required
-                disabled={loading}
+                placeholder="John"
+              />
+
+              <FormInput
+                label="Last Name"
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Doe"
               />
 
               <FormInput
@@ -141,6 +149,17 @@ function Register() {
                 onChange={handleChange}
                 placeholder="you@example.com"
                 error={errors.email}
+                required
+                disabled={loading}
+              />
+               <FormInput
+                label="Phone Number"
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="123-456-7890"
+                error={errors.phone}
                 required
                 disabled={loading}
               />

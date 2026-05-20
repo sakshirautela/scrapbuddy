@@ -21,6 +21,10 @@ public class PhoneOtpService {
     }
 
     public void sendOtp(String phone) {
+        createOtpForPhone(phone);
+    }
+
+    public String createOtpForPhone(String phone) {
 
         String otp = generateOtp();
 
@@ -40,6 +44,8 @@ public class PhoneOtpService {
 
         System.out.println(
                 "OTP for " + phone + " is " + otp);
+
+        return otp;
     }
     public boolean verifyOtp(
             String phone,

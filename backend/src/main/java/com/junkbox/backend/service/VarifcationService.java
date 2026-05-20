@@ -21,12 +21,13 @@ public class VarifcationService {
     }
 
     public void sendOtp(String email) {
+        String normalizedEmail = normalizeEmail(email);
 
         String otp = passwordResetService.generateOTP();
 
         EmailOtp emailOtp = new EmailOtp();
 
-        emailOtp.setEmail(email);
+        emailOtp.setEmail(normalizedEmail);
         emailOtp.setOtp(otp);
 
         emailOtp.setExpiryTime(
@@ -39,7 +40,7 @@ public class VarifcationService {
         SimpleMailMessage message =
                 new SimpleMailMessage();
 
-        message.setTo(email);
+        message.setTo(normalizedEmail);
         message.setSubject("OTP Verification");
         message.setText("Your OTP is: " + otp);
 
@@ -47,9 +48,10 @@ public class VarifcationService {
     }
 
     public boolean verifyOtp(String email, String otp) {
+        String normalizedEmail = normalizeEmail(email);
 
         EmailOtp savedOtp = otpRepo
-                .findTopByEmailOrderByIdDesc(email)
+                .findTopByEmailOrderByIdDesc(normalizedEmail)
                 .orElseThrow(() ->
                         new RuntimeException("OTP not found"));
 
@@ -69,5 +71,19 @@ public class VarifcationService {
         otpRepo.save(savedOtp);
 
         return true;
+    }
+
+    public boolean isEmailVerified(String email) {
+        return otpRepo
+                .findTopByEmailOrderByIdDesc(normalizeEmail(email))
+                .map(EmailOtp::isVerified)
+                .orElse(false);
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+        return email.trim().toLowerCase();
     }
 }

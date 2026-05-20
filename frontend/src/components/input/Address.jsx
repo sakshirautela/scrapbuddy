@@ -1,38 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import "../../styles/AddressForm.css";
 
+const normalizeAddress = (address) => ({
+  id: address?.id,
+  apartment: address?.apartment || "",
+  city: address?.city || "",
+  state: address?.state || "",
+  zip: address?.zip || "",
+  country: address?.country || "",
+  receiverFirstName: address?.receiverFirstName || "",
+  receiverLastName: address?.receiverLastName || "",
+  receiverPhone: address?.receiverPhone || "",
+  receiverEmail: address?.receiverEmail || "",
+  countryCode: address?.countryCode || "+91",
+});
 const AddressForm = ({
   onSelectAddress,
+  initialAddress,
 }) => {
 
   const [formData, setFormData] =
-    useState({
-
-      apartment: "",
-
-      city: "",
-
-      state: "",
-
-      zip: "",
-
-      country: "",
-
-      receiverFirstName: "",
-
-      receiverLastName: "",
-
-      receiverPhone: "",
-
-      receiverEmail: "",
-
-      countryCode: "+91",
-
-    });
+    useState(() => normalizeAddress(initialAddress));
 
   const [errors, setErrors] =
     useState({});
+
+  useEffect(() => {
+    const nextAddress = normalizeAddress(initialAddress);
+
+    setFormData(nextAddress);
+    setErrors({});
+  }, [initialAddress]);
 
   // VALIDATION
   const validateField = (
@@ -517,43 +516,6 @@ const AddressForm = ({
         </div>
 
       </div>
-
-      {/* PREVIEW */}
-      <div className="address-preview">
-
-        <h3>
-          Address Preview
-        </h3>
-
-        <p>
-
-          {formData.receiverFirstName}{" "}
-          {formData.receiverLastName}
-
-        </p>
-
-        <p>
-          {formData.apartment}
-        </p>
-
-        <p>
-
-          {formData.city},{" "}
-          {formData.state} -{" "}
-          {formData.zip}
-
-        </p>
-
-        <p>
-          {formData.country}
-        </p>
-
-        <p>
-          {formData.receiverPhone}
-        </p>
-
-      </div>
-
     </div>
   );
 };

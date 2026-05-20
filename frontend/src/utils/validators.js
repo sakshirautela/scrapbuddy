@@ -53,19 +53,17 @@ export const validateLoginForm = (email, password) => {
 export const validateRegisterForm = (formData) => {
   const errors = {};
   
-  if (!formData.name) errors.name = 'Full name is required';
-  else if (!isValidName(formData.name)) errors.name = 'Name must be at least 2 characters';
-  
+  if (!formData.firstName) errors.firstName = 'First name is required';
+  else if (!isValidName(formData.firstName)) errors.firstName = 'First name must be at least 2 characters';
+  if (!formData.lastName) errors.lastName = 'Last name is required';
+  else if (!isValidName(formData.lastName)) errors.lastName = 'Last name must be at least 2 characters';
   if (!formData.email) errors.email = 'Email is required';
   else if (!isValidEmail(formData.email)) errors.email = 'Invalid email address';
-  
   if (!formData.password) errors.password = 'Password is required';
   else if (!isValidPassword(formData.password)) {
     errors.password = 'Password must be at least 8 characters with uppercase, lowercase, and numbers';
   }
-  
   if (!formData.confirmPassword) errors.confirmPassword = 'Please confirm password';
   else if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
-  
   return errors;
 };

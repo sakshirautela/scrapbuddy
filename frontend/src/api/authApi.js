@@ -1,13 +1,5 @@
 import apiClient from '../utils/apiClient';
 
-const splitName = (name = '') => {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return {
-    firstName: parts[0] || '',
-    lastName: parts.slice(1).join(' ')
-  };
-};
-
 const authApi = {
  login: async (username, password) => {
   const response = await apiClient.post('/api/auth/login', {
@@ -25,14 +17,28 @@ const authApi = {
 
 
   register: async (userData) => {
-    const { firstName, lastName } = splitName(userData.name);
+    const email = userData.email.trim().toLowerCase();
     const response = await apiClient.post('/api/auth/signup', {
-      username: userData.username || userData.email,
+      username: userData.username || email,
       password: userData.password,
-      email: userData.email,
+      email,
       phone: userData.phone || '',
-      firstName,
-      lastName
+      firstName: userData.firstName.trim(),
+      lastName: userData.lastName.trim()
+    });
+    return response.data;
+  },
+
+  sendRegistrationOtp: async (email) => {
+    const response = await apiClient.post('/api/verification/send-otp', null, {
+      params: { email: email.trim().toLowerCase() }
+    });
+    return response.data;
+  },
+
+  verifyRegistrationOtp: async (email, otp) => {
+    const response = await apiClient.post('/api/verification/verify-otp', null, {
+      params: { email: email.trim().toLowerCase(), otp: otp.trim() }
     });
     return response.data;
   },

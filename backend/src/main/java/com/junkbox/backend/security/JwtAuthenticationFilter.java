@@ -47,6 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             username = jwtUtil.extractUsername(token);
         } catch (RuntimeException e) {
+            if (isGuestOrderRequest(request)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer error=\"invalid_token\"");
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid or expired token");
             return;
@@ -68,5 +73,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isGuestOrderRequest(HttpServletRequest request) {
+        return "POST".equalsIgnoreCase(request.getMethod())
+                && "/api/orders".equals(request.getServletPath());
     }
 }

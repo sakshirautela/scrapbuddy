@@ -91,11 +91,19 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(@Valid @RequestBody RegisterRequest request) {
-        log.info("Attempting to register new user with username: {}", request.getUsername());
-        UserResponse user = userService.register(request);
-        log.info("User successfully registered: {}", user.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    public ResponseEntity<?> signup(@Valid @RequestBody RegisterRequest request) {
+        String email = normalizeEmail(request.getEmail());
+        log.info("Attempting to register new user with username: {}", email);
+        try {
+            UserResponse user = userService.register(request);
+            String token = jwtUtil.generateToken(user);
+            log.info("User successfully registered: {}", user.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED).body(createAuthResponse(token, user));
+        } catch (IllegalArgumentException e) {
+            log.warn("Registration failed for user: {} - Error: {}", email, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
     
     private AuthResponse createAuthResponse(String token, UserResponse user) {
@@ -105,5 +113,12 @@ public class AuthController {
                 .username(user.getUsername())
                 .user(user)
                 .build();
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+        return email.trim().toLowerCase();
     }
 }

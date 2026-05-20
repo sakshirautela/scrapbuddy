@@ -15,7 +15,7 @@ public class SecurityUser implements UserDetails {
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String role = this.user.getRole();
+        String role = this.user.getRole() == null ? "USER" : this.user.getRole().trim().toUpperCase();
         String prefixedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
         return List.of(new SimpleGrantedAuthority(prefixedRole));
     }

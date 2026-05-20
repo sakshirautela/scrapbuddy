@@ -23,6 +23,13 @@ const AdminSidebar = ({ activeTab, onSelectTab }) => (
         </button>
       ))}
     </nav>
+
+    <div className="sidebar-help-card">
+      <div className="help-illustration" aria-hidden="true">♻</div>
+      <strong>Need help?</strong>
+      <p>Contact support for any assistance you need.</p>
+      <button type="button">Contact Support</button>
+    </div>
   </aside>
 );
 

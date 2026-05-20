@@ -41,6 +41,45 @@ const orderApi = {
     );
   },
 
+  acceptOrder: async (id) => {
+    return await apiClient.patch(
+      `/api/orders/${id}/accept`
+    );
+  },
+
+  assignOrder: async (id, adminId) => {
+    return await apiClient.patch(
+      `/api/orders/${id}/assign`,
+      { adminId }
+    );
+  },
+
+  unassignOrder: async (id) => {
+    return await apiClient.patch(
+      `/api/orders/${id}/unassign`
+    );
+  },
+
+  rescheduleOrder: async (id, data) => {
+    return await apiClient.patch(
+      `/api/orders/${id}/reschedule`,
+      data
+    );
+  },
+
+  sendDeliveryOtp: async (id) => {
+    return await apiClient.post(
+      `/api/orders/${id}/delivery-otp`
+    );
+  },
+
+  deliverOrder: async (id, otp) => {
+    return await apiClient.patch(
+      `/api/orders/${id}/deliver`,
+      { otp }
+    );
+  },
+
 };
 
 export default orderApi;

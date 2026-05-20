@@ -91,6 +91,12 @@ public class UserController {
         }
     }
 
+    @GetMapping("/admins")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> getAdmins() {
+        return ResponseEntity.ok(userServiceImp.getAdmins());
+    }
+
     // DELETE USER
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.sql.Time;
 import java.util.Date;
 
 @Getter
@@ -13,15 +14,21 @@ public class OrderResponse {
 
     private Long id;
 
-    private boolean status;
+    private String status;
 
     private Date pickupDate;
+
+    private Time startRange;
+
+    private Time endRange;
 
     private Address address;
 
     private Long createdByUserID;
 
     private Long updatedByUserID;
+
+    private Long pickscheduleById;
 
     private Long categoryID;
 
@@ -30,4 +37,5 @@ public class OrderResponse {
     private LocalDateTime createdDateTime;
 
     private LocalDateTime updatedDateTime;
+
 }

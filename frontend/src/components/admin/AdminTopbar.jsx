@@ -19,9 +19,10 @@ const AdminTopbar = ({
 
     <div className="topbar-right">
       <button className="notification-button" type="button">
-        ♢
+        ♧
         <span>5</span>
       </button>
+      <button className="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
       <div className="admin-profile-menu">
         <button
           className="admin-profile-trigger"

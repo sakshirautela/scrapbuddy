@@ -47,6 +47,17 @@ public class AddressController {
         return ResponseEntity.ok(addresses);
     }
 
+    // GET CURRENT USER ADDRESSES
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<AddressResponse>> getMyAddresses() {
+
+        List<AddressResponse> addresses =
+                addressService.getCurrentUserAddresses();
+
+        return ResponseEntity.ok(addresses);
+    }
+
     // GET ADDRESS BY ID
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
