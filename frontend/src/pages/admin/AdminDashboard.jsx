@@ -1,20 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AddressesTable from "../components/admin/AddressesTable";
-import AdminSidebar from "../components/admin/AdminSidebar";
-import AdminTopbar from "../components/admin/AdminTopbar";
-import CategoriesManager from "../components/admin/CategoriesManager";
-import CitiesManager from "../components/admin/CitiesManager";
-import OrdersTable from "../components/admin/OrdersTable";
-import orderApi from "../api/orderApi";
-import apiClient from "../utils/apiClient";
-import cityApi from "../api/cityApi";
-import { getCategoryName, menuItems } from "../utils/adminDashboard";
-import "../styles/AdminDashboard.css";
+import AdminDashboardContent from "../../components/admin/AdminDashboardContent";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import AdminTopbar from "../../components/admin/AdminTopbar";
+import orderApi from "../../api/orderApi";
+import apiClient from "../../utils/apiClient";
+import cityApi from "../../api/cityApi";
+import { getCategoryName } from "../../utils/adminDashboard";
+import "../../styles/AdminOverviewDashboard.css";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("categories");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [orders, setOrders] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -29,17 +26,13 @@ const AdminDashboard = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [showProfile, setShowProfile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const adminName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "Admin";
   const adminInitial = adminName.charAt(0).toUpperCase();
-
-  const totalSubCategories = useMemo(
-    () => categories.reduce((total, category) => total + (category.subCategories || []).length, 0),
-    [categories]
-  );
 
   const selectedCategory = useMemo(() => {
     if (selectedCategoryId) {
@@ -52,6 +45,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "orders") {
+      fetchOrders();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (!selectedCategoryId && categories.length > 0) {
@@ -69,6 +68,17 @@ const AdminDashboard = () => {
     setLoading(true);
     setError("");
 
+    const requireList = async (request, resourceName) => {
+      try {
+        const response = await request();
+        return Array.isArray(response.data) ? response.data : [];
+      } catch (err) {
+        const status = err.response?.status;
+        const detail = status ? ` (${status})` : "";
+        throw new Error(`Failed to load ${resourceName}${detail}`);
+      }
+    };
+
     const settle = async (request, fallback = []) => {
       try {
         const response = await request();
@@ -81,7 +91,7 @@ const AdminDashboard = () => {
 
     try {
       const [ordersData, categoriesData, addressesData, citiesData, adminsData] = await Promise.all([
-        settle(() => apiClient.get("/api/orders")),
+        requireList(() => apiClient.get("/api/orders"), "orders"),
         settle(() => apiClient.get("/api/categories/with-subcategories")),
         settle(() => apiClient.get("/api/addresses")),
         cityApi.getCities(),
@@ -97,6 +107,17 @@ const AdminDashboard = () => {
       setError(err.message || "Failed to load admin data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const response = await orderApi.getAllOrders();
+      setOrders(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      const status = err.response?.status;
+      const detail = status ? ` (${status})` : "";
+      setError(`Failed to load orders${detail}`);
     }
   };
 
@@ -119,12 +140,12 @@ const AdminDashboard = () => {
 
   const handleCategorySubmit = async () => {
     if (!requireAdminSession("categories")) {
-      return;
+      return false;
     }
 
     if (!categoryForm.category.trim()) {
       window.alert("Please enter category name");
-      return;
+      return false;
     }
 
     try {
@@ -153,29 +174,31 @@ const AdminDashboard = () => {
       }
 
       handleCategoryCancel();
+      return true;
     } catch (err) {
       window.alert(err.message || "Failed to save category");
+      return false;
     }
   };
 
   const handleSubCategorySubmit = async () => {
     if (!requireAdminSession("subcategories")) {
-      return;
+      return false;
     }
 
     if (!selectedCategory?.id) {
       window.alert("Please select a parent category");
-      return;
+      return false;
     }
 
     if (!subCategoryForm.subCategory.trim()) {
       window.alert("Please enter subcategory name");
-      return;
+      return false;
     }
 
     if (!subCategoryForm.price || Number(subCategoryForm.price) <= 0) {
       window.alert("Please enter a valid price");
-      return;
+      return false;
     }
 
     try {
@@ -210,8 +233,10 @@ const AdminDashboard = () => {
       );
 
       handleSubCategoryCancel();
+      return true;
     } catch (err) {
       window.alert(err.message || "Failed to save subcategory");
+      return false;
     }
   };
 
@@ -474,114 +499,101 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeliverOrder = async (orderId, otp) => {
+  const handleDeliverOrder = async (orderId, payload) => {
     if (!requireAdminSession("orders")) {
       return;
     }
+
+    const otp = payload?.otp || "";
+    const amount = Number(payload?.amount);
 
     if (!otp || !otp.trim()) {
       window.alert("Please enter delivery OTP");
       return;
     }
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      window.alert("Please enter final order amount");
+      return;
+    }
+
     try {
-      const response = await orderApi.deliverOrder(orderId, otp.trim());
+      const response = await orderApi.deliverOrder(orderId, {
+        otp: otp.trim(),
+        amount,
+      });
       replaceOrder(response.data);
     } catch (err) {
       window.alert(err.message || "Failed to deliver order");
     }
   };
 
-  const renderMainContent = () => {
-    if (loading) {
-      return <section className="admin-card loading-card">Loading admin data...</section>;
-    }
+  const categoriesProps = {
+    categories,
+    selectedCategory,
+    selectedCategoryId,
+    selectedState,
+    categoryForm,
+    subCategoryForm,
+    editingCategoryId,
+    editingSubCategoryId,
+    onCategoryFormChange: (name, value) =>
+      setCategoryForm((current) => ({ ...current, [name]: value })),
+    onSubCategoryFormChange: (name, value) =>
+      setSubCategoryForm((current) => ({ ...current, [name]: value })),
+    onCategorySubmit: handleCategorySubmit,
+    onCategoryCancel: handleCategoryCancel,
+    onSubCategorySubmit: handleSubCategorySubmit,
+    onSubCategoryCancel: handleSubCategoryCancel,
+    onSelectCategory: setSelectedCategoryId,
+    onCategoryEdit: handleCategoryEdit,
+    onCategoryDelete: handleCategoryDelete,
+    onSubCategoryEdit: handleSubCategoryEdit,
+    onSubCategoryDelete: handleSubCategoryDelete,
+  };
 
-    if (error) {
-      return <section className="admin-card error-card">{error}</section>;
-    }
+  const ordersProps = {
+    orders,
+    admins,
+    categories,
+    currentAdminId: Number(user?.id) || 0,
+    onAcceptOrder: handleAcceptOrder,
+    onAssignOrder: handleAssignOrder,
+    onUnassignOrder: handleUnassignOrder,
+    onRescheduleOrder: handleRescheduleOrder,
+    onSendDeliveryOtp: handleSendDeliveryOtp,
+    onDeliverOrder: handleDeliverOrder,
+    onRefreshOrders: fetchOrders,
+  };
 
-    if (activeTab === "categories" || activeTab === "dashboard") {
-      return (
-        <CategoriesManager
-          categories={categories}
-          cities={cities}
-          selectedCategory={selectedCategory}
-          selectedCategoryId={selectedCategoryId}
-          selectedState={selectedState}
-          totalSubCategories={totalSubCategories}
-          categoryForm={categoryForm}
-          subCategoryForm={subCategoryForm}
-          editingCategoryId={editingCategoryId}
-          editingSubCategoryId={editingSubCategoryId}
-          onCategoryFormChange={(name, value) =>
-            setCategoryForm((current) => ({ ...current, [name]: value }))
-          }
-          onSubCategoryFormChange={(name, value) =>
-            setSubCategoryForm((current) => ({ ...current, [name]: value }))
-          }
-          onCategorySubmit={handleCategorySubmit}
-          onCategoryCancel={handleCategoryCancel}
-          onSubCategorySubmit={handleSubCategorySubmit}
-          onSubCategoryCancel={handleSubCategoryCancel}
-          onSelectCategory={setSelectedCategoryId}
-          onSelectState={setSelectedState}
-          onCategoryEdit={handleCategoryEdit}
-          onCategoryDelete={handleCategoryDelete}
-          onSubCategoryEdit={handleSubCategoryEdit}
-          onSubCategoryDelete={handleSubCategoryDelete}
-        />
-      );
-    }
-
-    if (activeTab === "orders") {
-      return (
-        <OrdersTable
-          orders={orders}
-          admins={admins}
-          categories={categories}
-          currentAdminId={Number(user?.id) || 0}
-          onAcceptOrder={handleAcceptOrder}
-          onAssignOrder={handleAssignOrder}
-          onUnassignOrder={handleUnassignOrder}
-          onRescheduleOrder={handleRescheduleOrder}
-          onSendDeliveryOtp={handleSendDeliveryOtp}
-          onDeliverOrder={handleDeliverOrder}
-        />
-      );
-    }
-
-    if (activeTab === "cities") {
-      return (
-        <CitiesManager
-          cities={cities}
-          addresses={addresses}
-          cityForm={cityForm}
-          editingCityId={editingCityId}
-          onCityFormChange={(value) => setCityForm({ name: value })}
-          onCitySubmit={handleCitySubmit}
-          onCityCancel={handleCityCancel}
-          onCityEdit={handleCityEdit}
-          onCityDelete={handleCityDelete}
-        />
-      );
-    }
-
-    if (activeTab === "addresses") {
-      return <AddressesTable addresses={addresses} />;
-    }
-
-    return (
-      <section className="admin-card empty-panel">
-        <h2>{menuItems.find((item) => item.key === activeTab)?.label}</h2>
-        <p>This section is ready for backend data.</p>
-      </section>
-    );
+  const citiesProps = {
+    cities,
+    addresses,
+    cityForm,
+    editingCityId,
+    onCityFormChange: (value) => setCityForm({ name: value }),
+    onCitySubmit: handleCitySubmit,
+    onCityCancel: handleCityCancel,
+    onCityEdit: handleCityEdit,
+    onCityDelete: handleCityDelete,
   };
 
   return (
     <div className="shop-admin-layout">
-      <AdminSidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <AdminSidebar
+        activeTab={activeTab}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onSelectTab={setActiveTab}
+      />
+      {sidebarOpen ? (
+        <button
+          className="admin-sidebar-backdrop"
+          type="button"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close menu"
+        />
+      ) : null}
 
       <section className="shop-main">
         <AdminTopbar
@@ -590,13 +602,26 @@ const AdminDashboard = () => {
           adminName={adminName}
           showProfile={showProfile}
           user={user}
+          onToggleMenu={() => setSidebarOpen((current) => !current)}
           onToggleProfile={() => setShowProfile((current) => !current)}
           onOpenProfile={() => navigate("/user")}
           onLogout={handleLogout}
         />
 
         <main className="shop-content">
-          {renderMainContent()}
+          <AdminDashboardContent
+            activeTab={activeTab}
+            loading={loading}
+            error={error}
+            categoriesProps={categoriesProps}
+            ordersProps={ordersProps}
+            citiesProps={citiesProps}
+            addresses={addresses}
+            admins={admins}
+            categories={categories}
+            cities={cities}
+            onSelectTab={setActiveTab}
+          />
         </main>
       </section>
     </div>

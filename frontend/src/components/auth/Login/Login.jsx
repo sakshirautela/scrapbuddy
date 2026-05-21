@@ -58,8 +58,8 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-title">Welcome Back</h1>
-          <p className="login-subtitle">Sign in to your account</p>
+          <h1 className="login-title">Welcome back to JunkBox</h1>
+          <p className="login-subtitle">Manage pickups, saved addresses, and order updates.</p>
         </div>
 
         <form className="login-form" onSubmit={handleLogin}>
@@ -73,7 +73,7 @@ function Login() {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="you@example.com"
+            placeholder="name@example.com"
             error={errors.email}
             required
             disabled={loading}
@@ -99,7 +99,7 @@ function Login() {
             fullWidth
             loading={loading}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
 

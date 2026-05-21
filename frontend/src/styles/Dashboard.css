@@ -1,18 +1,22 @@
 
 .dashboard-container {
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
   background: #f3f4f6;
   padding: 24px;
   font-family: Arial, sans-serif;
 }
 
 .dashboard-wrapper {
+  width: 100%;
   max-width: 1400px;
   margin: auto;
 }
 
 .dashboard-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
@@ -31,12 +35,13 @@
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
 
 .card {
+  min-width: 0;
   background: white;
   border-radius: 20px;
   padding: 24px;
@@ -110,11 +115,13 @@
 }
 
 .table-wrapper {
+  max-width: 100%;
   overflow-x: auto;
 }
 
 .table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
 }
 
@@ -131,6 +138,7 @@
 
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -145,5 +153,4 @@
     font-size: 28px;
   }
 }
-
 

@@ -8,4 +8,6 @@ import lombok.Setter;
 public class OrderDeliveryRequest {
 
     private String otp;
+
+    private Float amount;
 }

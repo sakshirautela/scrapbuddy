@@ -29,6 +29,7 @@ public class User {
     private String username;
     private String password;
     private String phone;
+    private Float totalAmount;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses;

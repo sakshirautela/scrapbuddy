@@ -92,7 +92,7 @@ public class UserController {
     }
 
     @GetMapping("/admins")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> getAdmins() {
         return ResponseEntity.ok(userServiceImp.getAdmins());
     }

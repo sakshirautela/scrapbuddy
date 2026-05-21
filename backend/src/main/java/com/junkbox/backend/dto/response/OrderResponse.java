@@ -1,6 +1,5 @@
 package com.junkbox.backend.dto.response;
 
-import com.junkbox.backend.entity.Address;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,13 +15,17 @@ public class OrderResponse {
 
     private String status;
 
+    private Float estimateWeight;
+
+    private Float amount;
+
     private Date pickupDate;
 
     private Time startRange;
 
     private Time endRange;
 
-    private Address address;
+    private AddressResponse address;
 
     private Long createdByUserID;
 

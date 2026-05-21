@@ -6,7 +6,10 @@ import ForgotPassword from './components/auth/ForgotPassword/ForgetPassword';
 import ResetPassword from './components/auth/ResetPassword/ResetPassword';
 import UserDetails from './pages/UserDetails';
 import DefaultDashboard from './pages/DefaultDashboard';
-import AdminDashboard from './pages/AdminDashboard';
+import SchedulePickup from './pages/SchedulePickup';
+import PriceList from './pages/PriceList';
+import TrackOrder from './pages/TrackOrder';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import PrivateRoute from './routes/PrivateRoute';
 import RoleProtectedRoute from './routes/RoleProtectedRoute';
@@ -39,6 +42,18 @@ function App() {
           {/* Protected Routes */}
           <Route path="/" element={
               <DefaultDashboard />
+          } />
+
+          <Route path="/schedule-pickup" element={
+              <SchedulePickup />
+          } />
+
+          <Route path="/price-list" element={
+              <PriceList />
+          } />
+
+          <Route path="/track-order" element={
+              <TrackOrder />
           } />
           
           <Route path="/user" element={

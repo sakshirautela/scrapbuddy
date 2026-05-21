@@ -38,7 +38,7 @@ public class AddressController {
 
     // GET ALL ADDRESSES (ADMIN ONLY)
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<AddressResponse>> getAllAddresses() {
 
         List<AddressResponse> addresses =

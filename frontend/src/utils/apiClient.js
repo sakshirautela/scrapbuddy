@@ -59,13 +59,13 @@ apiClient.interceptors.response.use(
 
     const responseData = error.response?.data;
     if (typeof responseData === 'string') {
-      return Promise.reject(new Error(responseData));
+      return Promise.reject(Object.assign(new Error(responseData), { response: error.response }));
     }
     if (responseData?.error) {
-      return Promise.reject(new Error(responseData.error));
+      return Promise.reject(Object.assign(new Error(responseData.error), { response: error.response }));
     }
     if (responseData?.message) {
-      return Promise.reject(new Error(responseData.message));
+      return Promise.reject(Object.assign(new Error(responseData.message), { response: error.response }));
     }
 
     return Promise.reject(error);

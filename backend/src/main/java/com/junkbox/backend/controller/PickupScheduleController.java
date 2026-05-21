@@ -69,7 +69,7 @@ public class PickupScheduleController {
     }
 
     @PatchMapping("/{id}/accept")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> acceptOrder(@PathVariable Long id) {
         try {
             OrderResponse response = orderService.acceptOrder(id);
@@ -80,7 +80,7 @@ public class PickupScheduleController {
     }
 
     @PatchMapping("/{id}/assign")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> assignOrder(
             @PathVariable Long id,
             @RequestBody OrderAssignmentRequest request) {
@@ -93,7 +93,7 @@ public class PickupScheduleController {
     }
 
     @PatchMapping("/{id}/unassign")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> unassignOrder(@PathVariable Long id) {
         try {
             OrderResponse response = orderService.unassignOrder(id);
@@ -104,7 +104,7 @@ public class PickupScheduleController {
     }
 
     @PatchMapping("/{id}/reschedule")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> rescheduleOrder(
             @PathVariable Long id,
             @RequestBody OrderRescheduleRequest request) {
@@ -117,7 +117,7 @@ public class PickupScheduleController {
     }
 
     @PostMapping("/{id}/delivery-otp")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> sendDeliveryOtp(@PathVariable Long id) {
         try {
             orderService.sendDeliveryOtp(id);
@@ -128,7 +128,7 @@ public class PickupScheduleController {
     }
 
     @PatchMapping("/{id}/deliver")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> deliverOrder(
             @PathVariable Long id,
             @RequestBody OrderDeliveryRequest request) {
@@ -152,7 +152,7 @@ public class PickupScheduleController {
 
     // GET ALL ORDERS
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
 
         List<OrderResponse> orders =

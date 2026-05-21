@@ -1,0 +1,141 @@
+.app-navbar {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #e5ece8;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 24px rgba(16, 32, 51, 0.08);
+  padding: 0 5vw;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-navbar-brand,
+.app-navbar-links,
+.app-navbar-actions,
+.app-navbar-user {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-navbar-brand {
+  flex: 0 0 auto;
+  gap: 10px;
+  color: #0b7a35;
+  font-size: 1.18rem;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.app-navbar-brand span {
+  font-size: 1.25rem;
+}
+
+.app-navbar-links {
+  flex: 1;
+  justify-content: center;
+  gap: 22px;
+  min-width: 0;
+}
+
+.app-navbar-links a {
+  min-height: 64px;
+  display: inline-flex;
+  align-items: center;
+  color: #172033;
+  font-size: 0.94rem;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-navbar-links a.active,
+.app-navbar-links a:hover {
+  color: #0b7a35;
+  box-shadow: inset 0 -2px 0 #0b7a35;
+}
+
+.app-navbar-actions {
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.app-navbar-primary,
+.app-navbar-login,
+.app-navbar-user {
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 950;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.app-navbar-primary,
+.app-navbar-login {
+  background: #078238;
+  color: #ffffff;
+}
+
+.app-navbar-primary:hover,
+.app-navbar-login:hover {
+  background: #05662d;
+}
+
+.app-navbar-user {
+  gap: 8px;
+  background: transparent;
+  color: #172033;
+}
+
+.app-navbar-user span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #f2e5d8;
+  color: #8b4a19;
+  font-weight: 950;
+}
+
+@media (max-width: 980px) {
+  .app-navbar {
+    flex-wrap: wrap;
+    padding: 10px 14px;
+  }
+
+  .app-navbar-links {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .app-navbar-links a {
+    min-height: 38px;
+  }
+
+  .app-navbar-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-navbar {
+    gap: 10px;
+  }
+
+  .app-navbar-primary {
+    display: none;
+  }
+
+  .app-navbar-user strong {
+    display: none;
+  }
+}

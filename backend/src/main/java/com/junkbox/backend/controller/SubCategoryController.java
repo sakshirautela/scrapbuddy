@@ -26,7 +26,7 @@ public class SubCategoryController {
 
     // CREATE SUBCATEGORY
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SUPERADMIN')")
     public ResponseEntity<?> createSubCategory(@Valid @RequestBody SubCategoryRequest request) {
 
         try {
@@ -99,7 +99,7 @@ public class SubCategoryController {
 
     // UPDATE SUBCATEGORY
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SUPERADMIN')")
     public ResponseEntity<?> updateSubCategory(@PathVariable Long id, @Valid @RequestBody SubCategoryRequest request) {
 
         try {
@@ -124,7 +124,7 @@ public class SubCategoryController {
 
     // DELETE SUBCATEGORY
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SUPERADMIN')")
     public ResponseEntity<?> deleteSubCategory(@PathVariable Long id) {
 
         try {

@@ -32,7 +32,15 @@ public class CustomUserDetailsService implements UserDetailsService {
             return "USER";
         }
 
-        String normalizedRole = role.trim().toUpperCase();
+        String normalizedRole = role.trim()
+                .toUpperCase()
+                .replace("-", "_")
+                .replace(" ", "_");
+
+        if ("SUPERADMIN".equals(normalizedRole) || "ROLE_SUPERADMIN".equals(normalizedRole)) {
+            return "SUPER_ADMIN";
+        }
+
         return normalizedRole.startsWith("ROLE_")
                 ? normalizedRole.substring("ROLE_".length())
                 : normalizedRole;
