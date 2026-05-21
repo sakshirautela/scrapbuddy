@@ -23,6 +23,12 @@ const orderApi = {
     );
   },
 
+  getOrderById: async (id) => {
+    return await apiClient.get(
+      `/api/orders/${id}`
+    );
+  },
+
   // DELETE ORDER
   deleteOrder: async (id) => {
     return await apiClient.delete(
@@ -73,10 +79,10 @@ const orderApi = {
     );
   },
 
-  deliverOrder: async (id, otp) => {
+  deliverOrder: async (id, data) => {
     return await apiClient.patch(
       `/api/orders/${id}/deliver`,
-      { otp }
+      data
     );
   },
 

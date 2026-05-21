@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import orderApi from "../api/orderApi";
+import NavBar from "../components/common/NavBar/NavBar";
 import "../styles/ProfileDashboard.css";
-import { Link } from "react-router-dom";
 const baseSidebarItems = [
-  { key: "profile", label: "User Profile", icon: "♙" },
-  { key: "orders", label: "Orders", icon: "🛒" },
+  { key: "profile", label: "Overview", icon: "⌂" },
+  { key: "orders", label: "My Pickups", icon: "▣" },
+  { key: "addresses", label: "Saved Addresses", icon: "⌖" },
+  { key: "earnings", label: "Earnings", icon: "□" },
+  { key: "settings", label: "Profile Settings", icon: "⚙" },
 ];
 
 const adminSidebarItem = [
@@ -82,9 +85,24 @@ const ProfileDashboard = () => {
 
   const userInitial = displayName.charAt(0).toUpperCase();
   const recentOrders = orders.slice(0, 5);
+  const getOrderId = (order) => order?.id ?? order?.orderId ?? order?.orderID;
   const userRole = user?.role?.toLowerCase() || "";
   const isAdminUser = ["admin", "superadmin", "super_admin"].includes(userRole);
   const sidebarItems = isAdminUser ? [...baseSidebarItems, ...adminSidebarItem] : baseSidebarItems;
+  const completedOrders = orders.filter((order) => String(order.status || "").toLowerCase() === "delivered");
+  const totalPickups = orders.length;
+  const totalEarnings = orders.reduce((total, order) => total + (Number(order.amount) || 0), 0);
+  const totalWeight = orders.reduce((total, order) => total + (Number(order.estimateWeight) || 0), 0);
+  const co2Saved = totalWeight * 2.4;
+  // const rewardPoints = totalPickups * 40 + completedOrders.length * 60;
+  // const walletBalance = totalEarnings;
+  const treesEquivalent = Math.max(0, Math.round(co2Saved / 18));
+  const dashboardStats = [
+    { title: "Total Pickups", value: totalPickups, sub: "All time pickups", icon: "▣", action: "View all pickups" , onClick: () => setActiveTab("orders") },
+    { title: "Total Earnings", value: `Rs ${totalEarnings.toLocaleString("en-IN")}`, sub: "All time earnings", icon: "₹", action: "View earnings" ,onClick: () => setActiveTab("earnings") },
+    { title: "CO₂ Saved", value: `${co2Saved.toFixed(1)} kg`, sub: "CO₂ emissions reduced", icon: "♧", action: "See my impact" },
+    // { title: "Reward Points", value: rewardPoints, sub: "Available points", icon: "□", action: "View rewards" },
+  ];
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -111,15 +129,28 @@ const ProfileDashboard = () => {
     await logout();
     navigate("/");
   };
-
+const renderEarnings = () => (
+  <section className="profile-panel earnings-panel placeholder-panel">
+    <h2>Earnings</h2>
+    <p>Your total earnings from completed pickups: <strong>Rs {totalEarnings.toLocaleString("en-IN")}</strong></p>
+    <p>This section is ready for your next update.</p>
+  </section>
+);
+const renderAddresses = () => (
+  <section className="profile-panel addresses-panel placeholder-panel">
+    <h2>Saved Addresses</h2>
+    <p>You have no saved addresses yet.</p>
+    <p>This section is ready for your next update.</p>
+  </section>
+);
   const renderOrdersTable = () => (
-    <section className="profile-panel recent-orders-panel">
+    <section className="profile-panel recent-orders-panel dashboard-pickups-card">
       <div className="profile-panel-header">
-        <h2>{activeTab === "profile" ? "Recent Orders" : "My Orders"}</h2>
+        <h2>{activeTab === "profile" ? "Recent Pickups" : "My Pickups"}</h2>
 
         {activeTab === "profile" ? (
           <button type="button" onClick={() => setActiveTab("orders")}>
-            View All Orders
+            View All Pickups →
           </button>
         ) : null}
       </div>
@@ -132,25 +163,28 @@ const ProfileDashboard = () => {
           <table className="profile-orders-table">
             <thead>
               <tr>
-                <th>Order ID</th>
+                <th>Pickup ID</th>
                 <th>Date & Time</th>
-                <th>Category ID</th>
-                <th>SubCategory ID</th>
+                <th>Items</th>
+                <th>Weight</th>
+                <th>Amount Earned</th>
                 <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
 
             <tbody>
               {(activeTab === "profile" ? recentOrders : orders).length === 0 ? (
                 <tr>
-                  <td colSpan="6">No orders found</td>
+                  <td colSpan="7">No pickups found</td>
                 </tr>
               ) : (
                 (activeTab === "profile" ? recentOrders : orders).map(
-                  (order) => (
-                    <tr key={order.id}>
-                      <td>#ORD{String(order.id).padStart(4, "0")}</td>
+                  (order, index) => {
+                    const orderId = getOrderId(order);
+
+                    return (
+                    <tr key={orderId || `profile-order-${index}`}>
+                      <td>#ORD{String(orderId || "-").padStart(4, "0")}</td>
 
                       <td>
                         {formatDateTime(
@@ -158,26 +192,26 @@ const ProfileDashboard = () => {
                         )}
                       </td>
 
-                      <td>{order.categoryID || "-"}</td>
-                      <td>{order.subCategoryID || "-"}</td>
+                      <td>Category {order.categoryID || "-"}, Item {order.subCategoryID || "-"}</td>
+                      <td>{formatValue(order.estimateWeight)} kg</td>
+                      <td>Rs {formatValue(order.amount)}</td>
 
                       <td>
                         <span
                           className={
-                            order.status?.toLowerCase() === "cancelled" ? "pill cancelled" : "pill processing"
+                            order.status?.toLowerCase() === "cancelled"
+                              ? "pill cancelled"
+                              : order.status?.toLowerCase() === "delivered"
+                                ? "pill delivered"
+                                : "pill processing"
                           }
                         >
-                          {order.status || "Processing"}
+                          {order.status || "Scheduled"}
                         </span>
                       </td>
-
-                      <td>
-                        <button className="view-btn" type="button" onClick={() => setSelectedOrder(order)}>
-                          View
-                        </button>
-                      </td>
                     </tr>
-                  )
+                    );
+                  }
                 )
               )}
             </tbody>
@@ -188,7 +222,7 @@ const ProfileDashboard = () => {
       <div className="profile-table-footer">
         <span>
           Showing {(activeTab === "profile" ? recentOrders : orders).length} of{" "}
-          {orders.length} orders
+          {orders.length} pickups
         </span>
       </div>
     </section>
@@ -229,6 +263,14 @@ const ProfileDashboard = () => {
             <article>
               <span>Pickup Time</span>
               <strong>{formatTimeRange(selectedOrder)}</strong>
+            </article>
+            <article>
+              <span>Estimated Weight</span>
+              <strong>{formatValue(selectedOrder.estimateWeight)} kg</strong>
+            </article>
+            <article>
+              <span>Final Amount</span>
+              <strong>Rs {formatValue(selectedOrder.amount)}</strong>
             </article>
             <article>
               <span>Category ID</span>
@@ -299,110 +341,71 @@ const ProfileDashboard = () => {
     );
   };
 
-  const renderProfile = () => (
-    <div className="profile-grid">
-      <aside className="profile-card">
-        <div className="profile-photo">
-          <span>{userInitial}</span>
-          <button type="button" aria-label="Change photo">
-            ⌘
-          </button>
-        </div>
+  const renderOverview = () => (
+    <>
+      <header className="dashboard-welcome">
+        <h1>My Dashboard <span>♧</span></h1>
+        <p>Welcome back, {displayName}. Here is what is happening with your scrap journey.</p>
+      </header>
 
-        <h2>{displayName}</h2>
-        <span className="role-badge">{user?.role || "Customer"}</span>
+      <section className="dashboard-stat-grid">
+        {dashboardStats.map((stat) => (
+          <article className="dashboard-stat-card" key={stat.title}>
+            <span>{stat.icon}</span>
+            <div>
+              <h3>{stat.title}</h3>
+              <strong>{stat.value}</strong>
+              <p>{stat.sub}</p>
+              <button type="button" onClick={stat.onClick}>{stat.action} →</button>
+            </div>
+          </article>
+        ))}
+      </section>
 
-        <p>{user?.email || "-"}</p>
-        <p>{user?.phone || "-"}</p>
-
-        <div className="profile-meta">
-          <div>
-            <span>▣</span>
-            <strong>User ID</strong>
-            <em>#USR{String(user?.id || 1024).padStart(4, "0")}</em>
-          </div>
-
-          <div>
-            <span>♙</span>
-            <strong>Role</strong>
-            <em>{user?.role || "Customer"}</em>
-          </div>
-
-          <div>
-            <span>◷</span>
-            <strong>Status</strong>
-            <em className="active-status">Active</em>
-          </div>
-
-          <div>
-            <span>▣</span>
-            <strong>Joined On</strong>
-            <em>{formatDateTime(user?.createdDate)}</em>
-          </div>
-        </div>
-
-        <button className="change-password" type="button" onClick={() => navigate("/forget-password")}>
-          ▣ Change Password
-        </button>
-
-
-        <small>
-          Once you delete your account, all your data will be permanently
-          removed.
-        </small>
-      </aside>
-
-      <section className="profile-main-column">
-        <section className="profile-panel">
-          <div className="profile-panel-header">
-            <h2>Profile Information</h2>
-            <button type="button">✎ Edit Profile</button>
-          </div>
-
-          <div className="profile-form-grid">
-            <label>
-              <span>Full Name</span>
-              <input value={displayName} readOnly />
-            </label>
-
-            <label>
-              <span>Username</span>
-              <input value={user?.username || "-"} readOnly />
-            </label>
-
-            <label>
-              <span>Email Address</span>
-              <input value={user?.email || "-"} readOnly />
-            </label>
-
-            <label>
-              <span>Phone Number</span>
-              <input value={user?.phone || "-"} readOnly />
-            </label>
-
-            <label>
-              <span>Role</span>
-              <input value={user?.role || "Customer"} readOnly />
-            </label>
-
-            <label>
-              <span>Timezone</span>
-              <input value="Asia/Kolkata" readOnly />
-            </label>
-          </div>
-        </section>
-
+      <section className="dashboard-main-grid">
         {renderOrdersTable()}
       </section>
-    </div>
+
+      <section className="dashboard-lower-grid">
+        <article className="invite-card profile-panel">
+          <div>
+            <h2>Invite Friends</h2>
+            {/* <p>Invite your friends to JunkBox and earn reward points when they complete their first pickup.</p>
+            <div className="referral-box">
+              <span>Your Referral Code</span>
+              <strong>{(user?.username || "JUNKBOX").toUpperCase().slice(0, 8)}100</strong>
+              <button type="button">Copy</button>
+            </div> */}
+          </div>
+          <div className="invite-art">♻</div>
+        </article>
+
+        <article className="eco-card profile-panel">
+          <h2>Your Eco Impact <span>♧</span></h2>
+          <p>You are making a real difference.</p>
+          <div className="eco-metrics">
+            <span><strong>{co2Saved.toFixed(1)} kg</strong> CO₂ saved</span>
+            <span><strong>{totalWeight.toFixed(1)} kg</strong> waste recycled</span>
+            <span><strong>{treesEquivalent}</strong> trees equivalent</span>
+            <span><strong>{totalPickups}</strong> pickups completed</span>
+          </div>
+        </article>
+      </section>
+    </>
   );
 
   return (
-    <div className="user-profile-layout">
-      <aside className="profile-sidebar">
+    <div className="user-profile-layout scrap-dashboard">
+      <NavBar showUserChip />
+
+      <aside className="profile-sidebar customer-sidebar">
         <div className="profile-brand">
-          <span>▣</span>
-<Link to="/">ScrapBuddy</Link>        </div>
+          <span>{userInitial}</span>
+          <div>
+            <strong>{displayName}</strong>
+            <small>{user?.phone || user?.email || "JunkBox customer"}</small>
+          </div>
+        </div>
 
         <nav>
           {sidebarItems.map((item) => (
@@ -429,28 +432,51 @@ const ProfileDashboard = () => {
           <span>↪</span>
           Logout
         </button>
+
+        <div className="sidebar-help">
+          <span>☏</span>
+          <strong>Need Help?</strong>
+          <p>Our support team is here to help you.</p>
+          <button type="button">Contact Support</button>
+        </div>
       </aside>
 
       <section className="profile-main">
-        <header className="profile-topbar">
-          <div>
-            <button type="button" className="hamburger">
-              ☰
-            </button>
-            <h1>{activeTab === "profile" ? "User Profile" : "My Orders"}</h1>
-          </div>
-
-          <div className="profile-top-actions">
-            <span className="mini-avatar">{userInitial}</span>
-            <strong>{displayName}</strong>
-          </div>
-        </header>
-
         <main className="profile-content">
-          {activeTab === "profile" ? renderProfile() : null}
+          {activeTab === "profile" ? renderOverview() : null}
           {activeTab === "orders" ? renderOrdersTable() : null}
+          {activeTab === "earnings" ? renderEarnings() : null}
+          {activeTab === "addresses" ? renderAddresses() : null}
+          {!["profile", "orders", "earnings", "addresses"].includes(activeTab) ? (
+            <section className="profile-panel placeholder-panel">
+              <h2>{sidebarItems.find((item) => item.key === activeTab)?.label}</h2>
+              <p>This section is ready for your next update.</p>
+            </section>
+          ) : null}
         </main>
       </section>
+
+      <footer className="dashboard-footer">
+        <div>
+          <strong>♻ JunkBox</strong>
+          <p>India's trusted platform to sell scrap online. Clean India, green India.</p>
+        </div>
+        <div>
+          <h3>Company</h3>
+          <Link to="/">About Us</Link>
+          <Link to="/">Privacy Policy</Link>
+        </div>
+        <div>
+          <h3>Services</h3>
+          <Link to="/schedule-pickup">Schedule Pickup</Link>
+          <Link to="/price-list">Price List</Link>
+        </div>
+        <div>
+          <h3>Contact Us</h3>
+          <a href="tel:+919876543210">+91 98765 43210</a>
+          <a href="mailto:hello@junkbox.in">hello@junkbox.in</a>
+        </div>
+      </footer>
 
       {renderOrderDetailsModal()}
     </div>

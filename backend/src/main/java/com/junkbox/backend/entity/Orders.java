@@ -29,6 +29,7 @@ public class Orders {
     private Address address;
     private Long createdByUserID;
     private Long updatedByUserID;
+    private Float amount;
     private Time startRange;
     private Time endRange;
     private Long categoryID;

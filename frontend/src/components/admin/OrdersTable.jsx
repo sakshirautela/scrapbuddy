@@ -12,11 +12,25 @@ const OrdersTable = ({
   onRescheduleOrder,
   onSendDeliveryOtp,
   onDeliverOrder,
+  onRefreshOrders,
 }) => {
   const [assignmentByOrder, setAssignmentByOrder] = useState({});
   const [scheduleByOrder, setScheduleByOrder] = useState({});
   const [deliveryOtpByOrder, setDeliveryOtpByOrder] = useState({});
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [deliveryAmountByOrder, setDeliveryAmountByOrder] = useState({});
+  const [selectedOrderKey, setSelectedOrderKey] = useState(null);
+
+  const getOrderId = (order) => order?.id ?? order?.orderId ?? order?.orderID;
+
+  const getOrderKey = (order, index) => {
+    const orderId = getOrderId(order);
+
+    if (orderId) {
+      return `id-${orderId}`;
+    }
+
+    return `row-${index}`;
+  };
 
   const formatTimeRange = (order) => {
     if (!order.startRange && !order.endRange) {
@@ -63,7 +77,9 @@ const OrdersTable = ({
   };
 
   const getScheduleDraft = (order) => {
-    return scheduleByOrder[order.id] || {
+    const orderId = getOrderId(order);
+
+    return scheduleByOrder[orderId] || {
       pickupDate: toDateInputValue(order.pickupDate),
       startRange: toTimeInputValue(order.startRange),
       endRange: toTimeInputValue(order.endRange),
@@ -71,11 +87,17 @@ const OrdersTable = ({
   };
 
   const updateScheduleDraft = (order, name, value) => {
+    const orderId = getOrderId(order);
+
+    if (!orderId) {
+      return;
+    }
+
     const currentDraft = getScheduleDraft(order);
 
     setScheduleByOrder((current) => ({
       ...current,
-      [order.id]: {
+      [orderId]: {
         ...currentDraft,
         [name]: value,
       },
@@ -99,23 +121,28 @@ const OrdersTable = ({
       : `Admin ${formatValue(order.pickscheduleById)}`;
   };
 
-  const selectedOrder = orders.find((order) => String(order.id) === String(selectedOrderId));
+  const selectedOrder = orders.find(
+    (order, index) => getOrderKey(order, index) === selectedOrderKey
+  );
 
   if (selectedOrder) {
+    const selectedOrderRecordId = getOrderId(selectedOrder);
     const scheduleDraft = getScheduleDraft(selectedOrder);
-    const selectedAdminId = assignmentByOrder[selectedOrder.id] || selectedOrder.pickscheduleById || "";
-    const deliveryOtp = deliveryOtpByOrder[selectedOrder.id] || "";
+    const selectedAdminId = assignmentByOrder[selectedOrderRecordId] || selectedOrder.pickscheduleById || "";
+    const deliveryOtp = deliveryOtpByOrder[selectedOrderRecordId] || "";
+    const deliveryAmount =
+      deliveryAmountByOrder[selectedOrderRecordId] ?? selectedOrder.amount ?? "";
     const isDelivered = String(selectedOrder.status || "").toLowerCase() === "delivered";
 
     return (
       <section className="admin-card order-detail-page">
         <header className="order-detail-admin-header">
-          <button className="admin-secondary" type="button" onClick={() => setSelectedOrderId(null)}>
+          <button className="admin-secondary" type="button" onClick={() => setSelectedOrderKey(null)}>
             Back to Orders
           </button>
           <div>
             <span>Order Details</span>
-            <h2>Order #{formatValue(selectedOrder.id)}</h2>
+            <h2>Order #{formatValue(selectedOrderRecordId)}</h2>
             <p>{selectedOrder.status || "Scheduled"}</p>
           </div>
         </header>
@@ -132,6 +159,14 @@ const OrdersTable = ({
           <article>
             <span>Time Range</span>
             <strong>{formatTimeRange(selectedOrder)}</strong>
+          </article>
+          <article>
+            <span>Estimated Weight</span>
+            <strong>{formatValue(selectedOrder.estimateWeight)} kg</strong>
+          </article>
+          <article>
+            <span>Final Amount</span>
+            <strong>Rs {formatValue(selectedOrder.amount)}</strong>
           </article>
           <article>
             <span>Assigned To</span>
@@ -164,70 +199,99 @@ const OrdersTable = ({
           <section className="order-detail-admin-panel">
             <h3>Reschedule</h3>
             <div className="order-detail-form-grid">
-              <input
-                type="date"
-                value={scheduleDraft.pickupDate}
-                onChange={(event) => updateScheduleDraft(selectedOrder, "pickupDate", event.target.value)}
-                aria-label={`Pickup date for order ${selectedOrder.id}`}
-              />
-              <input
-                type="time"
-                value={scheduleDraft.startRange}
-                onChange={(event) => updateScheduleDraft(selectedOrder, "startRange", event.target.value)}
-                aria-label={`Pickup start time for order ${selectedOrder.id}`}
-              />
-              <input
-                type="time"
-                value={scheduleDraft.endRange}
-                onChange={(event) => updateScheduleDraft(selectedOrder, "endRange", event.target.value)}
-                aria-label={`Pickup end time for order ${selectedOrder.id}`}
-              />
-              <button
-                className="table-action-btn"
-                type="button"
-                onClick={() => onRescheduleOrder(selectedOrder.id, scheduleDraft)}
-              >
-                Save Schedule
-              </button>
+              {isDelivered ? (
+                <p className="assignment-summary">
+                  Final pickup time <strong>{formatDateTime(selectedOrder.pickupDate)}</strong>
+                  <span>{formatTimeRange(selectedOrder)}</span>
+                </p>
+              ) : (
+                <>
+                  <input
+                    type="date"
+                    value={scheduleDraft.pickupDate}
+                    onChange={(event) => updateScheduleDraft(selectedOrder, "pickupDate", event.target.value)}
+                    aria-label={`Pickup date for order ${selectedOrderRecordId || "unknown"}`}
+                  />
+                  <input
+                    type="time"
+                    value={scheduleDraft.startRange}
+                    onChange={(event) => updateScheduleDraft(selectedOrder, "startRange", event.target.value)}
+                    aria-label={`Pickup start time for order ${selectedOrderRecordId || "unknown"}`}
+                  />
+                  <input
+                    type="time"
+                    value={scheduleDraft.endRange}
+                    onChange={(event) => updateScheduleDraft(selectedOrder, "endRange", event.target.value)}
+                    aria-label={`Pickup end time for order ${selectedOrderRecordId || "unknown"}`}
+                  />
+                  <button
+                    className="table-action-btn"
+                    type="button"
+                    disabled={!selectedOrderRecordId}
+                    onClick={() => onRescheduleOrder(selectedOrderRecordId, scheduleDraft)}
+                  >
+                    Save Schedule
+                  </button>
+                </>
+              )}
             </div>
           </section>
 
           <section className="order-detail-admin-panel">
             <h3>Assignment</h3>
             <div className="order-detail-form-grid">
-              {!selectedOrder.pickscheduleById && (
-                <button className="table-action-btn" type="button" onClick={() => onAcceptOrder(selectedOrder.id)}>
-                  Accept Myself
-                </button>
-              )}
-              <select
-                value={selectedAdminId}
-                onChange={(event) =>
-                  setAssignmentByOrder((current) => ({
-                    ...current,
-                    [selectedOrder.id]: event.target.value,
-                  }))
-                }
-                aria-label={`Assign order ${selectedOrder.id}`}
-              >
-                <option value="">Select admin</option>
-                {admins.map((admin) => (
-                  <option key={admin.id} value={admin.id}>
-                    {getAdminName(admin)}
-                  </option>
-                ))}
-              </select>
-              <button className="table-action-btn" type="button" onClick={() => onAssignOrder(selectedOrder.id, selectedAdminId)}>
-                Assign
-              </button>
-              {selectedOrder.pickscheduleById && (
-                <button
-                  className="table-action-btn table-action-danger"
-                  type="button"
-                  onClick={() => onUnassignOrder(selectedOrder.id)}
-                >
-                  Remove Assignment
-                </button>
+              {isDelivered ? (
+                <p className="assignment-summary">
+                  Assigned to <strong>{getAssignedAdminText(selectedOrder)}</strong>
+                </p>
+              ) : (
+                <>
+                  {!selectedOrder.pickscheduleById && (
+                    <button
+                      className="table-action-btn"
+                      type="button"
+                      disabled={!selectedOrderRecordId}
+                      onClick={() => onAcceptOrder(selectedOrderRecordId)}
+                    >
+                      Accept Myself
+                    </button>
+                  )}
+                  <select
+                    value={selectedAdminId}
+                    onChange={(event) =>
+                      setAssignmentByOrder((current) => ({
+                        ...current,
+                        [selectedOrderRecordId]: event.target.value,
+                      }))
+                    }
+                    aria-label={`Assign order ${selectedOrderRecordId || "unknown"}`}
+                  >
+                    <option value="">Select admin</option>
+                    {admins.map((admin) => (
+                      <option key={admin.id} value={admin.id}>
+                        {getAdminName(admin)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="table-action-btn"
+                    type="button"
+                    disabled={!selectedOrderRecordId}
+                    onClick={() => onAssignOrder(selectedOrderRecordId, selectedAdminId)}
+                  >
+                    Assign
+                  </button>
+                  {selectedOrder.pickscheduleById && (
+                    <button
+                      className="table-action-btn table-action-danger"
+                      type="button"
+                      disabled={!selectedOrderRecordId}
+                      onClick={() => onUnassignOrder(selectedOrderRecordId)}
+                    >
+                      Remove Assignment
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </section>
@@ -238,8 +302,8 @@ const OrdersTable = ({
               <button
                 className="table-action-btn"
                 type="button"
-                disabled={isDelivered}
-                onClick={() => onSendDeliveryOtp(selectedOrder.id)}
+                disabled={isDelivered || !selectedOrderRecordId}
+                onClick={() => onSendDeliveryOtp(selectedOrderRecordId)}
               >
                 Send OTP
               </button>
@@ -253,16 +317,36 @@ const OrdersTable = ({
                 onChange={(event) =>
                   setDeliveryOtpByOrder((current) => ({
                     ...current,
-                    [selectedOrder.id]: event.target.value,
+                    [selectedOrderRecordId]: event.target.value,
                   }))
                 }
-                aria-label={`Delivery OTP for order ${selectedOrder.id}`}
+                aria-label={`Delivery OTP for order ${selectedOrderRecordId || "unknown"}`}
+              />
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                placeholder="Final amount"
+                value={deliveryAmount}
+                disabled={isDelivered}
+                onChange={(event) =>
+                  setDeliveryAmountByOrder((current) => ({
+                    ...current,
+                    [selectedOrderRecordId]: event.target.value,
+                  }))
+                }
+                aria-label={`Final amount for order ${selectedOrderRecordId || "unknown"}`}
               />
               <button
                 className="table-action-btn"
                 type="button"
-                disabled={isDelivered}
-                onClick={() => onDeliverOrder(selectedOrder.id, deliveryOtp)}
+                disabled={isDelivered || !selectedOrderRecordId}
+                onClick={() =>
+                  onDeliverOrder(selectedOrderRecordId, {
+                    otp: deliveryOtp,
+                    amount: deliveryAmount,
+                  })
+                }
               >
                 Mark Delivered
               </button>
@@ -275,7 +359,17 @@ const OrdersTable = ({
 
   return (
     <section className="admin-card table-card">
-      <h2>Orders</h2>
+      <div className="table-title-row">
+        <div>
+          <h2>Orders</h2>
+          <p>{orders.length} {orders.length === 1 ? "order" : "orders"} loaded</p>
+        </div>
+        {onRefreshOrders ? (
+          <button className="admin-outline" type="button" onClick={onRefreshOrders}>
+            Refresh
+          </button>
+        ) : null}
+      </div>
       <div className="admin-table-wrap">
         <table className="admin-table orders-table">
           <thead>
@@ -284,30 +378,42 @@ const OrdersTable = ({
               <th>Status</th>
               <th>Pickup Date</th>
               <th>Time Range</th>
-              <th>Category -> Subcategory</th>
+              <th>Estimated Weight</th>
+              <th>Amount</th>
+              <th>Category - Subcategory</th>
               <th>Assigned To</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {orders.length === 0 ? (
-              <tr><td colSpan="7">No Orders Found</td></tr>
+              <tr><td colSpan="9">No Orders Found</td></tr>
             ) : (
-              orders.map((order) => (
-                  <tr key={order.id}>
-                    <td>{formatValue(order.id)}</td>
+              orders.map((order, index) => {
+                const orderId = getOrderId(order);
+
+                return (
+                  <tr key={getOrderKey(order, index)}>
+                    <td>{formatValue(orderId)}</td>
                     <td><span className="active-pill">{order.status || "Scheduled"}</span></td>
                     <td>{formatDateTime(order.pickupDate)}</td>
                     <td>{formatTimeRange(order)}</td>
+                    <td>{formatValue(order.estimateWeight)} kg</td>
+                    <td>Rs {formatValue(order.amount)}</td>
                     <td>{getOrderCategoryPath(order)}</td>
                     <td>{getAssignedAdminText(order)}</td>
                     <td>
-                      <button className="table-action-btn" type="button" onClick={() => setSelectedOrderId(order.id)}>
+                      <button
+                        className="table-action-btn"
+                        type="button"
+                        onClick={() => setSelectedOrderKey(getOrderKey(order, index))}
+                      >
                         Details
                       </button>
                     </td>
                   </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

@@ -1,34 +1,39 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { menuItems } from "../../utils/adminDashboard";
 
-const AdminSidebar = ({ activeTab, onSelectTab }) => (
-  <aside className="shop-sidebar">
+const AdminSidebar = ({ activeTab, isOpen = false, onClose, onSelectTab }) => (
+  <aside className={`shop-sidebar${isOpen ? " open" : ""}`} aria-label="Admin navigation">
     <div className="shop-brand">
-      <span className="brand-bag">▣</span>
-      <Link to="/">ScrapAdmin</Link>
+      <div className="brand-mark" aria-hidden="true">♻</div>
+      <div>
+        <strong>ScrapBuddy</strong>
+        <span>Admin Panel</span>
+      </div>
+      <button className="sidebar-close" type="button" onClick={onClose} aria-label="Close menu">
+        x
+      </button>
     </div>
-
     <nav>
-      <span className="nav-label">Management</span>
       {menuItems.map((item) => (
         <button
           key={item.key}
           className={activeTab === item.key ? "active" : ""}
           type="button"
-          onClick={() => onSelectTab(item.key)}
+          onClick={() => {
+            onSelectTab(item.key);
+            onClose?.();
+          }}
         >
-          <span>{item.icon}</span>
+          <span className={`admin-nav-icon ${item.icon}`} aria-hidden="true" />
           {item.label}
         </button>
       ))}
     </nav>
 
-    <div className="sidebar-help-card">
-      <div className="help-illustration" aria-hidden="true">♻</div>
-      <strong>Need help?</strong>
-      <p>Contact support for any assistance you need.</p>
-      <button type="button">Contact Support</button>
+    <div className="sidebar-eco-note">
+      <span aria-hidden="true">♻</span>
+      <strong>Recycle Today</strong>
+      <p>for a Better Tomorrow</p>
     </div>
   </aside>
 );

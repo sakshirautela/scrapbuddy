@@ -1,55 +1,53 @@
-/* PAGE */
-
 .categories-page {
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
-  background: #f4f7fb;
+  overflow-x: hidden;
+  background: #f5f8fb;
   padding: 40px 20px;
-  font-family: Arial, sans-serif;
 }
 
-/* CONTAINER */
-
 .categories-container {
+  width: 100%;
   max-width: 1200px;
-  margin: auto;
+  margin: 0 auto;
 }
 
 .categories-container h1 {
+  margin: 0 0 30px;
+  color: #102033;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 950;
   text-align: center;
-  margin-bottom: 40px;
-  font-size: 36px;
-  color: #222;
 }
-
-/* GRID */
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 18px;
 }
 
-/* CATEGORY CARD */
-
 .category-card {
-  background: white;
-  border-radius: 18px;
-  padding: 25px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  transition: 0.3s;
+  min-width: 0;
+  border: 1px solid #dce6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 42px rgba(15, 35, 65, 0.07);
+  padding: 22px;
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .category-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 56px rgba(15, 35, 65, 0.12);
 }
 
 .category-card h2 {
-  margin-bottom: 20px;
-  color: #00a86b;
-  font-size: 24px;
+  margin: 0 0 16px;
+  color: #2563eb;
+  font-size: 1.25rem;
+  font-weight: 950;
 }
-
-/* SUBCATEGORY */
 
 .subcategory-list {
   display: flex;
@@ -58,102 +56,67 @@
 }
 
 .subcategory-item {
-  background: #e8fff5;
-  color: #008f5a;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 850;
+  padding: 8px 12px;
 }
 
 .no-sub {
-  color: #777;
-  font-size: 14px;
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 768px) {
-  .categories-container h1 {
-    font-size: 28px;
-  }
-
-  .category-card {
-    padding: 20px;
-  }
-}
-.categories-page {
-  width: 100%;
-  padding: 20px;
+  color: #617084;
+  font-size: 0.92rem;
 }
 
 .category-buttons,
 .subcategory-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 18px;
 }
 
-/* CATEGORY BUTTON */
-.category-btn {
-  padding: 14px 24px;
-  border: none;
-  border-radius: 12px;
-  background: #f3f4f6;
-  color: #222;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.category-btn:hover {
-  background: #d1fae5;
-  transform: translateY(-2px);
-}
-
-.active-category {
-  background: #16a34a;
-  color: white;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-}
-
-/* SUBCATEGORY BUTTON */
+.category-btn,
 .subcategory-btn {
-  padding: 12px 22px;
-  border: none;
-  border-radius: 12px;
-  background: #eef2ff;
-  color: #222;
-  font-size: 15px;
-  font-weight: 600;
+  min-height: 46px;
+  border: 1px solid #dce6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #24364c;
   cursor: pointer;
-  transition: 0.3s;
+  font-size: 0.98rem;
+  font-weight: 850;
+  padding: 0 16px;
+  overflow-wrap: anywhere;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
+.category-btn:hover,
 .subcategory-btn:hover {
-  background: #c7d2fe;
-  transform: translateY(-2px);
+  border-color: #93c5fd;
+  background: #eef5ff;
+  color: #1d4ed8;
+  transform: translateY(-1px);
 }
 
+.active-category,
 .active-subcategory {
+  border-color: #2563eb;
   background: #2563eb;
-  color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
 }
 
-/* TITLE */
 .subcategory-buttons h3 {
   width: 100%;
-  margin-bottom: 10px;
-  color: #111827;
-  font-size: 20px;
+  margin: 4px 0 2px;
+  color: #102033;
+  font-size: 1.1rem;
+  font-weight: 950;
 }
 
-/* MOBILE */
 @media (max-width: 768px) {
-
   .category-buttons,
   .subcategory-buttons {
     flex-direction: column;

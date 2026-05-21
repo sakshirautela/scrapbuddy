@@ -4,6 +4,7 @@ import com.junkbox.backend.dto.request.OrderAssignmentRequest;
 import com.junkbox.backend.dto.request.OrderDeliveryRequest;
 import com.junkbox.backend.dto.request.OrderRequest;
 import com.junkbox.backend.dto.request.OrderRescheduleRequest;
+import com.junkbox.backend.dto.response.AddressResponse;
 import com.junkbox.backend.dto.response.OrderResponse;
 import com.junkbox.backend.entity.Address;
 import com.junkbox.backend.entity.Orders;
@@ -140,6 +141,10 @@ public class OrderService {
             throw new IllegalArgumentException("Delivery OTP is required");
         }
 
+        if (request.getAmount() == null || request.getAmount() <= 0) {
+            throw new IllegalArgumentException("Final amount is required");
+        }
+
         Orders order = ordersRepo.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -154,6 +159,7 @@ public class OrderService {
         }
 
         order.setUpdatedByUserID(adminId);
+        order.setAmount(request.getAmount());
         order.setStatus("Delivered");
         order.setUpdatedDateTime(LocalDateTime.now());
 
@@ -275,6 +281,11 @@ public class OrderService {
                     "Pickup date is required");
         }
 
+        if (request.getEstimateWeight() == null || request.getEstimateWeight() <= 0) {
+            throw new IllegalArgumentException(
+                    "Estimated weight is required");
+        }
+
         validateTimeRange(request.getStartRange(), request.getEndRange());
 
         if (request.getCategoryID() == null) {
@@ -380,6 +391,8 @@ public class OrderService {
 
         order.setEndRange(request.getEndRange());
 
+        order.setEstimateWeight(request.getEstimateWeight());
+
         order.setCategoryID(request.getCategoryID());
 
         order.setSubCategoryID(request.getSubCategoryID());
@@ -394,13 +407,17 @@ public class OrderService {
 
         response.setStatus(order.getStatus());
 
+        response.setEstimateWeight(order.getEstimateWeight());
+
+        response.setAmount(order.getAmount());
+
         response.setPickupDate(order.getPickupDate());
 
         response.setStartRange(order.getStartRange());
 
         response.setEndRange(order.getEndRange());
 
-        response.setAddress(order.getAddress());
+        response.setAddress(mapAddressToResponse(order.getAddress()));
 
         response.setCreatedByUserID(order.getCreatedByUserID());
 
@@ -415,6 +432,27 @@ public class OrderService {
         response.setCreatedDateTime(order.getCreatedDateTime());
 
         response.setUpdatedDateTime(order.getUpdatedDateTime());
+
+        return response;
+    }
+
+    private AddressResponse mapAddressToResponse(Address address) {
+        if (address == null) {
+            return null;
+        }
+
+        AddressResponse response = new AddressResponse();
+        response.setId(address.getId());
+        response.setApartment(address.getApartment());
+        response.setCity(address.getCity());
+        response.setState(address.getState());
+        response.setZip(address.getZip());
+        response.setCountry(address.getCountry());
+        response.setReceiverFirstName(address.getReceiverFirstName());
+        response.setReceiverLastName(address.getReceiverLastName());
+        response.setReceiverPhone(address.getReceiverPhone());
+        response.setReceiverEmail(address.getReceiverEmail());
+        response.setCountryCode(address.getCountryCode());
 
         return response;
     }

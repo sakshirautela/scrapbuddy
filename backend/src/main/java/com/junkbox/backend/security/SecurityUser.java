@@ -15,7 +15,12 @@ public class SecurityUser implements UserDetails {
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String role = this.user.getRole() == null ? "USER" : this.user.getRole().trim().toUpperCase();
+        String role = this.user.getRole() == null
+                ? "USER"
+                : this.user.getRole().trim().toUpperCase().replace("-", "_").replace(" ", "_");
+        if ("SUPERADMIN".equals(role) || "ROLE_SUPERADMIN".equals(role)) {
+            role = "SUPER_ADMIN";
+        }
         String prefixedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
         return List.of(new SimpleGrantedAuthority(prefixedRole));
     }

@@ -19,7 +19,7 @@ public class CityController {
     private final CityService cityService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SUPERADMIN')")
     public ResponseEntity<?> createCity(@RequestBody CityRequest request) {
         try{
             CityResponse createdCity = cityService.createCity(request);
@@ -42,14 +42,14 @@ public class CityController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SUPERADMIN')")
     public ResponseEntity<CityResponse> updateCity(@PathVariable Long id, @RequestBody CityRequest request) {
         CityResponse updatedCity = cityService.updateCity(id, request);
         return ResponseEntity.ok(updatedCity);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SUPERADMIN')")
     public ResponseEntity<Void> deleteCity(@PathVariable Long id) {
         cityService.deleteCity(id);
         return ResponseEntity.noContent().build();

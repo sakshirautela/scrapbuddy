@@ -106,9 +106,9 @@ function Register() {
     <div className="register-container">
       <div className="register-card">
         <div className="register-header">
-          <h1 className="register-title">Create Account</h1>
+          <h1 className="register-title">Create your JunkBox account</h1>
           <p className="register-subtitle">
-            {step === 'register' ? 'Join us today' : 'Verify your email'}
+            {step === 'register' ? 'Save addresses and track every scrap pickup.' : 'Verify your email to continue.'}
           </p>
         </div>
 
@@ -129,7 +129,7 @@ function Register() {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                placeholder="John"
+                placeholder="Sakshi"
               />
 
               <FormInput
@@ -138,7 +138,7 @@ function Register() {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                placeholder="Doe"
+                placeholder="Rautela"
               />
 
               <FormInput
@@ -147,7 +147,7 @@ function Register() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder="name@example.com"
                 error={errors.email}
                 required
                 disabled={loading}
@@ -158,7 +158,7 @@ function Register() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="123-456-7890"
+                placeholder="+91 mobile number"
                 error={errors.phone}
                 required
                 disabled={loading}

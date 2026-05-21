@@ -1,31 +1,28 @@
-/* =========================
-   ADDRESS FORM
-========================= */
-
 .address-form {
   width: 100%;
-  display: flex;
-  flex-direction: column;
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
   gap: 18px;
 }
 
 .address-form h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 10px;
+  margin: 0;
+  color: #102033;
+  font-size: 1.45rem;
+  font-weight: 950;
 }
 
 .address-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .address-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  min-width: 0;
+  display: grid;
+  gap: 7px;
 }
 
 .address-input-group.full-width {
@@ -33,71 +30,64 @@
 }
 
 .address-input-group label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 850;
 }
 
 .address-input-group input {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  font-size: 15px;
-  transition: 0.3s;
-  background: #fff;
-}
-
-.address-input-group input:focus {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+  min-height: 46px;
+  border: 1px solid #dce6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #102033;
+  font-size: 0.96rem;
+  padding: 0 14px;
 }
 
 .address-input-group input::placeholder {
-  color: #9ca3af;
+  color: #91a4bd;
 }
 
-/* REQUIRED STAR */
 .required-star {
-  color: red;
-  margin-left: 4px;
+  color: #dc2626;
+  margin-left: 3px;
 }
 
-/* ERROR */
 .input-error {
-  border: 1px solid #ef4444 !important;
+  border-color: #dc2626 !important;
 }
 
 .error-text {
-  font-size: 12px;
-  color: #ef4444;
-  margin-top: -2px;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 750;
 }
 
-/* ADDRESS PREVIEW */
 .address-preview {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 16px;
-  border-radius: 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #f7fbff;
+  padding: 14px;
 }
 
 .address-preview h3 {
-  color: #166534;
-  margin-bottom: 8px;
-  font-size: 16px;
+  margin: 0 0 8px;
+  color: #1d4ed8;
+  font-size: 1rem;
+  font-weight: 950;
 }
 
 .address-preview p {
-  color: #374151;
-  font-size: 14px;
-  line-height: 1.5;
+  margin: 0;
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
-
   .address-grid {
     grid-template-columns: 1fr;
   }
@@ -105,5 +95,4 @@
   .address-input-group.full-width {
     grid-column: span 1;
   }
-
 }

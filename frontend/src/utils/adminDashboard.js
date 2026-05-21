@@ -1,11 +1,15 @@
 export const menuItems = [
-  { key: "dashboard", label: "Dashboard", icon: "⌂" },
-  { key: "categories", label: "Categories", icon: "□" },
-  { key: "orders", label: "Orders", icon: "🛒" },
-  { key: "cities", label: "Cities", icon: "▥" },
-  { key: "addresses", label: "Addresses", icon: "⌖" },
-  { key: "reports", label: "Reports", icon: "⌁" },
-  { key: "settings", label: "Settings", icon: "⚙" },
+  { key: "dashboard", label: "Dashboard", icon: "home" },
+  { key: "orders", label: "Pickup Requests", icon: "pickup" },
+  { key: "addresses", label: "Customers", icon: "customers" },
+  { key: "categories", label: "Scrap Categories", icon: "categories" },
+  { key: "price-management", label: "Price Management", icon: "price" },
+  { key: "field-executives", label: "Field Executives", icon: "executives" },
+  { key: "transactions", label: "Transactions", icon: "transactions" },
+  { key: "kyc", label: "KYC Verifications", icon: "kyc" },
+  { key: "support", label: "Support Tickets", icon: "support" },
+  { key: "cities", label: "Service Areas", icon: "cities" },
+  { key: "settings", label: "Settings", icon: "settings" },
 ];
 
 const categoryIconMap = {

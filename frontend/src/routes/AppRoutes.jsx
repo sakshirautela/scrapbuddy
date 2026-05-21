@@ -4,7 +4,7 @@ import PrivateRoute from './PrivateRoute';
 import RoleProtectedRoute from './RoleProtectedRoute';
 import RoleNameEnum from '../enums/RoleNameEnum';
 import DefaultDashboard from '../pages/DefaultDashboard';
-import AdminDashboard from '../pages/AdminDashboard';
+import AdminDashboard from '../pages/admin/AdminDashboard';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import Login from '../components/auth/Login/Login';
 import Register from '../components/auth/Register/Register';

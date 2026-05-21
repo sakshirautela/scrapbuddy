@@ -22,6 +22,7 @@ public class OrderRequest {
     private Time endRange;
     private Address address;
     private String status;
+    private Float estimateWeight;
     @NotNull(message = "Category ID is required")
     private Long categoryID;
     @NotNull(message = "Subcategory ID is required")
