@@ -3,11 +3,9 @@ package com.junkbox.backend.service;
 import com.junkbox.backend.dto.request.AddressRequest;
 import com.junkbox.backend.dto.response.AddressResponse;
 import com.junkbox.backend.entity.Address;
-import com.junkbox.backend.entity.Orders;
 import com.junkbox.backend.entity.User;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.AddressRepo;
-import com.junkbox.backend.repository.OrdersRepo;
 import com.junkbox.backend.repository.UserRepository;
 
 import jakarta.validation.Valid;
@@ -16,24 +14,21 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.junkbox.backend.service.OrderService.getAddressResponse;
 
 @Service
 public class AddressService {
 
     private final AddressRepo addressRepo;
-    private final OrdersRepo ordersRepo;
     private final UserRepository userRepository;
 
     public AddressService(AddressRepo addressRepo,
-                          OrdersRepo ordersRepo,
                           UserRepository userRepository) {
         this.addressRepo = addressRepo;
-        this.ordersRepo = ordersRepo;
         this.userRepository = userRepository;
     }
 
@@ -66,28 +61,7 @@ public class AddressService {
 
         User user = getCurrentUser();
 
-        Map<Long, Address> addressesById = new LinkedHashMap<>();
-
-        addressRepo.findAllByUserId(user.getId())
-                .forEach(address -> addressesById.put(address.getId(), address));
-
-        List<Address> orderAddresses = ordersRepo
-                .findAllByCreatedByUserIDOrderByCreatedDateTimeDesc(user.getId())
-                .stream()
-                .map(Orders::getAddress)
-                .filter(address -> address != null && address.getId() != null)
-                .collect(Collectors.toList());
-
-        orderAddresses.forEach(address -> {
-            if (address.getUser() == null) {
-                address.setUser(user);
-                addressRepo.save(address);
-            }
-
-            addressesById.putIfAbsent(address.getId(), address);
-        });
-
-        return addressesById.values()
+        return addressRepo.findAllByUserId(user.getId())
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -221,30 +195,6 @@ public class AddressService {
     // MAP ENTITY -> RESPONSE DTO
     private AddressResponse mapToResponse(Address address) {
 
-        AddressResponse response = new AddressResponse();
-
-        response.setId(address.getId());
-        response.setApartment(address.getApartment());
-        response.setCity(address.getCity());
-        response.setState(address.getState());
-        response.setZip(address.getZip());
-        response.setCountry(address.getCountry());
-
-        response.setReceiverFirstName(
-                address.getReceiverFirstName());
-
-        response.setReceiverLastName(
-                address.getReceiverLastName());
-
-        response.setReceiverPhone(
-                address.getReceiverPhone());
-
-        response.setReceiverEmail(
-                address.getReceiverEmail());
-
-        response.setCountryCode(
-                address.getCountryCode());
-
-        return response;
+        return getAddressResponse(address);
     }
 }

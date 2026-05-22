@@ -41,8 +41,17 @@ public class VarifcationService {
                 new SimpleMailMessage();
 
         message.setTo(normalizedEmail);
-        message.setSubject("OTP Verification");
-        message.setText("Your OTP is: " + otp);
+        message.setSubject("Verify your JunkBox email");
+        message.setText(
+                "Hi,\n\n"
+                        + "Use this OTP to verify your email address for your JunkBox account:\n\n"
+                        + otp + "\n\n"
+                        + "This OTP is valid for 5 minutes.\n"
+                        + "Do not share this code with anyone. JunkBox support will never ask for your OTP.\n\n"
+                        + "If you did not request this code, you can ignore this email.\n\n"
+                        + "Thanks,\n"
+                        + "JunkBox Team"
+        );
 
         mailSender.send(message);
     }

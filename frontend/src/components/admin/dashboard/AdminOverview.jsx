@@ -2,10 +2,8 @@ import React, { useMemo } from "react";
 import { buildAdminOverview } from "../../../utils/adminOverview";
 import DashboardTableCard from "./DashboardTableCard";
 import LineChartCard from "./LineChartCard";
-import RatesCard from "./RatesCard";
 import StatCard from "./StatCard";
 import StatusDonutCard from "./StatusDonutCard";
-import { EcoImpactCard, KycCard, ServiceAreaCard } from "./SummaryCards";
 
 const requestColumns = [
   { key: "id", label: "Request ID" },
@@ -25,16 +23,6 @@ const executiveColumns = [
   { key: "status", label: "Status", badge: true },
 ];
 
-const transactionColumns = [
-  { key: "id", label: "Txn ID" },
-  { key: "date", label: "Date" },
-  { key: "vendor", label: "Executive / Vendor" },
-  { key: "amount", label: "Amount" },
-  { key: "mode", label: "Mode" },
-  { key: "account", label: "UPI / Account" },
-  { key: "status", label: "Status", badge: true },
-];
-
 const ticketColumns = [
   { key: "id", label: "Ticket ID" },
   { key: "customer", label: "Customer" },
@@ -42,7 +30,7 @@ const ticketColumns = [
   { key: "status", label: "Status", badge: true },
 ];
 
-const AdminOverview = ({ orders, categories, admins, addresses, cities, onManageRates }) => {
+const AdminOverview = ({ orders, categories, admins, addresses, cities }) => {
   const overview = useMemo(
     () => buildAdminOverview({ orders, categories, admins, addresses, cities }),
     [orders, categories, admins, addresses, cities]
@@ -64,16 +52,9 @@ const AdminOverview = ({ orders, categories, admins, addresses, cities, onManage
       <section className="admin-work-grid">
         <DashboardTableCard title="Recent Pickup Requests" columns={requestColumns} rows={overview.recentRequests} className="wide" />
         <DashboardTableCard title="Field Executive Performance" columns={executiveColumns} rows={overview.executives} />
-        <DashboardTableCard title="Transactions / Payouts" columns={transactionColumns} rows={overview.transactions} className="wide" />
         <DashboardTableCard title="Support Tickets" columns={ticketColumns} rows={overview.supportTickets} />
       </section>
 
-      <aside className="admin-side-insights">
-        <RatesCard rates={overview.rates} onManageRates={onManageRates} />
-        <KycCard data={overview.kyc} />
-        <EcoImpactCard data={overview.ecoImpact} />
-        <ServiceAreaCard area={overview.serviceArea} />
-      </aside>
     </div>
   );
 };

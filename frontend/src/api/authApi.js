@@ -43,6 +43,20 @@ const authApi = {
     return response.data;
   },
 
+  sendPhoneVerificationOtp: async (phone) => {
+    const response = await apiClient.post('/api/verification/send-phone-otp', null, {
+      params: { phone: phone.trim() }
+    });
+    return response.data;
+  },
+
+  verifyPhoneOtp: async (phone, otp) => {
+    const response = await apiClient.post('/api/verification/verify-phone-otp', null, {
+      params: { phone: phone.trim(), otp: otp.trim() }
+    });
+    return response.data;
+  },
+
   sendLoginOtp: async (phone) => {
     const response = await apiClient.post('/api/auth/send-login-otp', null, {
       params: { phone }

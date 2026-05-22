@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import CategoriesWithSubCat from "../components/input/CategoriesWithSubCat";
 import NavBar from "../components/common/NavBar/NavBar";
 import orderApi from "../api/orderApi";
+import cityApi from "../api/cityApi";
 import { useAuth } from "../context/AuthContext";
 import "../styles/SchedulePickup.css";
 
@@ -36,9 +36,17 @@ const formatAddress = (address) =>
 const SchedulePickup = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [activeStep, setActiveStep] = useState(0);
   const [paymentMode, setPaymentMode] = useState("UPI / Cashless");
-  const [selectedScrap, setSelectedScrap] = useState({ categoryID: "", subCategoryID: "" });
+
+  const [cities, setCities] = useState([]);
+  const [citySearch, setCitySearch] = useState("");
+  const [showCityList, setShowCityList] = useState(false);
+
+  const [selectedScraps, setSelectedScraps] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     fullAddress: "",
     landmark: "",
@@ -52,31 +60,115 @@ const SchedulePickup = () => {
     estimateWeight: "",
   });
 
+  const getCitiesFromLocalStorage = () => {
+    try {
+      const storedCities = localStorage.getItem("cities");
+      return storedCities ? JSON.parse(storedCities) : null;
+    } catch (error) {
+      console.error("Failed to read cities from localStorage:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const loadCities = async () => {
+      try {
+        const localCities = getCitiesFromLocalStorage();
+
+        if (localCities && localCities.length > 0) {
+          setCities(localCities);
+          return;
+        }
+
+        const apiCities = await cityApi.getCities();
+
+        setCities(apiCities || []);
+        localStorage.setItem("cities", JSON.stringify(apiCities || []));
+      } catch (error) {
+        console.error("Failed to load cities:", error);
+        setCities([]);
+      }
+    };
+
+    loadCities();
+  }, []);
+
+  const cityOptions = cities.map((city) => city.name || city.cityName || city);
+
+  const filteredCities = cityOptions.filter((city) =>
+    city.toLowerCase().includes(citySearch.toLowerCase())
+  );
+
+  const handleCitySelect = (city) => {
+    setFormData((current) => ({
+      ...current,
+      city,
+    }));
+
+    setCitySearch("");
+    setShowCityList(false);
+  };
+
   const estimatedPrice = useMemo(() => {
     const weight = Number(formData.estimateWeight);
-    return Number.isFinite(weight) && weight > 0 ? Math.round(weight * 18) : 0;
-  }, [formData.estimateWeight]);
 
-  const selectedItems = [
-    {
-      icon: "♻",
-      name: selectedScrap.subCategoryID ? `Selected scrap #${selectedScrap.subCategoryID}` : "Select scrap item",
-      quantity: formData.estimateWeight ? `${formData.estimateWeight} kg` : "Qty/Est.",
-      price: estimatedPrice ? `Rs ${estimatedPrice}` : "-",
-    },
-  ];
+    if (!Number.isFinite(weight) || weight <= 0 || selectedScraps.length === 0) {
+      return 0;
+    }
+
+    const totalRate = selectedScraps.reduce(
+      (sum, item) => sum + Number(item.price || 0),
+      0
+    );
+
+    return Math.round(weight * totalRate);
+  }, [formData.estimateWeight, selectedScraps]);
+
+  const selectedItems =
+    selectedScraps.length > 0
+      ? selectedScraps.map((item) => ({
+          icon: "♻",
+          name: `${item.categoryName} - ${item.subCategoryName}`,
+          quantity: formData.estimateWeight
+            ? `${formData.estimateWeight} kg`
+            : "Qty/Est.",
+          price: item.price ? `Rs ${item.price}/kg` : "-",
+        }))
+      : [
+          {
+            icon: "♻",
+            name: "Select scrap item",
+            quantity: "Qty/Est.",
+            price: "-",
+          },
+        ];
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
   };
 
-  const handleCategorySelect = (data) => {
-    setSelectedScrap({
-      categoryID: data.categoryID,
-      subCategoryID: data.subCategoryID,
-    });
+  const handleCategorySelect = (items) => {
+    setSelectedScraps(items);
   };
+
+  const buildCategorySubcategoryMap = () =>
+    selectedScraps.reduce((result, item) => {
+      const categoryId = Number(item.categoryID);
+      const subCategoryId = Number(item.subCategoryID);
+
+      if (!Number.isFinite(categoryId) || !Number.isFinite(subCategoryId)) {
+        return result;
+      }
+
+      const key = String(categoryId);
+      result[key] = [...(result[key] || []), subCategoryId];
+      return result;
+    }, {});
 
   const goNext = () => {
     setActiveStep((current) => Math.min(current + 1, steps.length - 1));
@@ -89,14 +181,20 @@ const SchedulePickup = () => {
       return false;
     }
 
+    if (!cityOptions.includes(formData.city)) {
+      window.alert("Please select city from the list");
+      setActiveStep(0);
+      return false;
+    }
+
     if (!formData.mobile.trim()) {
       window.alert("Please enter mobile number");
       setActiveStep(0);
       return false;
     }
 
-    if (!selectedScrap.categoryID || !selectedScrap.subCategoryID) {
-      window.alert("Please select scrap category and item");
+    if (selectedScraps.length === 0) {
+      window.alert("Please select at least one scrap item");
       setActiveStep(1);
       return false;
     }
@@ -123,11 +221,20 @@ const SchedulePickup = () => {
   };
 
   const handleConfirmPickup = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (!validate()) {
       return;
     }
 
-    const [firstName = "Guest", ...lastNameParts] = (user?.firstName || user?.username || "Guest Customer").split(" ");
+    const [firstName = "Guest", ...lastNameParts] = (
+      user?.firstName ||
+      user?.username ||
+      "Guest Customer"
+    ).split(" ");
+
     const lastName = user?.lastName || lastNameParts.join(" ") || "Customer";
 
     const payload = {
@@ -135,9 +242,10 @@ const SchedulePickup = () => {
       pickupDate: `${formData.pickupDate}T${formData.startRange}:00`,
       startRange: `${formData.startRange}:00`,
       endRange: `${formData.endRange}:00`,
-      categoryID: Number(selectedScrap.categoryID),
-      subCategoryID: Number(selectedScrap.subCategoryID),
       estimateWeight: Number(formData.estimateWeight),
+
+      categoryIDsWithSubcatIDs: buildCategorySubcategoryMap(),
+
       address: {
         apartment: formData.fullAddress,
         city: formData.city,
@@ -153,11 +261,14 @@ const SchedulePickup = () => {
     };
 
     try {
+      setIsSubmitting(true);
       await orderApi.createOrder(payload);
       window.alert("Pickup scheduled successfully");
       navigate("/");
     } catch (error) {
       window.alert(error?.message || "Failed to schedule pickup");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -167,14 +278,18 @@ const SchedulePickup = () => {
 
       <section className="schedule-hero">
         <div className="schedule-hero-image" />
+
         <div className="schedule-hero-copy">
           <div>
-            <h1>Schedule <span>Pickup</span></h1>
+            <h1>
+              Schedule <span>Pickup</span>
+            </h1>
             <p>
               Book a free pickup at your convenience. Our verified executive will arrive on time
               and handle everything.
             </p>
           </div>
+
           <div className="schedule-benefits">
             {benefits.map((item) => (
               <article key={item.title}>
@@ -208,6 +323,7 @@ const SchedulePickup = () => {
               <>
                 <section>
                   <h2>Address Details</h2>
+
                   <div className="schedule-form-grid">
                     <label className="schedule-field full">
                       Full Address
@@ -218,6 +334,7 @@ const SchedulePickup = () => {
                         placeholder="221B, 2nd Main Road"
                       />
                     </label>
+
                     <label className="schedule-field full">
                       Landmark <small>(Optional)</small>
                       <input
@@ -227,27 +344,85 @@ const SchedulePickup = () => {
                         placeholder="Near metro station"
                       />
                     </label>
-                    <label className="schedule-field">
+
+                    <label className="schedule-field city-dropdown-wrapper">
                       City
-                      <input name="city" value={formData.city} onChange={handleChange} placeholder="Greater Noida" />
+
+                      <div className="city-dropdown">
+                        <button
+                          type="button"
+                          className="city-selected"
+                          onClick={() => setShowCityList((current) => !current)}
+                        >
+                          {formData.city || "Select City"}
+                        </button>
+
+                        {showCityList ? (
+                          <div className="city-dropdown-menu">
+                            <input
+                              type="text"
+                              value={citySearch}
+                              onChange={(event) => setCitySearch(event.target.value)}
+                              placeholder="Search city"
+                              className="city-search-input"
+                            />
+
+                            <div className="city-list">
+                              {filteredCities.length > 0 ? (
+                                filteredCities.map((city) => (
+                                  <button
+                                    key={city}
+                                    type="button"
+                                    className="city-option"
+                                    onClick={() => handleCitySelect(city)}
+                                  >
+                                    {city}
+                                  </button>
+                                ))
+                              ) : (
+                                <p className="city-no-result">No city found</p>
+                              )}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
                     </label>
+
                     <label className="schedule-field">
                       Pincode
-                      <input name="pincode" value={formData.pincode} onChange={handleChange} placeholder="201310" />
+                      <input
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleChange}
+                        placeholder="201310"
+                      />
                     </label>
+
                     <label className="schedule-field">
                       Mobile Number
-                      <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="+91 98765 43210" />
+                      <input
+                        name="mobile"
+                        value={formData.mobile}
+                        onChange={handleChange}
+                        placeholder="+91 98765 43210"
+                      />
                     </label>
+
                     <label className="schedule-field">
                       Email
-                      <input name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" />
+                      <input
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="you@example.com"
+                      />
                     </label>
                   </div>
                 </section>
 
                 <aside className="schedule-payment">
                   <h3>Payment Preference</h3>
+
                   {["UPI / Cashless", "Cash on Pickup"].map((mode) => (
                     <button
                       className={`payment-option ${paymentMode === mode ? "active" : ""}`}
@@ -256,21 +431,30 @@ const SchedulePickup = () => {
                       onClick={() => setPaymentMode(mode)}
                     >
                       <span />
+
                       <span>
                         <strong>{mode}</strong>
-                        <small>{mode === "UPI / Cashless" ? "Pay digitally after pickup" : "Pay in cash to our executive"}</small>
+                        <small>
+                          {mode === "UPI / Cashless"
+                            ? "Pay digitally after pickup"
+                            : "Pay in cash to our executive"}
+                        </small>
                       </span>
+
                       <b>{mode === "UPI / Cashless" ? "UPI" : "₹"}</b>
                     </button>
                   ))}
+
                   <div className="safe-box">
                     <span>♢</span>
+
                     <div>
                       <strong>Your data is safe with us</strong>
                       <small>We never share your information with anyone.</small>
                     </div>
                   </div>
                 </aside>
+
                 <div className="schedule-actions">
                   <button className="schedule-next" type="button" onClick={goNext}>
                     Save & Continue →
@@ -282,7 +466,9 @@ const SchedulePickup = () => {
             {activeStep === 1 ? (
               <section className="schedule-category-step">
                 <h2>Scrap Category</h2>
+
                 <CategoriesWithSubCat onSelect={handleCategorySelect} />
+
                 <div className="schedule-actions">
                   <button className="schedule-next" type="button" onClick={goNext}>
                     Continue →
@@ -294,19 +480,38 @@ const SchedulePickup = () => {
             {activeStep === 2 ? (
               <section>
                 <h2>Preferred Date & Time</h2>
+
                 <div className="schedule-form-grid">
                   <label className="schedule-field">
                     Pickup Date
-                    <input type="date" name="pickupDate" value={formData.pickupDate} onChange={handleChange} />
+                    <input
+                      type="date"
+                      name="pickupDate"
+                      value={formData.pickupDate}
+                      onChange={handleChange}
+                    />
                   </label>
+
                   <label className="schedule-field">
                     Start Time
-                    <input type="time" name="startRange" value={formData.startRange} onChange={handleChange} />
+                    <input
+                      type="time"
+                      name="startRange"
+                      value={formData.startRange}
+                      onChange={handleChange}
+                    />
                   </label>
+
                   <label className="schedule-field">
                     End Time
-                    <input type="time" name="endRange" value={formData.endRange} onChange={handleChange} />
+                    <input
+                      type="time"
+                      name="endRange"
+                      value={formData.endRange}
+                      onChange={handleChange}
+                    />
                   </label>
+
                   <label className="schedule-field">
                     Estimated Weight
                     <input
@@ -320,6 +525,7 @@ const SchedulePickup = () => {
                     />
                   </label>
                 </div>
+
                 <div className="schedule-actions">
                   <button className="schedule-next" type="button" onClick={goNext}>
                     Review Order →
@@ -331,9 +537,14 @@ const SchedulePickup = () => {
             {activeStep === 3 ? (
               <section>
                 <h2>Review & Confirm</h2>
-                <p>Review your address, selected scrap item, estimated weight, and pickup slot before confirming.</p>
-                <button className="schedule-confirm" type="button" onClick={handleConfirmPickup}>
-                  Confirm Pickup →
+
+                <p>
+                  Review your address, selected scrap item, estimated weight, and pickup slot
+                  before confirming.
+                </p>
+
+                <button className="schedule-confirm" type="button" onClick={handleConfirmPickup} disabled={isSubmitting}>
+                  {isSubmitting ? "Confirming..." : "Confirm Pickup →"}
                 </button>
               </section>
             ) : null}
@@ -342,20 +553,26 @@ const SchedulePickup = () => {
 
         <aside className="schedule-summary">
           <h2>Your Order Summary</h2>
+
           <div className="summary-address">
             <span>●</span>
             <p>{formatAddress(formData)}</p>
-            <button type="button" onClick={() => setActiveStep(0)}>Edit</button>
+
+            <button type="button" onClick={() => setActiveStep(0)}>
+              Edit
+            </button>
           </div>
 
           <div className="summary-list">
-            {selectedItems.map((item) => (
-              <div className="summary-row" key={item.name}>
+            {selectedItems.map((item, index) => (
+              <div className="summary-row" key={`${item.name}-${index}`}>
                 <span>{item.icon}</span>
+
                 <span>
                   <strong>{item.name}</strong>
                   <small>{item.quantity}</small>
                 </span>
+
                 <b>{item.price}</b>
               </div>
             ))}
@@ -363,26 +580,39 @@ const SchedulePickup = () => {
 
           <div className="summary-totals">
             <div>
+              <span>Total Selected Items</span>
+              <b>{selectedScraps.length}</b>
+            </div>
+
+            <div>
               <span>Total Estimated Weight</span>
               <b>{formData.estimateWeight || "-"} kg</b>
             </div>
+
             <div>
               <span>Expected Price</span>
               <strong>Rs {estimatedPrice || "-"}</strong>
             </div>
+
             <div>
               <span>Pickup Fee</span>
               <strong>FREE</strong>
             </div>
+
             <div className="summary-payable">
               <b>Total Payable</b>
               <strong>Rs {estimatedPrice || "-"}</strong>
             </div>
           </div>
-          <p className="summary-note">Final price may vary based on actual weight and quality at pickup.</p>
-          <button className="schedule-confirm" type="button" onClick={handleConfirmPickup}>
-            Confirm Pickup →
+
+          <p className="summary-note">
+            Final price may vary based on actual weight and quality at pickup.
+          </p>
+
+          <button className="schedule-confirm" type="button" onClick={handleConfirmPickup} disabled={isSubmitting}>
+            {isSubmitting ? "Confirming..." : "Confirm Pickup →"}
           </button>
+
           <p className="summary-secure">✓ 100% Secure · No hidden charges</p>
         </aside>
       </section>
@@ -391,6 +621,7 @@ const SchedulePickup = () => {
         {bottomBenefits.map((item) => (
           <article key={item.title}>
             <span>{item.icon}</span>
+
             <div>
               <strong>{item.title}</strong>
               <small>{item.text}</small>
@@ -402,26 +633,30 @@ const SchedulePickup = () => {
       <footer className="schedule-footer">
         <div>
           <strong>♻ JunkBox</strong>
-          <p>India's trusted platform to sell scrap online. Clean India, green India.</p>
+          <p>India&apos;s trusted platform to sell scrap online. Clean India, green India.</p>
         </div>
+
         <div>
           <h3>Company</h3>
           <a href="/">About Us</a>
           <a href="/">Careers</a>
           <a href="/">Privacy Policy</a>
         </div>
+
         <div>
           <h3>Services</h3>
           <a href="/schedule-pickup">Schedule Pickup</a>
           <a href="/price-list">Price List</a>
           <a href="/track-order">Track Order</a>
         </div>
+
         <div>
           <h3>Help</h3>
           <a href="/">FAQ</a>
           <a href="/">How It Works</a>
           <a href="/">Blog</a>
         </div>
+
         <div>
           <h3>Contact Us</h3>
           <a href="tel:+919876543210">+91 98765 43210</a>
@@ -429,6 +664,7 @@ const SchedulePickup = () => {
           <p>Greater Noida, Uttar Pradesh</p>
         </div>
       </footer>
+
       <div className="schedule-copybar">
         <span>© 2026 JunkBox. All rights reserved.</span>
         <span>Proudly made in India 🇮🇳</span>

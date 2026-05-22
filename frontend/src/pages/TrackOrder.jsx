@@ -3,25 +3,6 @@ import NavBar from "../components/common/NavBar/NavBar";
 import orderApi from "../api/orderApi";
 import "../styles/TrackOrder.css";
 
-const fallbackOrder = {
-  id: "SB123456789",
-  status: "Assigned",
-  pickupDate: "2026-05-20T10:30:00",
-  startRange: "10:00:00",
-  endRange: "12:00:00",
-  estimateWeight: 25,
-  amount: 430,
-  categoryID: "Paper",
-  subCategoryID: "Newspaper, Plastic, Metal, Cardboard",
-  address: {
-    apartment: "123, 5th Cross, Koramangala 5th Block",
-    city: "Bengaluru",
-    state: "Karnataka",
-    zip: "560095",
-    country: "India",
-  },
-};
-
 const formatDateTime = (value) => {
   if (!value) return "-";
   const date = new Date(value);
@@ -73,45 +54,74 @@ const getAddress = (order) =>
     .filter(Boolean)
     .join(", ") || "-";
 
+const formatOrderItems = (order) => {
+  const pairs = order?.categorySubcategoryPairs;
+  if (!pairs || Object.keys(pairs).length === 0) {
+    return "Category -, Item -";
+  }
+
+  return Object.entries(pairs)
+    .map(([categoryId, subCategoryIds]) => {
+      const itemText = Array.isArray(subCategoryIds) && subCategoryIds.length > 0
+        ? subCategoryIds.join(", ")
+        : "-";
+
+      return `Category ${categoryId}, Item ${itemText}`;
+    })
+    .join(" | ");
+};
+
+const formatOrderId = (value) => {
+  if (!value) return "-";
+  return `#ORD${String(value).padStart(4, "0")}`;
+};
+
 const TrackOrder = () => {
-  const [trackingValue, setTrackingValue] = useState("");
-  const [order, setOrder] = useState(fallbackOrder);
+  const [orderId, setOrderId] = useState("");
+  const [phone, setPhone] = useState("");
+  const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const requestedOn = formatDateTime(order.createdDateTime || order.pickupDate);
+  const requestedOn = formatDateTime(order?.createdDateTime || order?.pickupDate);
   const etaText = useMemo(() => {
-    const pickupDate = order.pickupDate ? new Date(order.pickupDate) : null;
+    const pickupDate = order?.pickupDate ? new Date(order.pickupDate) : null;
     if (!pickupDate || Number.isNaN(pickupDate.getTime())) {
       return "ETA will update soon";
     }
 
     pickupDate.setMinutes(pickupDate.getMinutes() + 45);
     return `ETA: ${formatDateTime(pickupDate)}`;
-  }, [order.pickupDate]);
+  }, [order?.pickupDate]);
 
   const handleTrack = async (event) => {
     event.preventDefault();
-    const value = trackingValue.trim();
+    const cleanOrderId = orderId.trim().replace(/^#?ORD/i, "").replace(/^SB/i, "");
+    const cleanPhone = phone.trim();
 
-    if (!value) {
-      setError("Enter order ID or mobile number");
+    if (!cleanOrderId || !cleanPhone) {
+      setError("Enter both order ID and phone number");
       return;
     }
 
-    if (!/^\d+$/.test(value.replace(/^SB/i, ""))) {
-      setError("Use numeric order ID, for example SB123456 or 123456");
+    if (!/^\d+$/.test(cleanOrderId)) {
+      setError("Use numeric order ID, for example ORD0012 or 12");
+      return;
+    }
+
+    if (cleanPhone.replace(/\D/g, "").length < 10) {
+      setError("Enter a valid phone number");
       return;
     }
 
     try {
       setLoading(true);
       setError("");
-      const orderId = value.replace(/^SB/i, "");
-      const response = await orderApi.getOrderById(orderId);
+      const response = await orderApi.trackOrder(cleanOrderId, cleanPhone);
       setOrder(response.data);
     } catch (err) {
-      setError(err.message || "Could not find this order");
+      setOrder(null);
+      setError(err.message || "No order found for this order ID and phone number");
     } finally {
       setLoading(false);
     }
@@ -130,23 +140,31 @@ const TrackOrder = () => {
         <span>▣</span>
         <div>
           <h2>Track Your Pickup</h2>
-          <p>Enter your Order ID or Mobile Number to see the status of your pickup.</p>
+          <p>Enter your Order ID and pickup phone number to see the status of your pickup.</p>
           <form className="track-search-form" onSubmit={handleTrack}>
             <input
-              value={trackingValue}
-              onChange={(event) => setTrackingValue(event.target.value)}
-              placeholder="Enter Order ID or Mobile Number"
+              value={orderId}
+              onChange={(event) => setOrderId(event.target.value)}
+              placeholder="Order ID, for example ORD0012"
             />
-            <button type="submit">{loading ? "Tracking..." : "Track Order  →"}</button>
+            <input
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="Pickup phone number"
+            />
+            <button type="submit" disabled={loading}>
+              {loading ? "Tracking..." : "Track Order  →"}
+            </button>
           </form>
-          {error ? <span className="track-example">{error}</span> : <span className="track-example">Example: SB123456 or 9876543210</span>}
+          {error ? <span className="track-example error">{error}</span> : <span className="track-example">Example: ORD0012 and 9876543210</span>}
         </div>
       </section>
 
-      <section className="track-shell">
+      {order ? (
+        <section className="track-shell">
         <section className="track-status-card">
           <div className="track-status-head">
-            <h2>Order Status <span>Order ID: SB{order.id}</span></h2>
+            <h2>Order Status <span>Order ID: {formatOrderId(order.id)}</span></h2>
             <p>Requested on: {requestedOn}</p>
           </div>
           <div className="track-timeline">
@@ -167,29 +185,29 @@ const TrackOrder = () => {
           <article className="track-info-card">
             <h2>Executive Details</h2>
             <div className="executive-profile">
-              <span className="executive-avatar">RK</span>
+              <span className="executive-avatar">JB</span>
               <div>
-                <h3>Rohit Kumar ✓</h3>
+                <h3>{order.pickscheduleById ? `Executive #${order.pickscheduleById}` : "Not assigned yet"}</h3>
                 <p>Pickup Executive</p>
-                <p>☎ +91 98765 43210</p>
+                <p>{order.pickscheduleById ? "Assigned to your pickup" : "We will assign an executive soon"}</p>
               </div>
-              <span className="executive-rating">4.8 ★</span>
+              <span className="executive-rating">{order.status || "-"}</span>
             </div>
             <div className="track-mini-stats">
               <div>
-                <span>ETA</span>
-                <strong>12 mins</strong>
+                <span>Pickup Date</span>
+                <strong>{formatDateTime(order.pickupDate)}</strong>
               </div>
               <div>
-                <span>Distance</span>
-                <strong>2.4 km away</strong>
+                <span>Time Slot</span>
+                <strong>{order.startRange || "-"} - {order.endRange || "-"}</strong>
               </div>
             </div>
             <div className="vehicle-card">
               <div>
-                <h3>Vehicle Details</h3>
-                <strong>KA 03 AB 1234</strong>
-                <small>Bajaj Maxima 3 Wheeler</small>
+                <h3>Pickup Contact</h3>
+                <strong>{order.address?.receiverFirstName || order.createdByName || "Customer"}</strong>
+                <small>{order.address?.receiverPhone || "Phone verified for tracking"}</small>
               </div>
               <span>🛺</span>
             </div>
@@ -221,11 +239,11 @@ const TrackOrder = () => {
               </div>
               <div>
                 <span>♻</span>
-                <p><b>Scrap Items</b><br />Category {order.categoryID || "-"}, Item {order.subCategoryID || "-"}</p>
+                <p><b>Scrap Items</b><br />{formatOrderItems(order)}</p>
               </div>
               <div>
                 <span>₹</span>
-                <p><b>Estimated Payout</b><br /><b>Rs {order.amount || Math.round((Number(order.estimateWeight) || 0) * 18) || "-"}</b></p>
+                <p><b>{order.amount ? "Final Payout" : "Estimated Weight"}</b><br /><b>{order.amount ? `Rs ${order.amount}` : `${order.estimateWeight || "-"} kg`}</b></p>
               </div>
             </div>
             <div className="help-box">
@@ -235,6 +253,12 @@ const TrackOrder = () => {
           </article>
         </section>
       </section>
+      ) : (
+        <section className="track-empty-state">
+          <h2>Enter your pickup details to track the order</h2>
+          <p>Order details are shown only after the order ID and pickup phone number match.</p>
+        </section>
+      )}
 
       <footer className="track-footer">
         <div>

@@ -7,6 +7,13 @@
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.shop-admin-layout.admin-control-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  align-items: stretch;
+}
+
 .shop-sidebar {
   position: sticky;
   top: 0;
@@ -20,6 +27,110 @@
     radial-gradient(circle at 16% 96%, rgba(155, 217, 98, 0.26), transparent 22%),
     linear-gradient(160deg, #093e29 0%, #022e20 58%, #011e17 100%);
   color: #fff;
+}
+
+.shop-admin-layout.admin-control-layout .shop-sidebar {
+  position: sticky;
+  top: 0;
+  width: auto;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  transform: none;
+  visibility: visible;
+  opacity: 1;
+}
+
+.shop-admin-layout.admin-control-layout .admin-overview-sidebar {
+  position: sticky !important;
+  top: 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  padding: 22px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  overflow-y: auto !important;
+  border-right: 0 !important;
+  background:
+    radial-gradient(circle at 16% 96%, rgba(155, 217, 98, 0.26), transparent 22%),
+    linear-gradient(160deg, #093e29 0%, #022e20 58%, #011e17 100%) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  transform: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.shop-admin-layout.admin-control-layout .shop-brand,
+.shop-admin-layout.admin-control-layout .shop-sidebar nav,
+.shop-admin-layout.admin-control-layout .sidebar-eco-note {
+  display: flex;
+  visibility: visible;
+  opacity: 1;
+}
+
+.shop-admin-layout.admin-control-layout .shop-sidebar nav {
+  display: grid;
+}
+
+.shop-admin-layout.admin-control-layout .shop-brand strong,
+.shop-admin-layout.admin-control-layout .shop-brand span,
+.shop-admin-layout.admin-control-layout .shop-sidebar nav button,
+.shop-admin-layout.admin-control-layout .sidebar-eco-note strong,
+.shop-admin-layout.admin-control-layout .sidebar-eco-note p {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.shop-admin-layout.admin-control-layout .shop-brand strong {
+  display: block !important;
+  color: #fff !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+}
+
+.shop-admin-layout.admin-control-layout .shop-brand span {
+  display: block !important;
+  color: rgba(255, 255, 255, 0.66) !important;
+  font-size: 11px !important;
+}
+
+.shop-admin-layout.admin-control-layout .shop-sidebar nav button {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  color: rgba(255, 255, 255, 0.86) !important;
+  background: transparent !important;
+  font-size: 15px !important;
+  text-indent: 0 !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+.shop-admin-layout.admin-control-layout .shop-sidebar nav button:hover,
+.shop-admin-layout.admin-control-layout .shop-sidebar nav button.active {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.13) !important;
+}
+
+.shop-admin-layout.admin-control-layout .admin-nav-icon {
+  width: 22px !important;
+  height: 22px !important;
+  display: inline-block !important;
+  color: inherit !important;
+}
+
+.shop-admin-layout.admin-control-layout .sidebar-eco-note strong {
+  display: block !important;
+  color: #f4fff2 !important;
+  font-size: 14px !important;
+}
+
+.shop-admin-layout.admin-control-layout .sidebar-eco-note p {
+  color: #f4fff2 !important;
+  font-size: 13px !important;
 }
 
 .shop-brand {
@@ -63,6 +174,25 @@
 .shop-sidebar nav {
   display: grid;
   gap: 8px;
+}
+
+.shop-admin-layout.admin-control-layout .admin-overview-sidebar nav {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  gap: 8px !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .shop-sidebar nav button {
@@ -119,7 +249,6 @@
 .admin-nav-icon.executives::before { content: "♙"; }
 .admin-nav-icon.transactions::before { content: "▣"; }
 .admin-nav-icon.wallet::before { content: "▰"; }
-.admin-nav-icon.kyc::before { content: "▤"; }
 .admin-nav-icon.support::before { content: "◌"; }
 .admin-nav-icon.cities::before { content: "⌾"; }
 .admin-nav-icon.settings::before { content: "⚙"; }
@@ -824,8 +953,80 @@
   background: #fff;
 }
 
+.city-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.city-action-menu {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.city-menu-trigger {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  cursor: pointer;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.city-menu-trigger:hover {
+  background: #eaf7e9;
+  color: #0d8741;
+}
+
+.city-menu-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 25;
+  min-width: 140px;
+  border: 1px solid #dfe7e1;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(16, 32, 51, 0.16);
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.city-menu-popover button {
+  width: 100%;
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  color: #172033;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+  text-align: left;
+  padding: 0 10px;
+}
+
+.city-menu-popover button:hover {
+  background: #eaf7e9;
+  color: #0d8741;
+}
+
+.city-menu-popover button.danger {
+  color: #b91c1c;
+}
+
 @media (max-width: 1440px) {
-  .shop-admin-layout {
+  .shop-admin-layout,
+  .shop-admin-layout.admin-control-layout {
     grid-template-columns: 250px minmax(0, 1fr);
   }
 
@@ -845,20 +1046,100 @@
 }
 
 @media (max-width: 1180px) {
-  .shop-admin-layout {
+  .shop-admin-layout,
+  .shop-admin-layout.admin-control-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .shop-sidebar,
+  .shop-admin-layout.admin-control-layout .shop-sidebar,
+  .shop-admin-layout.admin-control-layout .admin-overview-sidebar {
+    position: sticky;
+    top: 0;
+    width: auto;
+    height: 100vh;
+    padding: 18px 10px;
+    gap: 18px;
+    transform: none;
+  }
+
+  .shop-admin-layout.admin-control-layout .admin-overview-sidebar {
+    padding: 18px 10px !important;
+    gap: 18px !important;
+    background:
+      radial-gradient(circle at 16% 96%, rgba(155, 217, 98, 0.26), transparent 22%),
+      linear-gradient(160deg, #093e29 0%, #022e20 58%, #011e17 100%) !important;
+  }
+
+  .shop-brand {
+    gap: 10px;
+    padding-inline: 6px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    font-size: 23px;
+  }
+
+  .shop-brand strong {
+    font-size: 20px;
+  }
+
+  .shop-admin-layout.admin-control-layout .shop-brand strong {
+    font-size: 20px !important;
+  }
+
+  .shop-brand span {
+    letter-spacing: 2px;
+  }
+
+  .shop-admin-layout.admin-control-layout .shop-sidebar nav button {
+    font-size: 13px !important;
+  }
+
+  .shop-sidebar nav button {
+    border-radius: 13px;
+    padding: 12px;
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .sidebar-eco-note {
+    padding: 14px;
+  }
+
+  .topbar-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .admin-search {
+    width: min(360px, 44vw);
+  }
+}
+
+@media (max-width: 760px) {
+  .shop-admin-layout,
+  .shop-admin-layout.admin-control-layout {
     grid-template-columns: 1fr;
   }
 
-  .shop-sidebar {
+  .shop-sidebar,
+  .shop-admin-layout.admin-control-layout .shop-sidebar,
+  .shop-admin-layout.admin-control-layout .admin-overview-sidebar {
     position: fixed;
     z-index: 50;
     inset: 0 auto 0 0;
     width: min(310px, 86vw);
+    height: 100vh;
     transform: translateX(-105%);
     transition: transform 180ms ease;
   }
 
-  .shop-sidebar.open {
+  .shop-sidebar.open,
+  .shop-admin-layout.admin-control-layout .shop-sidebar.open,
+  .shop-admin-layout.admin-control-layout .admin-overview-sidebar.open {
     transform: translateX(0);
   }
 
@@ -882,15 +1163,6 @@
     inset: 0;
     border: 0;
     background: rgba(0, 0, 0, 0.36);
-  }
-
-  .topbar-right {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .admin-search {
-    width: min(360px, 44vw);
   }
 }
 

@@ -493,7 +493,7 @@ const AdminDashboard = () => {
             : order
         )
       );
-      window.alert("Delivery OTP sent to receiver phone");
+      window.alert("Delivery OTP sent to pickup phone and email");
     } catch (err) {
       window.alert(err.message || "Failed to send delivery OTP");
     }
@@ -506,9 +506,15 @@ const AdminDashboard = () => {
 
     const otp = payload?.otp || "";
     const amount = Number(payload?.amount);
+    const weight = Number(payload?.weight);
 
     if (!otp || !otp.trim()) {
       window.alert("Please enter delivery OTP");
+      return;
+    }
+
+    if (!Number.isFinite(weight) || weight <= 0) {
+      window.alert("Please enter final pickup weight");
       return;
     }
 
@@ -521,6 +527,7 @@ const AdminDashboard = () => {
       const response = await orderApi.deliverOrder(orderId, {
         otp: otp.trim(),
         amount,
+        weight,
       });
       replaceOrder(response.data);
     } catch (err) {
@@ -555,6 +562,7 @@ const AdminDashboard = () => {
   const ordersProps = {
     orders,
     admins,
+    addresses,
     categories,
     currentAdminId: Number(user?.id) || 0,
     onAcceptOrder: handleAcceptOrder,
@@ -579,7 +587,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="shop-admin-layout">
+    <div className="shop-admin-layout admin-control-layout">
       <AdminSidebar
         activeTab={activeTab}
         isOpen={sidebarOpen}

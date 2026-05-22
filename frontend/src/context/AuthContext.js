@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
+      localStorage.clear();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
@@ -93,6 +94,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   }, []);
 
+  const updateCurrentUser = useCallback((userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  }, []);
+
   const value = {
     user,
     login,
@@ -101,6 +107,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     clearError,
+    updateCurrentUser,
     verifyToken
   };
 

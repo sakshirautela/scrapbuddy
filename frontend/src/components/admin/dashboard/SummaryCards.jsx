@@ -1,27 +1,5 @@
 import React from "react";
 
-export const KycCard = ({ data }) => (
-  <section className="admin-dashboard-card summary-card">
-    <div className="admin-card-title compact">
-      <h2>KYC Verification</h2>
-      <button type="button">View All</button>
-    </div>
-    <div className="summary-grid">
-      <article className="orange">
-        <strong>{data.pending}</strong>
-        <span>Pending</span>
-      </article>
-      <article className="green">
-        <strong>{data.approved}</strong>
-        <span>Approved</span>
-      </article>
-      <article className="red">
-        <strong>{data.rejected}</strong>
-        <span>Rejected</span>
-      </article>
-    </div>
-  </section>
-);
 
 export const EcoImpactCard = ({ data }) => (
   <section className="admin-dashboard-card summary-card">

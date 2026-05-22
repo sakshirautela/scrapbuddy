@@ -28,6 +28,15 @@ public class VerficationController {
         return ResponseEntity.ok("OTP sent");
     }
 
+    @PostMapping("/send-phone-otp")
+    public ResponseEntity<?> sendPhoneOtp(
+            @RequestParam String phone) {
+
+        phoneOtpService.sendOtp(phone);
+
+        return ResponseEntity.ok("OTP sent");
+    }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(
             @RequestParam String email,
