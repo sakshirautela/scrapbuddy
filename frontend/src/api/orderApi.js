@@ -29,10 +29,23 @@ const orderApi = {
     );
   },
 
+  trackOrder: async (id, phone) => {
+    return await apiClient.get(
+      `/api/orders/track/${id}`,
+      { params: { phone } }
+    );
+  },
+
   // DELETE ORDER
   deleteOrder: async (id) => {
     return await apiClient.delete(
       `/api/orders/${id}`
+    );
+  },
+
+  cancelOrder: async (id) => {
+    return await apiClient.patch(
+      `/api/orders/${id}/cancel`
     );
   },
 

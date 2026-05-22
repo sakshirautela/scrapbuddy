@@ -2,7 +2,7 @@ import React from "react";
 import { menuItems } from "../../utils/adminDashboard";
 
 const AdminSidebar = ({ activeTab, isOpen = false, onClose, onSelectTab }) => (
-  <aside className={`shop-sidebar${isOpen ? " open" : ""}`} aria-label="Admin navigation">
+  <aside className={`shop-sidebar admin-overview-sidebar${isOpen ? " open" : ""}`} aria-label="Admin navigation">
     <div className="shop-brand">
       <div className="brand-mark" aria-hidden="true">♻</div>
       <div>

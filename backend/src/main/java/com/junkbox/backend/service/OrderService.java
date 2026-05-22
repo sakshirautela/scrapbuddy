@@ -1,27 +1,25 @@
 package com.junkbox.backend.service;
 
-import com.junkbox.backend.dto.request.OrderAssignmentRequest;
-import com.junkbox.backend.dto.request.OrderDeliveryRequest;
-import com.junkbox.backend.dto.request.OrderRequest;
-import com.junkbox.backend.dto.request.OrderRescheduleRequest;
+import com.junkbox.backend.dto.request.*;
 import com.junkbox.backend.dto.response.AddressResponse;
 import com.junkbox.backend.dto.response.OrderResponse;
-import com.junkbox.backend.entity.Address;
-import com.junkbox.backend.entity.Orders;
-import com.junkbox.backend.entity.User;
+import com.junkbox.backend.entity.*;
 import com.junkbox.backend.exception.ResourceNotFoundException;
-import com.junkbox.backend.repository.AddressRepo;
-import com.junkbox.backend.repository.OrdersRepo;
-import com.junkbox.backend.repository.UserRepository;
+import com.junkbox.backend.repository.*;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,24 +27,28 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private static final Long GUEST_USER_ID = 0L;
+    private static final DateTimeFormatter PICKUP_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     private final OrdersRepo ordersRepo;
     private final AddressRepo addressRepo;
     private final UserRepository userRepository;
     private final PhoneOtpService phoneOtpService;
     private final JavaMailSender mailSender;
-
+private  final CategoriesRepo categoriesRepo;
+private final SubCategoryRepo subCategoryRepo;
     public OrderService(
             OrdersRepo ordersRepo,
             AddressRepo addressRepo,
             UserRepository userRepository,
             PhoneOtpService phoneOtpService,
-            JavaMailSender mailSender) {
+            JavaMailSender mailSender, CategoriesRepo categoriesRepo, SubCategoryRepo subCategoryRepo) {
         this.ordersRepo = ordersRepo;
         this.addressRepo = addressRepo;
         this.userRepository = userRepository;
         this.phoneOtpService = phoneOtpService;
         this.mailSender = mailSender;
+        this.categoriesRepo = categoriesRepo;
+        this.subCategoryRepo = subCategoryRepo;
     }
 
     // CREATE ORDER
@@ -62,17 +64,13 @@ public class OrderService {
         order.setCreatedByUserID(getCurrentUserId());
         order.setCreatedDateTime(LocalDateTime.now());
 
-        Address orderAddress = request.getAddress();
-        User currentUser = getCurrentUserOrNull();
+        Address orderAddress = resolveOrderAddress(request.getAddress());
 
-        if (currentUser != null) {
-            orderAddress.setUser(currentUser);
-        }
-
-        Address savedAddress = addressRepo.save(orderAddress);
-        order.setAddress(savedAddress);
+        order.setAddress(orderAddress);
 
         Orders savedOrder = ordersRepo.save(order);
+
+        sendOrderLifecycleEmail(savedOrder, "created");
 
         return mapToResponse(savedOrder);
     }
@@ -84,6 +82,23 @@ public class OrderService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Order not found with ID: " + id));
+
+        return mapToResponse(order);
+    }
+
+    public OrderResponse trackOrder(Long id, String phone) {
+        if (isBlank(phone)) {
+            throw new IllegalArgumentException("Phone number is required");
+        }
+
+        Orders order = ordersRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Order not found with ID: " + id));
+
+        if (!isOrderPhoneMatch(order, phone)) {
+            throw new ResourceNotFoundException("No order found for this order ID and phone number");
+        }
 
         return mapToResponse(order);
     }
@@ -113,6 +128,8 @@ public class OrderService {
 
         Orders updatedOrder = ordersRepo.save(order);
 
+        sendOrderLifecycleEmail(updatedOrder, "updated");
+
         return mapToResponse(updatedOrder);
     }
 
@@ -124,12 +141,11 @@ public class OrderService {
                         new ResourceNotFoundException(
                                 "Order not found with ID: " + id));
 
-        String receiverPhone = getReceiverPhone(order);
+        String receiverPhone = getDeliveryOtpPhone(order);
         String deliveryOtp = phoneOtpService.createOtpForPhone(receiverPhone);
         sendDeliveryOtpEmail(order, deliveryOtp);
 
         order.setUpdatedByUserID(adminId);
-        order.setStatus("Delivery OTP Sent");
         order.setUpdatedDateTime(LocalDateTime.now());
         ordersRepo.save(order);
     }
@@ -145,12 +161,16 @@ public class OrderService {
             throw new IllegalArgumentException("Final amount is required");
         }
 
+        if (request.getWeight() == null || request.getWeight() <= 0) {
+            throw new IllegalArgumentException("Final weight is required");
+        }
+
         Orders order = ordersRepo.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Order not found with ID: " + id));
 
-        String receiverPhone = getReceiverPhone(order);
+        String receiverPhone = getDeliveryOtpPhone(order);
 
         try {
             phoneOtpService.verifyOtp(receiverPhone, request.getOtp().trim());
@@ -160,10 +180,13 @@ public class OrderService {
 
         order.setUpdatedByUserID(adminId);
         order.setAmount(request.getAmount());
+        order.setWeight(request.getWeight());
         order.setStatus("Delivered");
         order.setUpdatedDateTime(LocalDateTime.now());
 
         Orders updatedOrder = ordersRepo.save(order);
+
+        sendOrderLifecycleEmail(updatedOrder, "delivered");
 
         return mapToResponse(updatedOrder);
     }
@@ -186,6 +209,8 @@ public class OrderService {
         order.setUpdatedDateTime(LocalDateTime.now());
 
         Orders updatedOrder = ordersRepo.save(order);
+
+        sendOrderLifecycleEmail(updatedOrder, "accepted");
 
         return mapToResponse(updatedOrder);
     }
@@ -216,6 +241,8 @@ public class OrderService {
 
         Orders updatedOrder = ordersRepo.save(order);
 
+        sendAdminAssignmentEmail(updatedOrder, assignedAdmin, "assigned");
+
         return mapToResponse(updatedOrder);
     }
 
@@ -227,10 +254,16 @@ public class OrderService {
                         new ResourceNotFoundException(
                                 "Order not found with ID: " + id));
 
+        User removedAdmin = order.getPickscheduleById() == null
+                ? null
+                : userRepository.findById(order.getPickscheduleById()).orElse(null);
+
         order.setPickscheduleById(null);
         order.setUpdatedByUserID(currentAdminId);
         order.setUpdatedDateTime(LocalDateTime.now());
         Orders updatedOrder = ordersRepo.save(order);
+
+        sendAdminAssignmentEmail(updatedOrder, removedAdmin, "removed");
 
         return mapToResponse(updatedOrder);
     }
@@ -254,18 +287,37 @@ public class OrderService {
 
         Orders updatedOrder = ordersRepo.save(order);
 
+        sendOrderLifecycleEmail(updatedOrder, "rescheduled");
+
         return mapToResponse(updatedOrder);
     }
 
-    // DELETE ORDER
-    public void deleteOrder(Long id) {
-
+    // CANCEL ORDER
+    public OrderResponse deleteOrder(Long id) {
         Orders order = ordersRepo.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Order not found with ID: " + id));
+        User currentUser = getCurrentUserOrNull();
 
-        ordersRepo.delete(order);
+        if (currentUser == null) {
+            throw new AccessDeniedException("Authentication is required to cancel an order");
+        }
+
+        if (!isAdminRole(currentUser.getRole())
+                && !currentUser.getId().equals(order.getCreatedByUserID())) {
+            throw new AccessDeniedException("You can only cancel your own orders");
+        }
+
+        order.setStatus("Cancellation");
+        order.setUpdatedByUserID(currentUser.getId());
+        order.setUpdatedDateTime(LocalDateTime.now());
+
+        Orders updatedOrder = ordersRepo.save(order);
+
+        sendOrderLifecycleEmail(updatedOrder, "cancelled");
+
+        return mapToResponse(updatedOrder);
     }
 
     // VALIDATION
@@ -288,12 +340,8 @@ public class OrderService {
 
         validateTimeRange(request.getStartRange(), request.getEndRange());
 
-        if (request.getCategoryID() == null) {
-            throw new IllegalArgumentException(
-                    "Category ID is required");
-        }
 
-        if (request.getSubCategoryID() == null) {
+        if (request.getCategoryIDsWithSubcatIDs() == null || request.getCategoryIDsWithSubcatIDs().isEmpty()) {
             throw new IllegalArgumentException(
                     "SubCategory ID is required");
         }
@@ -303,7 +351,7 @@ public class OrderService {
                     "Address is required");
         }
 
-        Address address = request.getAddress();
+        Address address = resolveOrderAddress(request.getAddress());
 
         if (isBlank(address.getReceiverFirstName())
                 || isBlank(address.getReceiverLastName())
@@ -350,34 +398,358 @@ public class OrderService {
         return value == null || value.trim().isEmpty();
     }
 
-    private String getReceiverPhone(Orders order) {
-        if (order.getAddress() == null || isBlank(order.getAddress().getReceiverPhone())) {
-            throw new IllegalArgumentException("Receiver phone number is required for delivery OTP");
+    private Address resolveOrderAddress(Address requestAddress) {
+        if (requestAddress.getId() != null) {
+            return addressRepo.findById(requestAddress.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Address not found with ID: " + requestAddress.getId()));
         }
 
-        return order.getAddress().getReceiverPhone().trim();
+        requestAddress.setUser(null);
+        return addressRepo.save(requestAddress);
     }
 
-    private String getReceiverEmail(Orders order) {
-        if (order.getAddress() == null || isBlank(order.getAddress().getReceiverEmail())) {
-            throw new IllegalArgumentException("Receiver email is required for delivery OTP");
+    private String getDeliveryOtpPhone(Orders order) {
+        User createdByUser = getOrderCreator(order);
+
+        if (createdByUser != null && !isBlank(createdByUser.getPhone())) {
+            return createdByUser.getPhone().trim();
         }
 
-        return order.getAddress().getReceiverEmail().trim().toLowerCase();
+        if (order.getAddress() != null && !isBlank(order.getAddress().getReceiverPhone())) {
+            return order.getAddress().getReceiverPhone().trim();
+        }
+
+        throw new IllegalArgumentException("Pickup phone number is required for delivery OTP");
+    }
+
+    private boolean isOrderPhoneMatch(Orders order, String requestedPhone) {
+        String requestedDigits = digitsOnly(requestedPhone);
+
+        if (requestedDigits.isEmpty()) {
+            return false;
+        }
+
+        for (String orderPhone : getOrderContactPhones(order)) {
+            String orderDigits = digitsOnly(orderPhone);
+
+            if (!orderDigits.isEmpty()
+                    && (requestedDigits.equals(orderDigits)
+                    || canonicalPhone(requestedDigits).equals(canonicalPhone(orderDigits)))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<String> getOrderContactPhones(Orders order) {
+        List<String> phones = new ArrayList<>();
+
+        if (order.getAddress() != null && !isBlank(order.getAddress().getReceiverPhone())) {
+            phones.add(order.getAddress().getReceiverPhone().trim());
+        }
+
+        User createdByUser = getOrderCreator(order);
+
+        if (createdByUser != null && !isBlank(createdByUser.getPhone())) {
+            phones.add(createdByUser.getPhone().trim());
+        }
+
+        return phones;
+    }
+
+    private String digitsOnly(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.replaceAll("\\D", "");
+    }
+
+    private String canonicalPhone(String digits) {
+        if (digits == null) {
+            return "";
+        }
+
+        String normalized = digits;
+
+        while (normalized.length() > 10 && normalized.startsWith("0")) {
+            normalized = normalized.substring(1);
+        }
+
+        if (normalized.length() > 10 && normalized.startsWith("91")) {
+            normalized = normalized.substring(normalized.length() - 10);
+        }
+
+        return normalized.length() > 10
+                ? normalized.substring(normalized.length() - 10)
+                : normalized;
+    }
+
+    private String getDeliveryOtpEmail(Orders order) {
+        User createdByUser = getOrderCreator(order);
+
+        if (createdByUser != null && !isBlank(createdByUser.getEmail())) {
+            return createdByUser.getEmail().trim().toLowerCase();
+        }
+
+        if (order.getAddress() != null && !isBlank(order.getAddress().getReceiverEmail())) {
+            return order.getAddress().getReceiverEmail().trim().toLowerCase();
+        }
+
+        throw new IllegalArgumentException("Pickup email is required for delivery OTP");
+    }
+
+    private User getOrderCreator(Orders order) {
+        Long createdByUserId = order.getCreatedByUserID();
+
+        if (createdByUserId == null || GUEST_USER_ID.equals(createdByUserId)) {
+            return null;
+        }
+
+        return userRepository.findById(createdByUserId).orElse(null);
     }
 
     private void sendDeliveryOtpEmail(Orders order, String otp) {
-        String receiverEmail = getReceiverEmail(order);
+        String receiverEmail = getDeliveryOtpEmail(order);
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(receiverEmail);
-        message.setSubject("JunkBox Delivery OTP");
+        message.setSubject("Delivery OTP for JunkBox pickup #" + order.getId());
         message.setText(
-                "Your JunkBox delivery OTP for order #" + order.getId() + " is: " + otp + "\n\n"
-                        + "This OTP is valid for 5 minutes. Share it with the pickup admin only after your order is completed."
+                "Hi,\n\n"
+                        + "Your JunkBox pickup is ready for completion. Share this OTP with the pickup admin only after your scrap has been weighed and the final amount has been confirmed.\n\n"
+                        + "Order #" + order.getId() + "\n"
+                        + "Delivery OTP: " + otp + "\n"
+                        + "Valid for: 5 minutes\n"
+                        + "Pickup date: " + formatPickupDate(order) + "\n"
+                        + "Pickup window: " + formatPickupWindow(order) + "\n"
+                        + "Estimated weight: " + formatWeight(order.getEstimateWeight()) + "\n\n"
+                        + "Do not share this OTP before completion. JunkBox support will never ask for your OTP outside the pickup flow.\n\n"
+                        + "Thanks,\n"
+                        + "JunkBox Team"
         );
 
         mailSender.send(message);
+    }
+
+    private void sendOrderLifecycleEmail(Orders order, String event) {
+        String receiverEmail = getOrderContactEmail(order);
+
+        if (mailSender == null || isBlank(receiverEmail)) {
+            return;
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(receiverEmail);
+        message.setSubject(getOrderEmailSubject(order, event));
+        message.setText(getOrderEmailBody(order, event));
+
+        try {
+            mailSender.send(message);
+        } catch (RuntimeException exception) {
+            System.err.println("Failed to send order " + event + " email for order #"
+                    + order.getId() + ": " + exception.getMessage());
+        }
+    }
+
+    private void sendAdminAssignmentEmail(Orders order, User admin, String event) {
+        if (mailSender == null || admin == null || isBlank(admin.getEmail())) {
+            return;
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(admin.getEmail().trim().toLowerCase());
+        message.setSubject(getAdminAssignmentSubject(order, event));
+        message.setText(getAdminAssignmentBody(order, admin, event));
+
+        try {
+            mailSender.send(message);
+        } catch (RuntimeException exception) {
+            System.err.println("Failed to send admin " + event + " email for order #"
+                    + order.getId() + ": " + exception.getMessage());
+        }
+    }
+
+    private String getAdminAssignmentSubject(Orders order, String event) {
+        if ("removed".equals(event)) {
+            return "Removed from JunkBox pickup #" + order.getId();
+        }
+
+        return "Assigned to JunkBox pickup #" + order.getId();
+    }
+
+    private String getAdminAssignmentBody(Orders order, User admin, String event) {
+        return "Hi " + getUserDisplayName(admin) + ",\n\n"
+                + getAdminAssignmentMessage(event) + "\n\n"
+                + "Pickup details:\n"
+                + "Order ID: #" + order.getId() + "\n"
+                + "Status: " + formatStatus(order.getStatus()) + "\n"
+                + "Pickup date: " + formatPickupDate(order) + "\n"
+                + "Pickup window: " + formatPickupWindow(order) + "\n"
+                + "Estimated weight: " + formatWeight(order.getEstimateWeight()) + "\n"
+                + "Customer: " + getOrderCustomerName(order) + "\n"
+                + "Address: " + formatAddress(order.getAddress()) + "\n\n"
+                + getAdminAssignmentFooter(event) + "\n\n"
+                + "Thanks,\n"
+                + "JunkBox Team";
+    }
+
+    private String getAdminAssignmentMessage(String event) {
+        if ("removed".equals(event)) {
+            return "You have been removed from this pickup assignment.";
+        }
+
+        return "A pickup has been assigned to you. Please review the details and manage it from the admin dashboard.";
+    }
+
+    private String getAdminAssignmentFooter(String event) {
+        if ("removed".equals(event)) {
+            return "No further action is needed unless this was unexpected.";
+        }
+
+        return "Keep the customer updated and request the delivery OTP only when the pickup is ready for completion.";
+    }
+
+    private String getOrderContactEmail(Orders order) {
+        User createdByUser = getOrderCreator(order);
+
+        if (createdByUser != null && !isBlank(createdByUser.getEmail())) {
+            return createdByUser.getEmail().trim().toLowerCase();
+        }
+
+        if (order.getAddress() != null && !isBlank(order.getAddress().getReceiverEmail())) {
+            return order.getAddress().getReceiverEmail().trim().toLowerCase();
+        }
+
+        return null;
+    }
+
+    private String getOrderEmailSubject(Orders order, String event) {
+        return switch (event) {
+            case "created" -> "JunkBox pickup #" + order.getId() + " created";
+            case "rescheduled" -> "JunkBox pickup #" + order.getId() + " rescheduled";
+            case "cancelled" -> "JunkBox pickup #" + order.getId() + " cancelled";
+            default -> "JunkBox pickup #" + order.getId() + " updated";
+        };
+    }
+
+    private String getOrderEmailBody(Orders order, String event) {
+        return "Hi " + getOrderCustomerName(order) + ",\n\n"
+                + getOrderEventMessage(event) + "\n\n"
+                + "Pickup details:\n"
+                + "Order ID: #" + order.getId() + "\n"
+                + "Status: " + formatStatus(order.getStatus()) + "\n"
+                + "Pickup date: " + formatPickupDate(order) + "\n"
+                + "Pickup window: " + formatPickupWindow(order) + "\n"
+                + "Estimated weight: " + formatWeight(order.getEstimateWeight()) + "\n"
+                + "Address: " + formatAddress(order.getAddress()) + "\n\n"
+                + getOrderEventFooter(event) + "\n\n"
+                + "Thanks,\n"
+                + "JunkBox Team";
+    }
+
+    private String getOrderEventMessage(String event) {
+        return switch (event) {
+            case "created" ->
+                    "Your pickup request has been created successfully. Our team will review it and keep you updated.";
+            case "rescheduled" ->
+                    "Your pickup schedule has been updated. Please check the new pickup date and time below.";
+            case "cancelled" -> "Your pickup has been cancelled. No pickup will be attempted for this order.";
+            default -> "Your pickup details have been updated. Please review the latest details below.";
+        };
+    }
+
+    private String getOrderEventFooter(String event) {
+        return switch (event) {
+            case "cancelled" -> "If this cancellation was not expected, please contact JunkBox support.";
+            case "created" -> "You can track this pickup from your JunkBox dashboard.";
+            default -> "You can view the latest status from your JunkBox dashboard.";
+        };
+    }
+
+    private String getOrderCustomerName(Orders order) {
+        User createdByUser = getOrderCreator(order);
+
+        if (createdByUser != null) {
+            String fullName = getUserDisplayName(createdByUser);
+
+            if (!"there".equals(fullName)) {
+                return fullName;
+            }
+        }
+
+        if (order.getAddress() != null) {
+            String fullName = ((order.getAddress().getReceiverFirstName() == null ? "" : order.getAddress().getReceiverFirstName().trim())
+                    + " "
+                    + (order.getAddress().getReceiverLastName() == null ? "" : order.getAddress().getReceiverLastName().trim())).trim();
+
+            if (!fullName.isEmpty()) {
+                return fullName;
+            }
+        }
+
+        return "there";
+    }
+
+    private String getUserDisplayName(User user) {
+        String fullName = ((user.getFirstName() == null ? "" : user.getFirstName().trim())
+                + " "
+                + (user.getLastName() == null ? "" : user.getLastName().trim())).trim();
+
+        return fullName.isEmpty() ? "there" : fullName;
+    }
+
+    private String formatStatus(String status) {
+        return isBlank(status) ? "-" : status;
+    }
+
+    private String formatAddress(Address address) {
+        if (address == null) {
+            return "-";
+        }
+
+        List<String> parts = new ArrayList<>();
+        addIfPresent(parts, address.getApartment());
+        addIfPresent(parts, address.getCity());
+        addIfPresent(parts, address.getState());
+        addIfPresent(parts, address.getZip());
+        addIfPresent(parts, address.getCountry());
+
+        return parts.isEmpty() ? "-" : String.join(", ", parts);
+    }
+
+    private void addIfPresent(List<String> parts, String value) {
+        if (!isBlank(value)) {
+            parts.add(value.trim());
+        }
+    }
+
+    private String formatPickupDate(Orders order) {
+        if (order.getPickupDate() == null) {
+            return "-";
+        }
+
+        return java.time.Instant.ofEpochMilli(order.getPickupDate().getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(PICKUP_DATE_FORMATTER);
+    }
+
+    private String formatPickupWindow(Orders order) {
+        if (order.getStartRange() == null && order.getEndRange() == null) {
+            return "-";
+        }
+
+        return formatTime(order.getStartRange()) + " - " + formatTime(order.getEndRange());
+    }
+
+    private String formatTime(java.sql.Time time) {
+        return time == null ? "-" : time.toLocalTime().toString();
+    }
+
+    private String formatWeight(Float weight) {
+        return weight == null ? "-" : weight + " kg";
     }
 
     // MAP REQUEST DTO -> ENTITY
@@ -392,10 +764,8 @@ public class OrderService {
         order.setEndRange(request.getEndRange());
 
         order.setEstimateWeight(request.getEstimateWeight());
+        order.setCategorySubcategoryPairs(request.getCategoryIDsWithSubcatIDs());
 
-        order.setCategoryID(request.getCategoryID());
-
-        order.setSubCategoryID(request.getSubCategoryID());
     }
 
     // MAP ENTITY -> RESPONSE DTO
@@ -409,6 +779,8 @@ public class OrderService {
 
         response.setEstimateWeight(order.getEstimateWeight());
 
+        response.setWeight(order.getWeight());
+
         response.setAmount(order.getAmount());
 
         response.setPickupDate(order.getPickupDate());
@@ -421,19 +793,80 @@ public class OrderService {
 
         response.setCreatedByUserID(order.getCreatedByUserID());
 
+        User createdByUser = getOrderCreator(order);
+        if (createdByUser != null) {
+            response.setCreatedByName(getUserDisplayName(createdByUser));
+            response.setCreatedByEmail(createdByUser.getEmail());
+        }
+
         response.setUpdatedByUserID(order.getUpdatedByUserID());
 
         response.setPickscheduleById(order.getPickscheduleById());
-
-        response.setCategoryID(order.getCategoryID());
-
-        response.setSubCategoryID(order.getSubCategoryID());
-
         response.setCreatedDateTime(order.getCreatedDateTime());
 
         response.setUpdatedDateTime(order.getUpdatedDateTime());
+        HashMap<Categories, List<SubCategories>> categorySubcategoryPairs = new HashMap<>();
+        HashMap<Long, List<Long>> ids = new HashMap<>();
+        for (Long cat : ids.keySet()) {
+            List<Long> subCategories = ids.get(cat);
+            Categories c=categoriesRepo.getById(cat);
+            categorySubcategoryPairs.put(c,new ArrayList<>());
+            for(Long subCategory : subCategories) {
+                categorySubcategoryPairs.get(c).add(subCategoryRepo.getById(subCategory));
+            }
 
+        }
+        response.setCategorySubcategoryPairs(categorySubcategoryPairs);
         return response;
+    }
+
+    private String serializeCategoryPairs(HashMap<Long, List<Long>> categoryPairs) {
+        if (categoryPairs == null || categoryPairs.isEmpty()) {
+            return "";
+        }
+
+        return categoryPairs.entrySet()
+                .stream()
+                .map((entry) -> entry.getKey() + ":" + entry.getValue()
+                        .stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(",")))
+                .collect(Collectors.joining(";"));
+    }
+
+    private HashMap<Long, List<Long>> deserializeCategoryPairs(String categoryPairs) {
+        if (isBlank(categoryPairs)) {
+            return new HashMap<>();
+        }
+
+        HashMap<Long, List<Long>> result = new HashMap<>();
+
+        for (String pair : categoryPairs.split(";")) {
+            if (isBlank(pair) || !pair.contains(":")) {
+                continue;
+            }
+
+            String[] parts = pair.split(":", 2);
+
+            try {
+                Long categoryId = Long.parseLong(parts[0].trim());
+                List<Long> subCategoryIds = new ArrayList<>();
+
+                for (String rawSubCategoryId : parts[1].split(",")) {
+                    if (!isBlank(rawSubCategoryId)) {
+                        subCategoryIds.add(Long.parseLong(rawSubCategoryId.trim()));
+                    }
+                }
+
+                if (!subCategoryIds.isEmpty()) {
+                    result.put(categoryId, subCategoryIds);
+                }
+            } catch (NumberFormatException ignored) {
+                // Skip malformed persisted values instead of breaking order reads.
+            }
+        }
+
+        return result;
     }
 
     private AddressResponse mapAddressToResponse(Address address) {
@@ -441,6 +874,11 @@ public class OrderService {
             return null;
         }
 
+        return getAddressResponse(address);
+    }
+
+    @NonNull
+    static AddressResponse getAddressResponse(Address address) {
         AddressResponse response = new AddressResponse();
         response.setId(address.getId());
         response.setApartment(address.getApartment());
@@ -528,5 +966,25 @@ public class OrderService {
                 || "ROLE_ADMIN".equals(normalizedRole)
                 || "ROLE_SUPER_ADMIN".equals(normalizedRole)
                 || "ROLE_SUPERADMIN".equals(normalizedRole);
+    }
+    private Address resolveOrderAddress(AddressRequest addressRequest) {
+
+        if (addressRequest == null) {
+            return null;
+        }
+
+        Address address = new Address();
+        address.setApartment(addressRequest.getApartment());
+        address.setCity(addressRequest.getCity());
+        address.setState(addressRequest.getState());
+        address.setZip(addressRequest.getZip());
+        address.setCountry(addressRequest.getCountry());
+        address.setReceiverFirstName(addressRequest.getReceiverFirstName());
+        address.setReceiverLastName(addressRequest.getReceiverLastName());
+        address.setReceiverPhone(addressRequest.getReceiverPhone());
+        address.setReceiverEmail(addressRequest.getReceiverEmail());
+        address.setCountryCode(addressRequest.getCountryCode());
+
+        return address;
     }
 }

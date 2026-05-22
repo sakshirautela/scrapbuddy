@@ -6,7 +6,50 @@
   background: #f5f8fb;
   padding: 40px 20px;
 }
+.selected-category {
+  border: 2px solid #22c55e;
+}
 
+.category-selected-mark {
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.selected-scraps {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8f8f8;
+}
+
+.selected-scraps h3 {
+  margin-bottom: 12px;
+}
+
+.selected-scrap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+}
+
+.remove-scrap-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #ffdddd;
+  color: #b00000;
+  cursor: pointer;
+}
+
+.remove-scrap-btn:hover {
+  background: #ffcaca;
+}
 .categories-container {
   width: 100%;
   max-width: 1200px;

@@ -4,6 +4,7 @@ import { formatDateTime, formatValue, getAddressSummary, getCategoryName } from 
 const OrdersTable = ({
   orders,
   admins,
+  addresses = [],
   categories,
   currentAdminId,
   onAcceptOrder,
@@ -18,6 +19,7 @@ const OrdersTable = ({
   const [scheduleByOrder, setScheduleByOrder] = useState({});
   const [deliveryOtpByOrder, setDeliveryOtpByOrder] = useState({});
   const [deliveryAmountByOrder, setDeliveryAmountByOrder] = useState({});
+  const [deliveryWeightByOrder, setDeliveryWeightByOrder] = useState({});
   const [selectedOrderKey, setSelectedOrderKey] = useState(null);
 
   const getOrderId = (order) => order?.id ?? order?.orderId ?? order?.orderID;
@@ -41,6 +43,28 @@ const OrdersTable = ({
   };
 
   const getOrderCategoryPath = (order) => {
+    const pairs = order.categorySubcategoryPairs || {};
+    const pairEntries = Object.entries(pairs);
+
+    if (pairEntries.length > 0) {
+      return pairEntries
+        .flatMap(([categoryId, subCategoryIds]) => {
+          const category = categories.find((item) => String(item.id) === String(categoryId));
+          const categoryName = category ? getCategoryName(category) : `Category ${formatValue(categoryId)}`;
+          const ids = Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds];
+
+          return ids.map((subCategoryId) => {
+            const subCategory = category?.subCategories?.find(
+              (item) => String(item.id) === String(subCategoryId)
+            );
+            const subCategoryName = subCategory?.subCategory || `Subcategory ${formatValue(subCategoryId)}`;
+            const price = subCategory?.price ? ` - Rs ${subCategory.price}/kg` : "";
+            return `${categoryName} -> ${subCategoryName}${price}`;
+          });
+        })
+        .join("; ");
+    }
+
     const category = categories.find((item) => String(item.id) === String(order.categoryID));
     const subCategory = category?.subCategories?.find(
       (item) => String(item.id) === String(order.subCategoryID)
@@ -58,6 +82,52 @@ const OrdersTable = ({
     }
 
     return `${categoryName} -> ${subCategoryName}${price}`;
+  };
+
+  const getCreatedByText = (order) => {
+    if (!order.createdByUserID || Number(order.createdByUserID) === 0) {
+      return "Guest";
+    }
+
+    if (order.createdByName || order.createdByEmail) {
+      return order.createdByName || order.createdByEmail;
+    }
+
+    const createdByAdmin = admins.find((admin) => String(admin.id) === String(order.createdByUserID));
+
+    if (createdByAdmin) {
+      return getAdminName(createdByAdmin);
+    }
+
+    const matchingAddress = addresses.find((address) => {
+      if (String(address.userId || address.userID || "") === String(order.createdByUserID)) {
+        return true;
+      }
+
+      return order.address?.receiverEmail
+        && address.receiverEmail
+        && String(address.receiverEmail).toLowerCase() === String(order.address.receiverEmail).toLowerCase();
+    });
+
+    const address = matchingAddress || order.address || {};
+    const addressName = [address.receiverFirstName, address.receiverLastName].filter(Boolean).join(" ");
+
+    return addressName || address.receiverEmail || "Customer";
+  };
+
+  const getStatusLabel = (status) => {
+    const normalizedStatus = String(status || "").trim().toLowerCase();
+
+    if (["cancellation", "cancelled", "canceled"].includes(normalizedStatus)) {
+      return "Cancelled";
+    }
+
+    return status || "Scheduled";
+  };
+
+  const isCancelledOrder = (order) => {
+    const normalizedStatus = String(order?.status || "").trim().toLowerCase();
+    return ["cancellation", "cancelled", "canceled"].includes(normalizedStatus);
   };
 
   const toDateInputValue = (value) => {
@@ -132,7 +202,11 @@ const OrdersTable = ({
     const deliveryOtp = deliveryOtpByOrder[selectedOrderRecordId] || "";
     const deliveryAmount =
       deliveryAmountByOrder[selectedOrderRecordId] ?? selectedOrder.amount ?? "";
+    const deliveryWeight =
+      deliveryWeightByOrder[selectedOrderRecordId] ?? selectedOrder.weight ?? selectedOrder.estimateWeight ?? "";
     const isDelivered = String(selectedOrder.status || "").toLowerCase() === "delivered";
+    const isCancelled = isCancelledOrder(selectedOrder);
+    const isClosedOrder = isDelivered || isCancelled;
 
     return (
       <section className="admin-card order-detail-page">
@@ -143,14 +217,14 @@ const OrdersTable = ({
           <div>
             <span>Order Details</span>
             <h2>Order #{formatValue(selectedOrderRecordId)}</h2>
-            <p>{selectedOrder.status || "Scheduled"}</p>
+            <p>{getStatusLabel(selectedOrder.status)}</p>
           </div>
         </header>
 
         <div className="order-detail-admin-grid">
           <article>
             <span>Status</span>
-            <strong>{selectedOrder.status || "Scheduled"}</strong>
+            <strong>{getStatusLabel(selectedOrder.status)}</strong>
           </article>
           <article>
             <span>Pickup Date</span>
@@ -163,6 +237,10 @@ const OrdersTable = ({
           <article>
             <span>Estimated Weight</span>
             <strong>{formatValue(selectedOrder.estimateWeight)} kg</strong>
+          </article>
+          <article>
+            <span>Final Weight</span>
+            <strong>{formatValue(selectedOrder.weight)} kg</strong>
           </article>
           <article>
             <span>Final Amount</span>
@@ -178,7 +256,7 @@ const OrdersTable = ({
           </article>
           <article>
             <span>Created By</span>
-            <strong>{selectedOrder.createdByUserID === 0 ? "Guest" : formatValue(selectedOrder.createdByUserID)}</strong>
+            <strong>{getCreatedByText(selectedOrder)}</strong>
           </article>
           <article>
             <span>Created At</span>
@@ -199,10 +277,16 @@ const OrdersTable = ({
           <section className="order-detail-admin-panel">
             <h3>Reschedule</h3>
             <div className="order-detail-form-grid">
-              {isDelivered ? (
+              {isClosedOrder ? (
                 <p className="assignment-summary">
-                  Final pickup time <strong>{formatDateTime(selectedOrder.pickupDate)}</strong>
-                  <span>{formatTimeRange(selectedOrder)}</span>
+                  {isCancelled ? (
+                    "Order cancelled"
+                  ) : (
+                    <>
+                      Final pickup time <strong>{formatDateTime(selectedOrder.pickupDate)}</strong>
+                      <span>{formatTimeRange(selectedOrder)}</span>
+                    </>
+                  )}
                 </p>
               ) : (
                 <>
@@ -240,9 +324,15 @@ const OrdersTable = ({
           <section className="order-detail-admin-panel">
             <h3>Assignment</h3>
             <div className="order-detail-form-grid">
-              {isDelivered ? (
+              {isClosedOrder ? (
                 <p className="assignment-summary">
-                  Assigned to <strong>{getAssignedAdminText(selectedOrder)}</strong>
+                  {isCancelled ? (
+                    "Order cancelled"
+                  ) : (
+                    <>
+                      Assigned to <strong>{getAssignedAdminText(selectedOrder)}</strong>
+                    </>
+                  )}
                 </p>
               ) : (
                 <>
@@ -302,7 +392,7 @@ const OrdersTable = ({
               <button
                 className="table-action-btn"
                 type="button"
-                disabled={isDelivered || !selectedOrderRecordId}
+                disabled={isClosedOrder || !selectedOrderRecordId}
                 onClick={() => onSendDeliveryOtp(selectedOrderRecordId)}
               >
                 Send OTP
@@ -313,7 +403,7 @@ const OrdersTable = ({
                 maxLength="6"
                 placeholder="Enter OTP"
                 value={deliveryOtp}
-                disabled={isDelivered}
+                disabled={isClosedOrder}
                 onChange={(event) =>
                   setDeliveryOtpByOrder((current) => ({
                     ...current,
@@ -326,9 +416,24 @@ const OrdersTable = ({
                 type="number"
                 min="1"
                 step="0.01"
+                placeholder="Final weight (kg)"
+                value={deliveryWeight}
+                disabled={isClosedOrder}
+                onChange={(event) =>
+                  setDeliveryWeightByOrder((current) => ({
+                    ...current,
+                    [selectedOrderRecordId]: event.target.value,
+                  }))
+                }
+                aria-label={`Final weight for order ${selectedOrderRecordId || "unknown"}`}
+              />
+              <input
+                type="number"
+                min="1"
+                step="0.01"
                 placeholder="Final amount"
                 value={deliveryAmount}
-                disabled={isDelivered}
+                disabled={isClosedOrder}
                 onChange={(event) =>
                   setDeliveryAmountByOrder((current) => ({
                     ...current,
@@ -340,11 +445,12 @@ const OrdersTable = ({
               <button
                 className="table-action-btn"
                 type="button"
-                disabled={isDelivered || !selectedOrderRecordId}
+                disabled={isClosedOrder || !selectedOrderRecordId}
                 onClick={() =>
                   onDeliverOrder(selectedOrderRecordId, {
                     otp: deliveryOtp,
                     amount: deliveryAmount,
+                    weight: deliveryWeight,
                   })
                 }
               >
@@ -379,6 +485,7 @@ const OrdersTable = ({
               <th>Pickup Date</th>
               <th>Time Range</th>
               <th>Estimated Weight</th>
+              <th>Final Weight</th>
               <th>Amount</th>
               <th>Category - Subcategory</th>
               <th>Assigned To</th>
@@ -387,7 +494,7 @@ const OrdersTable = ({
           </thead>
           <tbody>
             {orders.length === 0 ? (
-              <tr><td colSpan="9">No Orders Found</td></tr>
+              <tr><td colSpan="10">No Orders Found</td></tr>
             ) : (
               orders.map((order, index) => {
                 const orderId = getOrderId(order);
@@ -395,10 +502,11 @@ const OrdersTable = ({
                 return (
                   <tr key={getOrderKey(order, index)}>
                     <td>{formatValue(orderId)}</td>
-                    <td><span className="active-pill">{order.status || "Scheduled"}</span></td>
+                    <td><span className="active-pill">{getStatusLabel(order.status)}</span></td>
                     <td>{formatDateTime(order.pickupDate)}</td>
                     <td>{formatTimeRange(order)}</td>
                     <td>{formatValue(order.estimateWeight)} kg</td>
+                    <td>{formatValue(order.weight)} kg</td>
                     <td>Rs {formatValue(order.amount)}</td>
                     <td>{getOrderCategoryPath(order)}</td>
                     <td>{getAssignedAdminText(order)}</td>

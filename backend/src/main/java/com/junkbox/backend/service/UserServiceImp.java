@@ -89,14 +89,59 @@ public class UserServiceImp {
         validateUserRequest(request);
 
         User user = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        String email = normalizeEmail(request.getEmail());
+        String phone = normalizePhone(request.getPhone());
+        boolean emailChanged = !email.equals(normalizeEmail(user.getEmail()));
+
+        if (emailChanged) {
+            if (request.getEmailOtp() == null || request.getEmailOtp().trim().isEmpty()) {
+                throw new IllegalArgumentException("Email OTP is required");
+            }
+
+            varifcationService.verifyOtp(email, request.getEmailOtp().trim());
+
+            repo.findByEmail(email)
+                    .filter(existingUser -> !existingUser.getId().equals(id))
+                    .ifPresent(existingUser -> {
+                        throw new IllegalArgumentException("Email already exists: " + email);
+                    });
+
+            repo.findByUsername(email)
+                    .filter(existingUser -> !existingUser.getId().equals(id))
+                    .ifPresent(existingUser -> {
+                        throw new IllegalArgumentException("Email already exists: " + email);
+                    });
+        }
+
+        if (!phone.equals(normalizePhone(user.getPhone()))) {
+            if (phone.isEmpty()) {
+                throw new IllegalArgumentException("Phone cannot be empty");
+            }
+
+            if (request.getPhoneOtp() == null || request.getPhoneOtp().trim().isEmpty()) {
+                throw new IllegalArgumentException("Phone OTP is required");
+            }
+
+            phoneOtpService.verifyOtp(phone, request.getPhoneOtp().trim());
+
+            repo.findByPhone(phone)
+                    .filter(existingUser -> !existingUser.getId().equals(id))
+                    .ifPresent(existingUser -> {
+                        throw new IllegalArgumentException("Phone already exists: " + phone);
+                    });
+        }
 
         user.setFirstName(request.getFirstName());
 
         user.setLastName(request.getLastName());
 
-        user.setPhone(request.getPhone());
+        user.setPhone(phone);
+user.setUsername(email);
+        user.setEmail(email);
 
-        user.setEmail(request.getEmail());
+        if (!email.equals(normalizeEmail(user.getUsername()))) {
+            user.setUsername(email);
+        }
 
         User updatedUser = repo.save(user);
 
@@ -113,7 +158,9 @@ public class UserServiceImp {
 
     // GET USER BY USERNAME
     public UserResponse getUserByUsername(String username) {
-        User user = repo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        User user = repo.findByUsername(username)
+                .or(() -> repo.findByEmail(username))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
         return mapToResponse(user);
     }
 
@@ -154,6 +201,22 @@ public class UserServiceImp {
 
             throw new IllegalArgumentException("Email cannot be empty");
         }
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+
+        return email.trim().toLowerCase();
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+
+        return phone.trim();
     }
 
     // VALIDATE USER REQUEST

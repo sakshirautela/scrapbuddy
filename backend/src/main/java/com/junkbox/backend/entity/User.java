@@ -42,4 +42,8 @@ public class User {
     private String lastName;
     private Date createdDate;
     private Time createdTime;
+
+    public void setUsr() {
+
+    }
 }

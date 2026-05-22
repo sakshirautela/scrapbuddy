@@ -17,4 +17,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const responseData = error.response?.data;
+
+    if (typeof responseData === "string") {
+      return Promise.reject(Object.assign(new Error(responseData), { response: error.response }));
+    }
+
+    if (responseData?.error) {
+      return Promise.reject(Object.assign(new Error(responseData.error), { response: error.response }));
+    }
+
+    if (responseData?.message) {
+      return Promise.reject(Object.assign(new Error(responseData.message), { response: error.response }));
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;

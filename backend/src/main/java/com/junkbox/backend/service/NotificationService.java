@@ -22,31 +22,59 @@ public class NotificationService {
 
     public boolean sendNewOrderPlacedMail(MailBody mailBody) {
 
-        Optional<User> userOpt = userRepository.findByUsername(mailBody.getTo());
+        String recipient = normalizeEmail(mailBody.getTo());
+        Optional<User> userOpt = userRepository.findByEmail(recipient)
+                .or(() -> userRepository.findByUsername(recipient));
         if (userOpt.isEmpty()) {
             return false;
         }
-        SimpleMailMessage message = getMessage(mailBody, "");
+        SimpleMailMessage message = getMessage(userOpt.get(), mailBody);
 
         mailSender.send(message);
         return true;
     }
 
-    private static @NonNull SimpleMailMessage getMessage(MailBody mailBody, String otp) {
+    private static @NonNull SimpleMailMessage getMessage(User user, MailBody mailBody) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailBody.getTo());
-        message.setSubject("Order PlacedMail - JunkBox");
+        String subject = isBlank(mailBody.getSubject())
+                ? "Your JunkBox pickup request is confirmed"
+                : mailBody.getSubject().trim();
+        String body = isBlank(mailBody.getBody())
+                ? "We have received your pickup request and will keep you updated as it moves forward."
+                : mailBody.getBody().trim();
+
+        message.setTo(user.getEmail());
+        message.setSubject(subject);
 
         message.setText(
-                "Hello,\n\n" +
-                        "We received a request to reset your JunkBox account password.\n\n" +
-                        "Your One-Time Password (OTP) is: " + otp + "\n\n" +
-                        "This OTP is valid for 10 minutes.\n" +
-                        "Do not share this OTP with anyone for security reasons.\n\n" +
-                        "If you did not request a password reset, please ignore this email.\n\n" +
-                        "Regards,\n" +
-                        "JunkBox Team"
+                "Hi " + getDisplayName(user) + ",\n\n"
+                        + body + "\n\n"
+                        + "What happens next:\n"
+                        + "- Our team will review and assign the pickup.\n"
+                        + "- You can track the latest status from your JunkBox dashboard.\n"
+                        + "- You will receive a delivery OTP before the pickup is completed.\n\n"
+                        + "Thanks for recycling with JunkBox.\n\n"
+                        + "JunkBox Team"
         );
         return message;
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+        return email.trim().toLowerCase();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static String getDisplayName(User user) {
+        String fullName = ((user.getFirstName() == null ? "" : user.getFirstName().trim())
+                + " "
+                + (user.getLastName() == null ? "" : user.getLastName().trim())).trim();
+
+        return fullName.isEmpty() ? "there" : fullName;
     }
 }

@@ -1,11 +1,15 @@
 package com.junkbox.backend.dto.response;
 
+import com.junkbox.backend.entity.Categories;
+import com.junkbox.backend.entity.SubCategories;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.sql.Time;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,6 +20,8 @@ public class OrderResponse {
     private String status;
 
     private Float estimateWeight;
+
+    private Float weight;
 
     private Float amount;
 
@@ -29,13 +35,14 @@ public class OrderResponse {
 
     private Long createdByUserID;
 
+    private String createdByName;
+
+    private String createdByEmail;
+
     private Long updatedByUserID;
 
     private Long pickscheduleById;
-
-    private Long categoryID;
-
-    private Long subCategoryID;
+    private HashMap<Categories, List<SubCategories>> categorySubcategoryPairs;
 
     private LocalDateTime createdDateTime;
 

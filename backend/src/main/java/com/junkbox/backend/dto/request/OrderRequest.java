@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.sql.Time;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,11 +22,9 @@ public class OrderRequest {
 
     @JsonFormat(pattern = "HH:mm:ss")
     private Time endRange;
-    private Address address;
+    private AddressRequest address;
     private String status;
     private Float estimateWeight;
     @NotNull(message = "Category ID is required")
-    private Long categoryID;
-    @NotNull(message = "Subcategory ID is required")
-    private Long subCategoryID;
+    private HashMap<Long,List<Long>> categoryIDsWithSubcatIDs;
 }

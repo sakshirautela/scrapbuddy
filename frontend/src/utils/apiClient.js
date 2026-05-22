@@ -18,13 +18,16 @@ const PUBLIC_ROUTES = [
   '/api/auth/password/reset',
   '/api/auth/password/validate',
   '/api/verification/send-otp',
+  '/api/verification/send-phone-otp',
   '/api/verification/verify-otp',
+  '/api/verification/verify-phone-otp',
 ];
 
 const PUBLIC_GET_ROUTES = [
   '/api/categories',
   '/api/subcategories',
   '/api/cities',
+  '/api/orders/track',
 ];
 
 apiClient.interceptors.request.use(

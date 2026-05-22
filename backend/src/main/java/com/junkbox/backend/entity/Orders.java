@@ -9,6 +9,8 @@ import lombok.Setter;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @Setter
 @Getter
@@ -32,8 +34,9 @@ public class Orders {
     private Float amount;
     private Time startRange;
     private Time endRange;
-    private Long categoryID;
-    private Long SubCategoryID;
+    @Lob
+    @Column(name = "category_subcategory_pairs", columnDefinition = "TEXT")
+    private HashMap<Long, List<Long>> categorySubcategoryPairs;
     private Long pickscheduleById;
     private LocalDateTime createdDateTime;
     private LocalDateTime updatedDateTime;

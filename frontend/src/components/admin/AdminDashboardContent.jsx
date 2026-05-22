@@ -53,7 +53,12 @@ const AdminDashboardContent = ({
   }
 
   if (activeTab === "addresses") {
-    return <AddressesTable addresses={addresses} />;
+    return (
+      <AddressesTable
+        orders={ordersProps.orders}
+        currentAdminId={ordersProps.currentAdminId}
+      />
+    );
   }
 
   return (

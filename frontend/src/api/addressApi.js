@@ -10,6 +10,15 @@ const addressApi = {
     const response = await apiClient.post("/api/addresses", data);
     return response.data;
   },
+
+  updateAddress: async (id, data) => {
+    const response = await apiClient.put(`/api/addresses/${id}`, data);
+    return response.data;
+  },
+
+  deleteAddress: async (id) => {
+    await apiClient.delete(`/api/addresses/${id}`);
+  },
 };
 
 export default addressApi;

@@ -77,7 +77,7 @@
 
 .track-search-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 170px;
   gap: 12px;
   margin-top: 14px;
 }
@@ -100,9 +100,15 @@
   font-weight: 950;
 }
 
+.track-search-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 .track-example {
   display: inline-flex;
-  width: max-content;
+  width: fit-content;
+  max-width: 100%;
   border-radius: 6px;
   background: #eef8ef;
   color: #0b7a35;
@@ -112,10 +118,36 @@
   padding: 4px 10px;
 }
 
+.track-example.error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .track-shell {
   display: grid;
   gap: 12px;
   padding: 0 8vw 20px;
+}
+
+.track-empty-state {
+  width: min(960px, calc(100% - 32px));
+  border: 1px dashed #cbd5df;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #617084;
+  margin: 0 auto 24px;
+  padding: 28px;
+  text-align: center;
+}
+
+.track-empty-state h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 1.2rem;
+}
+
+.track-empty-state p {
+  margin: 8px 0 0;
 }
 
 .track-status-card {

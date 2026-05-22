@@ -11,6 +11,7 @@ const statusLabels = {
   completed: "Completed",
   cancelled: "Cancelled",
   canceled: "Cancelled",
+  cancellation: "Cancelled",
 };
 
 export const formatMoney = (value) =>
@@ -66,6 +67,26 @@ const getSlot = (order) => {
 };
 
 const getCategoryPath = (order, categories) => {
+  const pairs = order?.categorySubcategoryPairs || {};
+  const pairEntries = Object.entries(pairs);
+
+  if (pairEntries.length > 0) {
+    return pairEntries
+      .flatMap(([categoryId, subCategoryIds]) => {
+        const category = categories.find((item) => String(item.id) === String(categoryId));
+        const ids = Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds];
+
+        return ids.map((subCategoryId) => {
+          const subCategory = category?.subCategories?.find(
+            (item) => String(item.id) === String(subCategoryId)
+          );
+
+          return subCategory?.subCategory || category?.category || "Mixed Scrap";
+        });
+      })
+      .join(", ");
+  }
+
   const category = categories.find((item) => String(item.id) === String(order?.categoryID));
   const subCategory = category?.subCategories?.find(
     (item) => String(item.id) === String(order?.subCategoryID)
@@ -176,17 +197,7 @@ export const buildAdminOverview = ({ orders = [], categories = [], admins = [], 
     recentRequests,
     executives,
     transactions,
-    supportTickets: [
-      { id: "SUP-2109", customer: "Ravi Nair", issue: "Pickup delayed", status: "Open" },
-      { id: "SUP-2108", customer: "Meera Joshi", issue: "Incorrect weight", status: "In Progress" },
-      { id: "SUP-2107", customer: "Arun Prakash", issue: "Payment not received", status: "Open" },
-      { id: "SUP-2106", customer: "Sneha Kapoor", issue: "App not working", status: "Resolved" },
-    ],
-    kyc: {
-      pending: Math.max(0, pendingOrders.length || 0),
-      approved: Math.max(customerIds.size, completedOrders.length),
-      rejected: Math.max(0, orders.filter((order) => normalizeOrderStatus(order.status) === "Cancelled").length),
-    },
+    supportTickets:[],
     ecoImpact: {
       waste: (totalWeight / 1000).toFixed(2),
       co2: (totalWeight * 2.4 / 1000).toFixed(2),

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +54,21 @@ public class PickupScheduleController {
                 orderService.getOrderById(id);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/track/{id}")
+    public ResponseEntity<?> trackOrder(
+            @PathVariable Long id,
+            @RequestParam String phone) {
+
+        try {
+            OrderResponse response = orderService.trackOrder(id, phone);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     // UPDATE ORDER
@@ -140,14 +156,28 @@ public class PickupScheduleController {
         }
     }
 
-    // DELETE / CANCEL ORDER
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> cancelOrder(
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelOrderStatus(
             @PathVariable Long id) {
 
-        orderService.deleteOrder(id);
+        try {
+            OrderResponse response = orderService.deleteOrder(id);
+            return ResponseEntity.ok(response);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
 
-        return ResponseEntity.ok("Pickup cancelled successfully");
+    }
+
+    // CANCEL ORDER
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponse> cancelOrder(
+            @PathVariable Long id) {
+
+        OrderResponse response = orderService.deleteOrder(id);
+
+        return ResponseEntity.ok(response);
     }
 
     // GET ALL ORDERS

@@ -10,4 +10,6 @@ public class OrderDeliveryRequest {
     private String otp;
 
     private Float amount;
+
+    private Float weight;
 }

@@ -29,19 +29,19 @@ const AdminOrders = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Delete this order?");
+    const confirmDelete = window.confirm("Cancel this order?");
 
     if (!confirmDelete) {
       return;
     }
 
     try {
-      await orderApi.deleteOrder(id);
-      alert("Order Deleted");
+      await orderApi.cancelOrder(id);
+      alert("Order Cancelled");
       fetchOrders();
     } catch (error) {
       console.error(error);
-      alert("Failed to delete");
+      alert("Failed to cancel");
     }
   };
 

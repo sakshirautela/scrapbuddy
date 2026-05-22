@@ -84,28 +84,39 @@ public class PasswordResetService {
             return false;
         }
 
-        SimpleMailMessage message = getMessage(mailBody, otp);
+        SimpleMailMessage message = getMessage(userOpt.get(), otp);
 
         mailSender.send(message);
         return true;
     }
 
-    private static @NonNull SimpleMailMessage getMessage(MailBody mailBody, String otp) {
+    private static @NonNull SimpleMailMessage getMessage(User user, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailBody.getTo());
-        message.setSubject("Password Reset OTP - JunkBox");
+        String displayName = getDisplayName(user);
+
+        message.setTo(user.getEmail());
+        message.setSubject("Reset your JunkBox password");
 
         message.setText(
-                "Hello,\n\n" +
-                        "We received a request to reset your JunkBox account password.\n\n" +
-                        "Your One-Time Password (OTP) is: " + otp + "\n\n" +
-                        "This OTP is valid for 10 minutes.\n" +
-                        "Do not share this OTP with anyone for security reasons.\n\n" +
-                        "If you did not request a password reset, please ignore this email.\n\n" +
-                        "Regards,\n" +
-                        "JunkBox Team"
+                "Hi " + displayName + ",\n\n"
+                        + "We received a request to reset your JunkBox account password.\n\n"
+                        + "Your password reset OTP is:\n\n"
+                        + otp + "\n\n"
+                        + "This OTP is valid for 10 minutes.\n"
+                        + "Do not share this code with anyone. JunkBox support will never ask for your OTP.\n\n"
+                        + "If you did not request a password reset, ignore this email and your password will stay unchanged.\n\n"
+                        + "Thanks,\n"
+                        + "JunkBox Team"
         );
         return message;
+    }
+
+    private static String getDisplayName(User user) {
+        String fullName = ((user.getFirstName() == null ? "" : user.getFirstName().trim())
+                + " "
+                + (user.getLastName() == null ? "" : user.getLastName().trim())).trim();
+
+        return fullName.isEmpty() ? "there" : fullName;
     }
 
     @Scheduled(fixedRate = 3_600_000) // runs every hour
@@ -118,4 +129,3 @@ public class PasswordResetService {
         return tokenOpt.isPresent() && !tokenOpt.get().isExpired();
     }
 }
-
