@@ -23,6 +23,12 @@ const orderApi = {
     );
   },
 
+  getMyOrders: async () => {
+    return await apiClient.get(
+      "/api/orders/my"
+    );
+  },
+
   getOrderById: async (id) => {
     return await apiClient.get(
       `/api/orders/${id}`

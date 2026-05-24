@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import NavBar from "../components/common/NavBar/NavBar";
 import orderApi from "../api/orderApi";
+import { formatOrderCategoryPairs } from "../utils/orderCategories";
 import "../styles/TrackOrder.css";
 
 const formatDateTime = (value) => {
@@ -55,20 +56,10 @@ const getAddress = (order) =>
     .join(", ") || "-";
 
 const formatOrderItems = (order) => {
-  const pairs = order?.categorySubcategoryPairs;
-  if (!pairs || Object.keys(pairs).length === 0) {
-    return "Category -, Item -";
-  }
-
-  return Object.entries(pairs)
-    .map(([categoryId, subCategoryIds]) => {
-      const itemText = Array.isArray(subCategoryIds) && subCategoryIds.length > 0
-        ? subCategoryIds.join(", ")
-        : "-";
-
-      return `Category ${categoryId}, Item ${itemText}`;
-    })
-    .join(" | ");
+  return formatOrderCategoryPairs(order?.categorySubcategoryPairs, [], {
+    separator: " | ",
+    categorySeparator: ", Item ",
+  });
 };
 
 const formatOrderId = (value) => {
@@ -146,11 +137,6 @@ const TrackOrder = () => {
               value={orderId}
               onChange={(event) => setOrderId(event.target.value)}
               placeholder="Order ID, for example ORD0012"
-            />
-            <input
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="Pickup phone number"
             />
             <button type="submit" disabled={loading}>
               {loading ? "Tracking..." : "Track Order  →"}

@@ -16,10 +16,13 @@ const DashboardTableCard = ({ title, columns, rows, actionLabel = "View All", cl
           </tr>
         </thead>
         <tbody>
-          {rows.length ? rows.map((row) => (
-            <tr key={row.id}>
+          {rows.length ? rows.map((row, rowIndex) => {
+            const rowKey = row.id || row.key || `${title}-${rowIndex}`;
+
+            return (
+            <tr key={rowKey}>
               {columns.map((column) => (
-                <td key={`${row.id}-${column.key}`}>
+                <td key={`${rowKey}-${column.key}`}>
                   {column.badge ? (
                     <span className={`status-pill ${String(row[column.key]).toLowerCase().replace(/\s+/g, "-")}`}>
                       {row[column.key]}
@@ -30,7 +33,8 @@ const DashboardTableCard = ({ title, columns, rows, actionLabel = "View All", cl
                 </td>
               ))}
             </tr>
-          )) : (
+            );
+          }) : (
             <tr>
               <td colSpan={columns.length}>No records yet.</td>
             </tr>

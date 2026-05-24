@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { formatDateTime, formatValue, getAddressSummary, getCategoryName } from "../../utils/adminDashboard";
+import { formatOrderCategoryPairs } from "../../utils/orderCategories";
 
 const OrdersTable = ({
   orders,
@@ -20,6 +21,7 @@ const OrdersTable = ({
   const [deliveryOtpByOrder, setDeliveryOtpByOrder] = useState({});
   const [deliveryAmountByOrder, setDeliveryAmountByOrder] = useState({});
   const [deliveryWeightByOrder, setDeliveryWeightByOrder] = useState({});
+  const [assignmentSavingByOrder, setAssignmentSavingByOrder] = useState({});
   const [selectedOrderKey, setSelectedOrderKey] = useState(null);
 
   const getOrderId = (order) => order?.id ?? order?.orderId ?? order?.orderID;
@@ -43,26 +45,12 @@ const OrdersTable = ({
   };
 
   const getOrderCategoryPath = (order) => {
-    const pairs = order.categorySubcategoryPairs || {};
-    const pairEntries = Object.entries(pairs);
+    const categoryPairsText = formatOrderCategoryPairs(order.categorySubcategoryPairs, categories, {
+      includePrice: true,
+    });
 
-    if (pairEntries.length > 0) {
-      return pairEntries
-        .flatMap(([categoryId, subCategoryIds]) => {
-          const category = categories.find((item) => String(item.id) === String(categoryId));
-          const categoryName = category ? getCategoryName(category) : `Category ${formatValue(categoryId)}`;
-          const ids = Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds];
-
-          return ids.map((subCategoryId) => {
-            const subCategory = category?.subCategories?.find(
-              (item) => String(item.id) === String(subCategoryId)
-            );
-            const subCategoryName = subCategory?.subCategory || `Subcategory ${formatValue(subCategoryId)}`;
-            const price = subCategory?.price ? ` - Rs ${subCategory.price}/kg` : "";
-            return `${categoryName} -> ${subCategoryName}${price}`;
-          });
-        })
-        .join("; ");
+    if (categoryPairsText !== "-") {
+      return categoryPairsText;
     }
 
     const category = categories.find((item) => String(item.id) === String(order.categoryID));
@@ -186,10 +174,85 @@ const OrdersTable = ({
       return "Unassigned";
     }
 
-    return order.pickscheduleById === currentAdminId
-      ? "Me"
+    if (String(order.pickscheduleById) === String(currentAdminId)) {
+      return "Me";
+    }
+
+    const assignedAdmin = admins.find((admin) => String(admin.id) === String(order.pickscheduleById));
+
+    return assignedAdmin
+      ? getAdminName(assignedAdmin)
       : `Admin ${formatValue(order.pickscheduleById)}`;
   };
+
+  const setAssignmentSaving = (orderId, isSaving) => {
+    setAssignmentSavingByOrder((current) => ({
+      ...current,
+      [orderId]: isSaving,
+    }));
+  };
+
+  const handleAccept = async (orderId) => {
+    if (!orderId || assignmentSavingByOrder[orderId]) {
+      return;
+    }
+
+    setAssignmentSaving(orderId, true);
+
+    try {
+      await onAcceptOrder(orderId);
+      setAssignmentByOrder((current) => {
+        const next = { ...current };
+        delete next[orderId];
+        return next;
+      });
+    } finally {
+      setAssignmentSaving(orderId, false);
+    }
+  };
+
+  const handleAssign = async (orderId, adminId) => {
+    if (!orderId || assignmentSavingByOrder[orderId]) {
+      return;
+    }
+
+    setAssignmentSaving(orderId, true);
+
+    try {
+      await onAssignOrder(orderId, adminId);
+      setAssignmentByOrder((current) => {
+        const next = { ...current };
+        delete next[orderId];
+        return next;
+      });
+    } finally {
+      setAssignmentSaving(orderId, false);
+    }
+  };
+
+  const handleUnassign = async (orderId) => {
+    if (!orderId || assignmentSavingByOrder[orderId]) {
+      return;
+    }
+
+    setAssignmentSaving(orderId, true);
+
+    try {
+      await onUnassignOrder(orderId);
+      setAssignmentByOrder((current) => {
+        const next = { ...current };
+        delete next[orderId];
+        return next;
+      });
+    } finally {
+      setAssignmentSaving(orderId, false);
+    }
+  };
+
+  const getAssignmentButtonText = (orderId, fallback) =>
+    assignmentSavingByOrder[orderId]
+      ? "Saving..."
+      : fallback;
 
   const selectedOrder = orders.find(
     (order, index) => getOrderKey(order, index) === selectedOrderKey
@@ -340,10 +403,10 @@ const OrdersTable = ({
                     <button
                       className="table-action-btn"
                       type="button"
-                      disabled={!selectedOrderRecordId}
-                      onClick={() => onAcceptOrder(selectedOrderRecordId)}
+                      disabled={!selectedOrderRecordId || assignmentSavingByOrder[selectedOrderRecordId]}
+                      onClick={() => handleAccept(selectedOrderRecordId)}
                     >
-                      Accept Myself
+                      {getAssignmentButtonText(selectedOrderRecordId, "Accept Myself")}
                     </button>
                   )}
                   <select
@@ -366,19 +429,19 @@ const OrdersTable = ({
                   <button
                     className="table-action-btn"
                     type="button"
-                    disabled={!selectedOrderRecordId}
-                    onClick={() => onAssignOrder(selectedOrderRecordId, selectedAdminId)}
+                    disabled={!selectedOrderRecordId || assignmentSavingByOrder[selectedOrderRecordId]}
+                    onClick={() => handleAssign(selectedOrderRecordId, selectedAdminId)}
                   >
-                    Assign
+                    {getAssignmentButtonText(selectedOrderRecordId, "Assign")}
                   </button>
                   {selectedOrder.pickscheduleById && (
                     <button
                       className="table-action-btn table-action-danger"
                       type="button"
-                      disabled={!selectedOrderRecordId}
-                      onClick={() => onUnassignOrder(selectedOrderRecordId)}
+                      disabled={!selectedOrderRecordId || assignmentSavingByOrder[selectedOrderRecordId]}
+                      onClick={() => handleUnassign(selectedOrderRecordId)}
                     >
-                      Remove Assignment
+                      {getAssignmentButtonText(selectedOrderRecordId, "Remove Assignment")}
                     </button>
                   )}
                 </>

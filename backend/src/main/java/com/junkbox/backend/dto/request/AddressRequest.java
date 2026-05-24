@@ -13,6 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AddressRequest {
 
+    private Long id;
+
     private String apartment;
 
     @NotBlank(message = "City is required")

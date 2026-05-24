@@ -1,4 +1,5 @@
 import { getAddressSummary, getCategoryName } from "./adminDashboard";
+import { formatOrderCategoryPairs } from "./orderCategories";
 
 const statusLabels = {
   pending: "Pending",
@@ -67,24 +68,12 @@ const getSlot = (order) => {
 };
 
 const getCategoryPath = (order, categories) => {
-  const pairs = order?.categorySubcategoryPairs || {};
-  const pairEntries = Object.entries(pairs);
+  const categoryPairsText = formatOrderCategoryPairs(order?.categorySubcategoryPairs, categories, {
+    separator: ", ",
+  });
 
-  if (pairEntries.length > 0) {
-    return pairEntries
-      .flatMap(([categoryId, subCategoryIds]) => {
-        const category = categories.find((item) => String(item.id) === String(categoryId));
-        const ids = Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds];
-
-        return ids.map((subCategoryId) => {
-          const subCategory = category?.subCategories?.find(
-            (item) => String(item.id) === String(subCategoryId)
-          );
-
-          return subCategory?.subCategory || category?.category || "Mixed Scrap";
-        });
-      })
-      .join(", ");
+  if (categoryPairsText !== "-") {
+    return categoryPairsText;
   }
 
   const category = categories.find((item) => String(item.id) === String(order?.categoryID));

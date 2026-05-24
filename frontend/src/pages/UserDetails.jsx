@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { formatOrderCategoryPairs } from "../utils/orderCategories";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import orderApi from "../api/orderApi";
@@ -70,16 +71,10 @@ const getAddressSummary = (address = {}) =>
     .join(", ") || "-";
 
 const formatOrderItems = (order = {}) => {
-  const pairs = order.categorySubcategoryPairs || {};
-  const entries = Object.entries(pairs);
+  const categoryPairsText = formatOrderCategoryPairs(order.categorySubcategoryPairs);
 
-  if (entries.length > 0) {
-    return entries
-      .flatMap(([categoryId, subCategoryIds]) => {
-        const ids = Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds];
-        return ids.map((subCategoryId) => `Category ${categoryId}, Item ${subCategoryId}`);
-      })
-      .join("; ");
+  if (categoryPairsText !== "-") {
+    return categoryPairsText;
   }
 
   if (order.categoryID || order.subCategoryID) {
@@ -155,7 +150,7 @@ const ProfileDashboard = () => {
       setOrderError("");
 
       try {
-        const response = await orderApi.getOrdersByUser(user.id);
+        const response = await orderApi.getMyOrders();
 
         setOrders(Array.isArray(response.data) ? response.data : []);
       } catch (error) {

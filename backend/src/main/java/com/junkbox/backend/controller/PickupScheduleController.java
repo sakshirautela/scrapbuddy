@@ -42,6 +42,8 @@ public class PickupScheduleController {
                     .body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
     }
     // GET ORDER BY ID
@@ -192,12 +194,29 @@ public class PickupScheduleController {
     }
     @GetMapping("/orderByUser/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<OrderResponse>> getAllOrderByUser(@PathVariable Long id) {
-        try{
+    public ResponseEntity<?> getAllOrderByUser(@PathVariable Long id) {
+        try {
             return ResponseEntity.ok(orderService.getAllOrderByUser(id));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-        catch (Exception e){
-            return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getMyOrders() {
+        try {
+            return ResponseEntity.ok(orderService.getCurrentUserOrders());
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

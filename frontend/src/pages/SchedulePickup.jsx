@@ -4,6 +4,7 @@ import CategoriesWithSubCat from "../components/input/CategoriesWithSubCat";
 import NavBar from "../components/common/NavBar/NavBar";
 import orderApi from "../api/orderApi";
 import cityApi from "../api/cityApi";
+import addressApi from "../api/addressApi";
 import { useAuth } from "../context/AuthContext";
 import "../styles/SchedulePickup.css";
 
@@ -33,6 +34,22 @@ const formatAddress = (address) =>
     .filter(Boolean)
     .join(", ") || "Pickup address not added";
 
+const formatSavedAddress = (address) =>
+  [address.apartment, address.city, address.state, address.zip, address.country]
+    .filter(Boolean)
+    .join(", ");
+
+const getSavedAddressLabel = (address) => {
+  const name = [address.receiverFirstName, address.receiverLastName]
+    .filter(Boolean)
+    .join(" ");
+  const addressText = formatSavedAddress(address);
+
+  return [name || "Saved Address", addressText]
+    .filter(Boolean)
+    .join(" - ");
+};
+
 const SchedulePickup = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -46,6 +63,9 @@ const SchedulePickup = () => {
 
   const [selectedScraps, setSelectedScraps] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState("");
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
   const [formData, setFormData] = useState({
     fullAddress: "",
@@ -93,6 +113,29 @@ const SchedulePickup = () => {
     loadCities();
   }, []);
 
+  useEffect(() => {
+    const loadSavedAddresses = async () => {
+      if (!user?.id) {
+        setSavedAddresses([]);
+        setSelectedSavedAddressId("");
+        return;
+      }
+
+      try {
+        setIsLoadingAddresses(true);
+        const addresses = await addressApi.getMyAddresses();
+        setSavedAddresses(addresses);
+      } catch (error) {
+        console.error("Failed to load saved addresses:", error);
+        setSavedAddresses([]);
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+
+    loadSavedAddresses();
+  }, [user?.id]);
+
   const cityOptions = cities.map((city) => city.name || city.cityName || city);
 
   const filteredCities = cityOptions.filter((city) =>
@@ -100,6 +143,7 @@ const SchedulePickup = () => {
   );
 
   const handleCitySelect = (city) => {
+    setSelectedSavedAddressId("");
     setFormData((current) => ({
       ...current,
       city,
@@ -146,10 +190,40 @@ const SchedulePickup = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
 
+    setSelectedSavedAddressId("");
     setFormData((current) => ({
       ...current,
       [name]: value,
     }));
+  };
+
+  const handleSavedAddressSelect = (address) => {
+    setSelectedSavedAddressId(String(address.id));
+    setFormData((current) => ({
+      ...current,
+      fullAddress: address.apartment || "",
+      landmark: "",
+      city: address.city || "",
+      pincode: address.zip || "",
+      mobile: address.receiverPhone || "",
+      email: address.receiverEmail || user?.email || current.email,
+    }));
+    setShowCityList(false);
+  };
+
+  const handleSavedAddressMenuChange = (event) => {
+    const addressId = event.target.value;
+
+    if (!addressId) {
+      setSelectedSavedAddressId("");
+      return;
+    }
+
+    const selectedAddress = savedAddresses.find((address) => String(address.id) === addressId);
+
+    if (selectedAddress) {
+      handleSavedAddressSelect(selectedAddress);
+    }
   };
 
   const handleCategorySelect = (items) => {
@@ -247,6 +321,7 @@ const SchedulePickup = () => {
       categoryIDsWithSubcatIDs: buildCategorySubcategoryMap(),
 
       address: {
+        id: selectedSavedAddressId ? Number(selectedSavedAddressId) : null,
         apartment: formData.fullAddress,
         city: formData.city,
         state: "Uttar Pradesh",
@@ -323,6 +398,33 @@ const SchedulePickup = () => {
               <>
                 <section>
                   <h2>Address Details</h2>
+
+                  {user?.id ? (
+                    <div className="saved-address-panel">
+                      <div className="saved-address-header">
+                        <strong>Saved Addresses</strong>
+                        <span>{isLoadingAddresses ? "Loading..." : `${savedAddresses.length} saved`}</span>
+                      </div>
+
+                      {savedAddresses.length > 0 ? (
+                        <label className="saved-address-menu">
+                          Choose saved address
+                          <select value={selectedSavedAddressId} onChange={handleSavedAddressMenuChange}>
+                            <option value="">Enter a new address</option>
+                            {savedAddresses.map((address) => (
+                              <option key={address.id} value={address.id}>
+                                {getSavedAddressLabel(address)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ) : (
+                        <p className="saved-address-empty">
+                          {isLoadingAddresses ? "Loading saved addresses..." : "No saved addresses yet. Add one below."}
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
 
                   <div className="schedule-form-grid">
                     <label className="schedule-field full">

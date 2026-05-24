@@ -403,13 +403,11 @@ const AdminDashboard = () => {
 
     try {
       const response = await orderApi.acceptOrder(orderId);
-      setOrders((current) =>
-        current.map((order) =>
-          String(order.id) === String(orderId) ? response.data : order
-        )
-      );
+      replaceOrder(response.data);
+      return response.data;
     } catch (err) {
       window.alert(err.message || "Failed to accept order");
+      throw err;
     }
   };
 
@@ -434,8 +432,10 @@ const AdminDashboard = () => {
     try {
       const response = await orderApi.assignOrder(orderId, Number(adminId));
       replaceOrder(response.data);
+      return response.data;
     } catch (err) {
       window.alert(err.message || "Failed to assign order");
+      throw err;
     }
   };
 
@@ -447,8 +447,10 @@ const AdminDashboard = () => {
     try {
       const response = await orderApi.unassignOrder(orderId);
       replaceOrder(response.data);
+      return response.data;
     } catch (err) {
       window.alert(err.message || "Failed to remove assignment");
+      throw err;
     }
   };
 

@@ -34,7 +34,7 @@ public class Orders {
     private Float amount;
     private Time startRange;
     private Time endRange;
-    @Lob
+    @Convert(converter = CategorySubcategoryPairsConverter.class)
     @Column(name = "category_subcategory_pairs", columnDefinition = "TEXT")
     private HashMap<Long, List<Long>> categorySubcategoryPairs;
     private Long pickscheduleById;

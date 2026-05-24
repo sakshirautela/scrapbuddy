@@ -22,6 +22,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -203,7 +204,11 @@ public class OrderService {
                                 "Order not found with ID: " + id));
 
         if (order.getPickscheduleById() != null) {
-            throw new IllegalArgumentException("Order is already assigned");
+            if (order.getPickscheduleById().equals(adminId)) {
+                return mapToResponse(order);
+            }
+
+            throw new IllegalArgumentException("Order is already assigned to another admin");
         }
 
         order.setPickscheduleById(adminId);
@@ -239,7 +244,7 @@ public class OrderService {
 
         order.setPickscheduleById(assignedAdmin.getId());
         order.setUpdatedByUserID(currentAdminId);
-        order.setStatus("scheduled");
+        order.setStatus("Scheduled");
         order.setUpdatedDateTime(LocalDateTime.now());
 
         Orders updatedOrder = ordersRepo.save(order);
@@ -402,6 +407,29 @@ public class OrderService {
     }
 
     private Address resolveOrderAddress(AddressRequest requestAddress) {
+        User currentUser = getCurrentUserOrNull();
+
+        if (requestAddress.getId() != null) {
+            Address existingAddress = addressRepo.findById(requestAddress.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Address not found with ID: " + requestAddress.getId()));
+
+            if (currentUser != null
+                    && existingAddress.getUser() != null
+                    && currentUser.getId().equals(existingAddress.getUser().getId())) {
+                return existingAddress;
+            }
+
+            throw new AccessDeniedException("You can only use your own saved address");
+        }
+
+        if (currentUser != null) {
+            for (Address existingAddress : addressRepo.findAllByUserId(currentUser.getId())) {
+                if (isSameAddress(existingAddress, requestAddress)) {
+                    return existingAddress;
+                }
+            }
+        }
+
         Address address = new Address();
 
         address.setApartment(requestAddress.getApartment());
@@ -414,9 +442,26 @@ public class OrderService {
         address.setReceiverPhone(requestAddress.getReceiverPhone());
         address.setReceiverEmail(requestAddress.getReceiverEmail());
         address.setCountryCode(requestAddress.getCountryCode());
-        address.setUser(getCurrentUserOrNull());
+        address.setUser(currentUser);
 
         return addressRepo.save(address);
+    }
+
+    private boolean isSameAddress(Address existingAddress, AddressRequest requestAddress) {
+        return normalized(existingAddress.getApartment()).equals(normalized(requestAddress.getApartment()))
+                && normalized(existingAddress.getCity()).equals(normalized(requestAddress.getCity()))
+                && normalized(existingAddress.getState()).equals(normalized(requestAddress.getState()))
+                && normalized(existingAddress.getZip()).equals(normalized(requestAddress.getZip()))
+                && normalized(existingAddress.getCountry()).equals(normalized(requestAddress.getCountry()))
+                && normalized(existingAddress.getReceiverFirstName()).equals(normalized(requestAddress.getReceiverFirstName()))
+                && normalized(existingAddress.getReceiverLastName()).equals(normalized(requestAddress.getReceiverLastName()))
+                && normalized(existingAddress.getReceiverEmail()).equals(normalized(requestAddress.getReceiverEmail()))
+                && canonicalPhone(digitsOnly(existingAddress.getReceiverPhone())).equals(canonicalPhone(digitsOnly(requestAddress.getReceiverPhone())))
+                && normalized(existingAddress.getCountryCode()).equals(normalized(requestAddress.getCountryCode()));
+    }
+
+    private String normalized(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
     }
 
     private String getDeliveryOtpPhone(Orders order) {
@@ -828,18 +873,40 @@ public class OrderService {
         return categoryPairs.entrySet()
                 .stream()
                 .map((entry) -> {
-                    CategoryResponse category = categoryService.getCategoryById(entry.getKey());
+                    CategoryResponse category = getCategoryResponseOrFallback(entry.getKey());
                     List<SubCategoryResponse> subCategories = entry.getValue() == null
                             ? new ArrayList<>()
                             : entry.getValue()
                                     .stream()
-                                    .map(subCategoryService::getSubCategoryById)
+                                    .map(this::getSubCategoryResponseOrFallback)
                                     .collect(Collectors.toList());
 
                     category.setSubCategories(subCategories);
                     return category;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private CategoryResponse getCategoryResponseOrFallback(Long categoryId) {
+        try {
+            return categoryService.getCategoryById(categoryId);
+        } catch (RuntimeException exception) {
+            CategoryResponse response = new CategoryResponse();
+            response.setId(categoryId);
+            response.setCategory("Category " + categoryId);
+            return response;
+        }
+    }
+
+    private SubCategoryResponse getSubCategoryResponseOrFallback(Long subCategoryId) {
+        try {
+            return subCategoryService.getSubCategoryById(subCategoryId);
+        } catch (RuntimeException exception) {
+            SubCategoryResponse response = new SubCategoryResponse();
+            response.setId(subCategoryId);
+            response.setSubCategory("Subcategory " + subCategoryId);
+            return response;
+        }
     }
 
     private String serializeCategoryPairs(HashMap<Long, List<Long>> categoryPairs) {
@@ -918,12 +985,90 @@ public class OrderService {
     }
 
     public List<OrderResponse> getAllOrderByUser(Long id) {
-        List<Orders> orders = ordersRepo.findAllByCreatedByUserIDOrderByCreatedDateTimeDesc(id);
-        List<OrderResponse> orderResponses = new ArrayList<>();
-        for (Orders order : orders) {
-            orderResponses.add(mapToResponse(order));
+        User currentUser = getCurrentUserOrNull();
+
+        if (currentUser == null) {
+            throw new AccessDeniedException("Authentication is required to view orders");
         }
-        return orderResponses;
+
+        if (!isAdminRole(currentUser.getRole()) && !currentUser.getId().equals(id)) {
+            throw new AccessDeniedException("You can only view your own orders");
+        }
+
+        return getOrdersForUser(id);
+    }
+
+    public List<OrderResponse> getCurrentUserOrders() {
+        User currentUser = getCurrentUserOrNull();
+
+        if (currentUser == null) {
+            throw new AccessDeniedException("Authentication is required to view orders");
+        }
+
+        return getOrdersForUser(currentUser.getId());
+    }
+
+    private List<OrderResponse> getOrdersForUser(Long id) {
+        User requestedUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+
+        LinkedHashMap<Long, Orders> userOrdersById = new LinkedHashMap<>();
+
+        for (Orders order : ordersRepo.findAllByCreatedByUserIDOrderByCreatedDateTimeDesc(id)) {
+            userOrdersById.put(order.getId(), order);
+        }
+
+        for (Orders order : ordersRepo.findAll()) {
+            if (isGuestOrderForUser(order, requestedUser)) {
+                userOrdersById.putIfAbsent(order.getId(), order);
+            }
+        }
+
+        return userOrdersById.values()
+                .stream()
+                .sorted((first, second) -> {
+                    LocalDateTime firstCreated = first.getCreatedDateTime();
+                    LocalDateTime secondCreated = second.getCreatedDateTime();
+
+                    if (firstCreated == null && secondCreated == null) {
+                        return 0;
+                    }
+
+                    if (firstCreated == null) {
+                        return 1;
+                    }
+
+                    if (secondCreated == null) {
+                        return -1;
+                    }
+
+                    return secondCreated.compareTo(firstCreated);
+                })
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isGuestOrderForUser(Orders order, User user) {
+        if (order == null || user == null || !GUEST_USER_ID.equals(order.getCreatedByUserID())) {
+            return false;
+        }
+
+        Address address = order.getAddress();
+
+        if (address == null) {
+            return false;
+        }
+
+        if (!isBlank(user.getEmail())
+                && !isBlank(address.getReceiverEmail())
+                && user.getEmail().trim().equalsIgnoreCase(address.getReceiverEmail().trim())) {
+            return true;
+        }
+
+        return !isBlank(user.getPhone())
+                && !isBlank(address.getReceiverPhone())
+                && canonicalPhone(digitsOnly(user.getPhone()))
+                        .equals(canonicalPhone(digitsOnly(address.getReceiverPhone())));
     }
 
     private Long getCurrentUserId() {
