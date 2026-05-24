@@ -1,14 +1,11 @@
 package com.junkbox.backend.dto.response;
 
-import com.junkbox.backend.entity.Categories;
-import com.junkbox.backend.entity.SubCategories;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.sql.Time;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 @Getter
@@ -42,7 +39,7 @@ public class OrderResponse {
     private Long updatedByUserID;
 
     private Long pickscheduleById;
-    private HashMap<Categories, List<SubCategories>> categorySubcategoryPairs;
+    private List<CategoryResponse> categorySubcategoryPairs;
 
     private LocalDateTime createdDateTime;
 

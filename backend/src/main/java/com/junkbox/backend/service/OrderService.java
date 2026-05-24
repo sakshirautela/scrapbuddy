@@ -2,7 +2,9 @@ package com.junkbox.backend.service;
 
 import com.junkbox.backend.dto.request.*;
 import com.junkbox.backend.dto.response.AddressResponse;
+import com.junkbox.backend.dto.response.CategoryResponse;
 import com.junkbox.backend.dto.response.OrderResponse;
+import com.junkbox.backend.dto.response.SubCategoryResponse;
 import com.junkbox.backend.entity.*;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.*;
@@ -34,21 +36,24 @@ public class OrderService {
     private final UserRepository userRepository;
     private final PhoneOtpService phoneOtpService;
     private final JavaMailSender mailSender;
-private  final CategoriesRepo categoriesRepo;
-private final SubCategoryRepo subCategoryRepo;
+    private final CategoryService categoryService;
+    private final SubCategoryService subCategoryService;
+
     public OrderService(
             OrdersRepo ordersRepo,
             AddressRepo addressRepo,
             UserRepository userRepository,
             PhoneOtpService phoneOtpService,
-            JavaMailSender mailSender, CategoriesRepo categoriesRepo, SubCategoryRepo subCategoryRepo) {
+            JavaMailSender mailSender,
+            CategoryService categoryService,
+            SubCategoryService subCategoryService) {
         this.ordersRepo = ordersRepo;
         this.addressRepo = addressRepo;
         this.userRepository = userRepository;
         this.phoneOtpService = phoneOtpService;
         this.mailSender = mailSender;
-        this.categoriesRepo = categoriesRepo;
-        this.subCategoryRepo = subCategoryRepo;
+        this.categoryService = categoryService;
+        this.subCategoryService = subCategoryService;
     }
 
     // CREATE ORDER
@@ -69,9 +74,7 @@ private final SubCategoryRepo subCategoryRepo;
         order.setAddress(orderAddress);
 
         Orders savedOrder = ordersRepo.save(order);
-
         sendOrderLifecycleEmail(savedOrder, "created");
-
         return mapToResponse(savedOrder);
     }
 
@@ -351,7 +354,7 @@ private final SubCategoryRepo subCategoryRepo;
                     "Address is required");
         }
 
-        Address address = resolveOrderAddress(request.getAddress());
+        AddressRequest address = request.getAddress();
 
         if (isBlank(address.getReceiverFirstName())
                 || isBlank(address.getReceiverLastName())
@@ -398,14 +401,22 @@ private final SubCategoryRepo subCategoryRepo;
         return value == null || value.trim().isEmpty();
     }
 
-    private Address resolveOrderAddress(Address requestAddress) {
-        if (requestAddress.getId() != null) {
-            return addressRepo.findById(requestAddress.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Address not found with ID: " + requestAddress.getId()));
-        }
+    private Address resolveOrderAddress(AddressRequest requestAddress) {
+        Address address = new Address();
 
-        requestAddress.setUser(null);
-        return addressRepo.save(requestAddress);
+        address.setApartment(requestAddress.getApartment());
+        address.setCity(requestAddress.getCity());
+        address.setState(requestAddress.getState());
+        address.setZip(requestAddress.getZip());
+        address.setCountry(requestAddress.getCountry());
+        address.setReceiverFirstName(requestAddress.getReceiverFirstName());
+        address.setReceiverLastName(requestAddress.getReceiverLastName());
+        address.setReceiverPhone(requestAddress.getReceiverPhone());
+        address.setReceiverEmail(requestAddress.getReceiverEmail());
+        address.setCountryCode(requestAddress.getCountryCode());
+        address.setUser(getCurrentUserOrNull());
+
+        return addressRepo.save(address);
     }
 
     private String getDeliveryOtpPhone(Orders order) {
@@ -772,7 +783,7 @@ private final SubCategoryRepo subCategoryRepo;
     private OrderResponse mapToResponse(Orders order) {
 
         OrderResponse response = new OrderResponse();
-
+        response.setCategorySubcategoryPairs(mapCategoryPairsToResponse(order.getCategorySubcategoryPairs()));
         response.setId(order.getId());
 
         response.setStatus(order.getStatus());
@@ -805,19 +816,30 @@ private final SubCategoryRepo subCategoryRepo;
         response.setCreatedDateTime(order.getCreatedDateTime());
 
         response.setUpdatedDateTime(order.getUpdatedDateTime());
-        HashMap<Categories, List<SubCategories>> categorySubcategoryPairs = new HashMap<>();
-        HashMap<Long, List<Long>> ids = new HashMap<>();
-        for (Long cat : ids.keySet()) {
-            List<Long> subCategories = ids.get(cat);
-            Categories c=categoriesRepo.getById(cat);
-            categorySubcategoryPairs.put(c,new ArrayList<>());
-            for(Long subCategory : subCategories) {
-                categorySubcategoryPairs.get(c).add(subCategoryRepo.getById(subCategory));
-            }
 
-        }
-        response.setCategorySubcategoryPairs(categorySubcategoryPairs);
         return response;
+    }
+
+    private List<CategoryResponse> mapCategoryPairsToResponse(HashMap<Long, List<Long>> categoryPairs) {
+        if (categoryPairs == null || categoryPairs.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return categoryPairs.entrySet()
+                .stream()
+                .map((entry) -> {
+                    CategoryResponse category = categoryService.getCategoryById(entry.getKey());
+                    List<SubCategoryResponse> subCategories = entry.getValue() == null
+                            ? new ArrayList<>()
+                            : entry.getValue()
+                                    .stream()
+                                    .map(subCategoryService::getSubCategoryById)
+                                    .collect(Collectors.toList());
+
+                    category.setSubCategories(subCategories);
+                    return category;
+                })
+                .collect(Collectors.toList());
     }
 
     private String serializeCategoryPairs(HashMap<Long, List<Long>> categoryPairs) {
@@ -966,25 +988,5 @@ private final SubCategoryRepo subCategoryRepo;
                 || "ROLE_ADMIN".equals(normalizedRole)
                 || "ROLE_SUPER_ADMIN".equals(normalizedRole)
                 || "ROLE_SUPERADMIN".equals(normalizedRole);
-    }
-    private Address resolveOrderAddress(AddressRequest addressRequest) {
-
-        if (addressRequest == null) {
-            return null;
-        }
-
-        Address address = new Address();
-        address.setApartment(addressRequest.getApartment());
-        address.setCity(addressRequest.getCity());
-        address.setState(addressRequest.getState());
-        address.setZip(addressRequest.getZip());
-        address.setCountry(addressRequest.getCountry());
-        address.setReceiverFirstName(addressRequest.getReceiverFirstName());
-        address.setReceiverLastName(addressRequest.getReceiverLastName());
-        address.setReceiverPhone(addressRequest.getReceiverPhone());
-        address.setReceiverEmail(addressRequest.getReceiverEmail());
-        address.setCountryCode(addressRequest.getCountryCode());
-
-        return address;
     }
 }

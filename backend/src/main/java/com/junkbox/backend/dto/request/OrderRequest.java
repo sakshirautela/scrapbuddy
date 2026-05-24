@@ -1,7 +1,6 @@
 package com.junkbox.backend.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.junkbox.backend.entity.Address;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
