@@ -41,16 +41,16 @@ public class VarifcationService {
                 new SimpleMailMessage();
 
         message.setTo(normalizedEmail);
-        message.setSubject("Verify your JunkBox email");
+        message.setSubject("Verify your ScrapBuddy email");
         message.setText(
                 "Hi,\n\n"
-                        + "Use this OTP to verify your email address for your JunkBox account:\n\n"
+                        + "Use this OTP to verify your email address for your ScrapBuddy account:\n\n"
                         + otp + "\n\n"
                         + "This OTP is valid for 5 minutes.\n"
-                        + "Do not share this code with anyone. JunkBox support will never ask for your OTP.\n\n"
+                        + "Do not share this code with anyone. ScrapBuddy support will never ask for your OTP.\n\n"
                         + "If you did not request this code, you can ignore this email.\n\n"
                         + "Thanks,\n"
-                        + "JunkBox Team"
+                        + "ScrapBuddy Team"
         );
 
         mailSender.send(message);

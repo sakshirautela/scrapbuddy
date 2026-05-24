@@ -1,19 +1,31 @@
 .alert {
-  padding: var(--spacing-4);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--spacing-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-weight: 500;
-  font-size: 0.95rem;
-  box-shadow: var(--shadow-sm);
-  animation: slideIn 0.3s ease-out;
+  gap: 14px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  padding: 14px 16px;
+  box-shadow: 0 14px 40px rgba(16, 32, 51, 0.1);
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #eef6f1;
+  color: #078238;
+  font-weight: 900;
 }
 
 .alert-message {
@@ -21,56 +33,155 @@
 }
 
 .alert-close {
-  background: none;
-  border: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f6f9;
+  color: #607084;
   cursor: pointer;
-  padding: var(--spacing-1);
-  margin-left: var(--spacing-4);
-  opacity: 0.7;
-  transition: opacity var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 1.1rem;
 }
 
-.alert-close:hover {
-  opacity: 1;
+.toast-region {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 9999;
+  display: grid;
+  gap: 12px;
+  width: min(420px, calc(100vw - 32px));
+  pointer-events: none;
 }
 
-.alert-close svg {
-  width: 16px;
-  height: 16px;
+.toast-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 34px;
+  align-items: start;
+  gap: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(219, 228, 238, 0.95);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #172033;
+  box-shadow: 0 22px 60px rgba(16, 32, 51, 0.18);
+  padding: 14px;
+  pointer-events: auto;
+  animation: toast-enter 220ms ease-out;
+  backdrop-filter: blur(18px);
 }
 
-/* Types */
-.alert-error {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #f87171;
+.toast-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #078238;
 }
 
-.alert-error .alert-close { color: #991b1b; }
-
-.alert-success {
-  background-color: #f0fdf4;
-  color: #166534;
-  border: 1px solid #4ade80;
+.toast-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #ecf8f0;
+  color: #078238;
+  font-weight: 950;
 }
 
-.alert-success .alert-close { color: #166534; }
-
-.alert-warning {
-  background-color: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fbbf24;
+.toast-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
 }
 
-.alert-warning .alert-close { color: #92400e; }
-
-.alert-info {
-  background-color: var(--primary-50);
-  color: var(--primary-700);
-  border: 1px solid var(--primary-300);
+.toast-copy strong {
+  color: #172033;
+  font-size: 0.95rem;
+  line-height: 1.2;
 }
 
-.alert-info .alert-close { color: var(--primary-700); }
+.toast-copy span {
+  color: #607084;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.toast-close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #7a8798;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.toast-close:hover {
+  background: #f3f6f9;
+  color: #172033;
+}
+
+.toast-success::before {
+  background: #078238;
+}
+
+.toast-success .toast-icon {
+  background: #ecf8f0;
+  color: #078238;
+}
+
+.toast-error::before {
+  background: #dc2626;
+}
+
+.toast-error .toast-icon {
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+.toast-warning::before {
+  background: #d97706;
+}
+
+.toast-warning .toast-icon {
+  background: #fff7ed;
+  color: #d97706;
+}
+
+.toast-info::before {
+  background: #2563eb;
+}
+
+.toast-info .toast-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(14px, -8px, 0) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .toast-region {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

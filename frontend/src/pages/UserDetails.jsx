@@ -1153,10 +1153,10 @@ const renderProfileSettings = () => (
         <article className="invite-card profile-panel">
           <div>
             <h2>Invite Friends</h2>
-            {/* <p>Invite your friends to JunkBox and earn reward points when they complete their first pickup.</p>
+            {/* <p>Invite your friends to ScrapBuddy and earn reward points when they complete their first pickup.</p>
             <div className="referral-box">
               <span>Your Referral Code</span>
-              <strong>{(user?.username || "JUNKBOX").toUpperCase().slice(0, 8)}100</strong>
+              <strong>{(user?.username || "SCRAPBUDDY").toUpperCase().slice(0, 8)}100</strong>
               <button type="button">Copy</button>
             </div> */}
           </div>
@@ -1242,7 +1242,7 @@ const renderProfileSettings = () => (
 
       <footer className="dashboard-footer">
         <div>
-          <strong>♻ JunkBox</strong>
+          <strong>♻ ScrapBuddy</strong>
           <p>India's trusted platform to sell scrap online. Clean India, green India.</p>
         </div>
         <div>
@@ -1258,7 +1258,7 @@ const renderProfileSettings = () => (
         <div>
           <h3>Contact Us</h3>
           <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@junkbox.in">hello@junkbox.in</a>
+          <a href="mailto:hello@scrapbuddy.in">hello@scrapbuddy.in</a>
         </div>
       </footer>
 

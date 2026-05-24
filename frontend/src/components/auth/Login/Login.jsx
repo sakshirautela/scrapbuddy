@@ -58,7 +58,7 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-title">Welcome back to JunkBox</h1>
+          <h1 className="login-title">Welcome back to ScrapBuddy</h1>
           <p className="login-subtitle">Manage pickups, saved addresses, and order updates.</p>
         </div>
 

@@ -14,69 +14,72 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import PrivateRoute from './routes/PrivateRoute';
 import RoleProtectedRoute from './routes/RoleProtectedRoute';
 import GuestRoute from './routes/GuestRoute';
+import AlertProvider from './components/common/Alert/AlertProvider';
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          } />
-          <Route path="/signup" element={
-            <GuestRoute>
-              <Signup />
-            </GuestRoute>
-          } />
-          <Route path="/forget-password" element={
-              <ForgotPassword />
-          } />
-          <Route path="/reset-password" element={
-              <ResetPassword />
-          } />
+    <AlertProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            } />
+            <Route path="/signup" element={
+              <GuestRoute>
+                <Signup />
+              </GuestRoute>
+            } />
+            <Route path="/forget-password" element={
+                <ForgotPassword />
+            } />
+            <Route path="/reset-password" element={
+                <ResetPassword />
+            } />
 
-          {/* Protected Routes */}
-          <Route path="/" element={
-              <DefaultDashboard />
-          } />
+            {/* Protected Routes */}
+            <Route path="/" element={
+                <DefaultDashboard />
+            } />
 
-          <Route path="/schedule-pickup" element={
-              <SchedulePickup />
-          } />
+            <Route path="/schedule-pickup" element={
+                <SchedulePickup />
+            } />
 
-          <Route path="/price-list" element={
-              <PriceList />
-          } />
+            <Route path="/price-list" element={
+                <PriceList />
+            } />
 
-          <Route path="/track-order" element={
-              <TrackOrder />
-          } />
-          
-          <Route path="/user" element={
-            <PrivateRoute>
-              <UserDetails />
-            </PrivateRoute>
-          } />
+            <Route path="/track-order" element={
+                <TrackOrder />
+            } />
+            
+            <Route path="/user" element={
+              <PrivateRoute>
+                <UserDetails />
+              </PrivateRoute>
+            } />
 
-          {/* Role Protected Routes */}
-          <Route path="/admin" element={
-            <RoleProtectedRoute allowedRoles={['admin', 'superadmin', 'super_admin']}>
-              <AdminDashboard />
-            </RoleProtectedRoute>
-          } />
-          
-          <Route path="/superadmin" element={
-            <RoleProtectedRoute allowedRoles={['superadmin', 'super_admin']}>
-              <SuperAdminDashboard />
-            </RoleProtectedRoute>
-          } />
-        </Routes>
-      </div>
-    </Router>
+            {/* Role Protected Routes */}
+            <Route path="/admin" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'superadmin', 'super_admin']}>
+                <AdminDashboard />
+              </RoleProtectedRoute>
+            } />
+            
+            <Route path="/superadmin" element={
+              <RoleProtectedRoute allowedRoles={['superadmin', 'super_admin']}>
+                <SuperAdminDashboard />
+              </RoleProtectedRoute>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </AlertProvider>
   );
 }
 

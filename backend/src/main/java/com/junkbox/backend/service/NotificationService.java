@@ -37,7 +37,7 @@ public class NotificationService {
     private static @NonNull SimpleMailMessage getMessage(User user, MailBody mailBody) {
         SimpleMailMessage message = new SimpleMailMessage();
         String subject = isBlank(mailBody.getSubject())
-                ? "Your JunkBox pickup request is confirmed"
+                ? "Your ScrapBuddy pickup request is confirmed"
                 : mailBody.getSubject().trim();
         String body = isBlank(mailBody.getBody())
                 ? "We have received your pickup request and will keep you updated as it moves forward."
@@ -51,10 +51,10 @@ public class NotificationService {
                         + body + "\n\n"
                         + "What happens next:\n"
                         + "- Our team will review and assign the pickup.\n"
-                        + "- You can track the latest status from your JunkBox dashboard.\n"
+                        + "- You can track the latest status from your ScrapBuddy dashboard.\n"
                         + "- You will receive a delivery OTP before the pickup is completed.\n\n"
-                        + "Thanks for recycling with JunkBox.\n\n"
-                        + "JunkBox Team"
+                        + "Thanks for recycling with ScrapBuddy.\n\n"
+                        + "ScrapBuddy Team"
         );
         return message;
     }

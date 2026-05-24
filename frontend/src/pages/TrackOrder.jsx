@@ -248,7 +248,7 @@ const TrackOrder = () => {
 
       <footer className="track-footer">
         <div>
-          <strong>♻ JunkBox</strong>
+          <strong>♻ ScrapBuddy</strong>
           <p>India's trusted platform to sell scrap online. Clean India, green India.</p>
         </div>
         <div>
@@ -272,11 +272,11 @@ const TrackOrder = () => {
         <div>
           <h3>Contact Us</h3>
           <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@junkbox.in">hello@junkbox.in</a>
+          <a href="mailto:hello@scrapbuddy.in">hello@scrapbuddy.in</a>
         </div>
       </footer>
       <div className="track-copybar">
-        <span>© 2026 JunkBox. All rights reserved.</span>
+        <span>© 2026 ScrapBuddy. All rights reserved.</span>
         <span>Proudly made in India 🇮🇳</span>
         <span>A small step towards a better tomorrow ♻</span>
       </div>

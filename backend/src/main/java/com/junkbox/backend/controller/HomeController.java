@@ -15,7 +15,7 @@ public class HomeController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> home() {
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Welcome to JunkBox Backend API");
+        response.put("message", "Welcome to ScrapBuddy Backend API");
         response.put("timestamp", LocalDateTime.now());
         response.put("status", "API is running");
         response.put("version", "1.0");
@@ -27,7 +27,7 @@ public class HomeController {
     public ResponseEntity<Map<String, String>> health() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
-        response.put("service", "JunkBox Backend");
+        response.put("service", "ScrapBuddy Backend");
         return ResponseEntity.ok(response);
     }
 }
