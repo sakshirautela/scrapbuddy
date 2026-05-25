@@ -871,9 +871,9 @@ select {
   padding: 124px 8vw 58px;
   color: var(--site-text);
   background:
-    linear-gradient(90deg, rgba(246, 253, 244, 0.98), rgba(246, 253, 244, 0.64) 44%, rgba(246, 253, 244, 0.08)),
-    url("https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=1700&q=82")
-      center / cover;
+    linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.82) 36%, rgba(255, 255, 255, 0.05) 62%),
+    var(--hero-image) center / cover no-repeat,
+    linear-gradient(135deg, #f2fbea, #ffffff);
 }
 
 .hero-copy {

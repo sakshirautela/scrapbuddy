@@ -6,6 +6,7 @@ import orderApi from "../api/orderApi";
 import cityApi from "../api/cityApi";
 import addressApi from "../api/addressApi";
 import { useAuth } from "../context/AuthContext";
+import orderPickupImage from "../assets/order.pickup.png";
 import "../styles/SchedulePickup.css";
 
 const steps = [
@@ -351,7 +352,7 @@ const SchedulePickup = () => {
       <NavBar activePage="Schedule Pickup" />
 
       <section className="schedule-hero">
-        <div className="schedule-hero-image" />
+        <div className="schedule-hero-image" style={{ "--schedule-hero-image": `url(${orderPickupImage})` }} />
 
         <div className="schedule-hero-copy">
           <div>

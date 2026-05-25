@@ -506,7 +506,7 @@ const OrdersTable = ({
                     }
                     aria-label={`Assign order ${selectedOrderRecordId || "unknown"}`}
                   >
-                    <option value="">Select admin</option>
+                    <option value="">Select Field Executive</option>
                     {admins.map((admin) => (
                       <option key={admin.id} value={admin.id}>
                         {getAdminName(admin)}

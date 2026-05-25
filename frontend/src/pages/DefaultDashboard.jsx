@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/DefaultHome.css";
+import recyclePickupHero from "../assets/image.png";
 
 import NavBar from "../components/common/NavBar/NavBar";
 
@@ -92,7 +93,7 @@ const DefaultDashboard = () => {
  <main className="scrapbuddy-site">
  <NavBar activePage="Home" />
 
- <section className="hero-panel">
+ <section className="hero-panel" style={{ "--hero-image": `url(${recyclePickupHero})` }}>
  <div className="hero-copy">
  <p className="eyebrow">Free doorstep scrap collection</p>
  <h1>Sell Your Scrap the <span>Smart Way</span></h1>
