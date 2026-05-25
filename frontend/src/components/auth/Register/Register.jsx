@@ -106,7 +106,7 @@ function Register() {
     <div className="register-container">
       <div className="register-card">
         <div className="register-header">
-          <h1 className="register-title">Create your ScrapBuddy account</h1>
+          <h1 className="register-title">Create your Scrapify account</h1>
           <p className="register-subtitle">
             {step === 'register' ? 'Save addresses and track every scrap pickup.' : 'Verify your email to continue.'}
           </p>

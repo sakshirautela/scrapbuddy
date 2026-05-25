@@ -55,6 +55,7 @@ const AdminDashboardContent = ({
   if (activeTab === "addresses") {
     return (
       <AddressesTable
+        addresses={addresses}
         orders={ordersProps.orders}
         currentAdminId={ordersProps.currentAdminId}
       />

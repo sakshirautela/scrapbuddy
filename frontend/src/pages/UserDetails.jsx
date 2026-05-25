@@ -1153,7 +1153,7 @@ const renderProfileSettings = () => (
         <article className="invite-card profile-panel">
           <div>
             <h2>Invite Friends</h2>
-            {/* <p>Invite your friends to ScrapBuddy and earn reward points when they complete their first pickup.</p>
+            {/* <p>Invite your friends to Scrapify and earn reward points when they complete their first pickup.</p>
             <div className="referral-box">
               <span>Your Referral Code</span>
               <strong>{(user?.username || "SCRAPBUDDY").toUpperCase().slice(0, 8)}100</strong>
@@ -1185,7 +1185,7 @@ const renderProfileSettings = () => (
         <div className="profile-brand">
           <span aria-hidden="true">♻</span>
           <div>
-            <strong>ScrapBuddy</strong>
+            <strong>Scrapify</strong>
             <small>My Dashboard</small>
           </div>
         </div>
@@ -1216,12 +1216,6 @@ const renderProfileSettings = () => (
           Logout
         </button>
 
-        <div className="sidebar-help">
-          <span>☏</span>
-          <strong>Need Help?</strong>
-          <p>Our support team is here to help you.</p>
-          <button type="button">Contact Support</button>
-        </div>
       </aside>
 
       <section className="profile-main">
@@ -1242,7 +1236,7 @@ const renderProfileSettings = () => (
 
       <footer className="dashboard-footer">
         <div>
-          <strong>♻ ScrapBuddy</strong>
+          <strong>♻ Scrapify</strong>
           <p>India's trusted platform to sell scrap online. Clean India, green India.</p>
         </div>
         <div>
@@ -1258,7 +1252,7 @@ const renderProfileSettings = () => (
         <div>
           <h3>Contact Us</h3>
           <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@scrapbuddy.in">hello@scrapbuddy.in</a>
+          <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
         </div>
       </footer>
 

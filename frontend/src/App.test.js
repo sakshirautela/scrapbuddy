@@ -10,7 +10,7 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
 }), { virtual: true });
 
-test('renders ScrapBuddy app', () => {
+test('renders Scrapify app', () => {
   render(
     <AuthProvider>
       <App />

@@ -3,10 +3,10 @@ import { formatDateTime, formatValue, getAddressSummary, getCategoryName } from 
 import { formatOrderCategoryPairs } from "../../utils/orderCategories";
 
 const OrdersTable = ({
-  orders,
-  admins,
+  orders = [],
+  admins = [],
   addresses = [],
-  categories,
+  categories = [],
   currentAdminId,
   onAcceptOrder,
   onAssignOrder,
@@ -23,6 +23,14 @@ const OrdersTable = ({
   const [deliveryWeightByOrder, setDeliveryWeightByOrder] = useState({});
   const [assignmentSavingByOrder, setAssignmentSavingByOrder] = useState({});
   const [selectedOrderKey, setSelectedOrderKey] = useState(null);
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "all",
+    assignment: "all",
+    city: "all",
+    category: "all",
+    date: "",
+  });
 
   const getOrderId = (order) => order?.id ?? order?.orderId ?? order?.orderID;
 
@@ -257,6 +265,85 @@ const OrdersTable = ({
   const selectedOrder = orders.find(
     (order, index) => getOrderKey(order, index) === selectedOrderKey
   );
+
+  const updateFilter = (name, value) => {
+    setFilters((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const normalizedSearch = filters.search.trim().toLowerCase();
+
+  const statusOptions = Array.from(
+    new Set(orders.map((order) => getStatusLabel(order.status)).filter(Boolean))
+  ).sort();
+
+  const cityOptions = Array.from(
+    new Set(orders.map((order) => order.address?.city).filter(Boolean))
+  ).sort();
+
+  const categoryOptions = Array.from(
+    new Set(orders.map((order) => getOrderCategoryPath(order)).filter((value) => value && value !== "-"))
+  ).sort();
+
+  const filteredOrders = orders.filter((order) => {
+    const orderId = getOrderId(order);
+    const status = getStatusLabel(order.status);
+    const assignedTo = getAssignedAdminText(order);
+    const category = getOrderCategoryPath(order);
+    const address = order.address || {};
+    const searchableText = [
+      orderId,
+      status,
+      assignedTo,
+      category,
+      getCreatedByText(order),
+      address.receiverFirstName,
+      address.receiverLastName,
+      address.receiverPhone,
+      address.receiverEmail,
+      address.apartment,
+      address.city,
+      address.state,
+      address.zip,
+      address.country,
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    if (normalizedSearch && !searchableText.includes(normalizedSearch)) {
+      return false;
+    }
+
+    if (filters.status !== "all" && status !== filters.status) {
+      return false;
+    }
+
+    if (filters.assignment === "assigned" && !order.pickscheduleById) {
+      return false;
+    }
+
+    if (filters.assignment === "unassigned" && order.pickscheduleById) {
+      return false;
+    }
+
+    if (filters.assignment === "mine" && String(order.pickscheduleById || "") !== String(currentAdminId || "")) {
+      return false;
+    }
+
+    if (filters.city !== "all" && address.city !== filters.city) {
+      return false;
+    }
+
+    if (filters.category !== "all" && category !== filters.category) {
+      return false;
+    }
+
+    if (filters.date && toDateInputValue(order.pickupDate) !== filters.date) {
+      return false;
+    }
+
+    return true;
+  });
 
   if (selectedOrder) {
     const selectedOrderRecordId = getOrderId(selectedOrder);
@@ -531,13 +618,84 @@ const OrdersTable = ({
       <div className="table-title-row">
         <div>
           <h2>Orders</h2>
-          <p>{orders.length} {orders.length === 1 ? "order" : "orders"} loaded</p>
+          <p>
+            Showing {filteredOrders.length} of {orders.length} {orders.length === 1 ? "order" : "orders"}
+          </p>
         </div>
         {onRefreshOrders ? (
           <button className="admin-outline" type="button" onClick={onRefreshOrders}>
             Refresh
           </button>
         ) : null}
+      </div>
+      <div className="admin-filter-panel">
+        <label className="admin-filter-field admin-filter-search">
+          <span>Search</span>
+          <input
+            type="search"
+            value={filters.search}
+            onChange={(event) => updateFilter("search", event.target.value)}
+            placeholder="Order, customer, phone, address"
+          />
+        </label>
+        <label className="admin-filter-field">
+          <span>Status</span>
+          <select value={filters.status} onChange={(event) => updateFilter("status", event.target.value)}>
+            <option value="all">All statuses</option>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        </label>
+        <label className="admin-filter-field">
+          <span>Assignment</span>
+          <select value={filters.assignment} onChange={(event) => updateFilter("assignment", event.target.value)}>
+            <option value="all">All orders</option>
+            <option value="mine">Assigned to me</option>
+            <option value="assigned">Assigned</option>
+            <option value="unassigned">Unassigned</option>
+          </select>
+        </label>
+        <label className="admin-filter-field">
+          <span>City</span>
+          <select value={filters.city} onChange={(event) => updateFilter("city", event.target.value)}>
+            <option value="all">All cities</option>
+            {cityOptions.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </label>
+        <label className="admin-filter-field">
+          <span>Category</span>
+          <select value={filters.category} onChange={(event) => updateFilter("category", event.target.value)}>
+            <option value="all">All categories</option>
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </label>
+        <label className="admin-filter-field">
+          <span>Pickup Date</span>
+          <input
+            type="date"
+            value={filters.date}
+            onChange={(event) => updateFilter("date", event.target.value)}
+          />
+        </label>
+        <button
+          className="admin-secondary admin-filter-clear"
+          type="button"
+          onClick={() => setFilters({
+            search: "",
+            status: "all",
+            assignment: "all",
+            city: "all",
+            category: "all",
+            date: "",
+          })}
+        >
+          Clear
+        </button>
       </div>
       <div className="admin-table-wrap">
         <table className="admin-table orders-table">
@@ -550,16 +708,16 @@ const OrdersTable = ({
               <th>Estimated Weight</th>
               <th>Final Weight</th>
               <th>Amount</th>
-              <th>Category - Subcategory</th>
+              <th>Category</th>
               <th>Assigned To</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <tr><td colSpan="10">No Orders Found</td></tr>
             ) : (
-              orders.map((order, index) => {
+              filteredOrders.map((order, index) => {
                 const orderId = getOrderId(order);
 
                 return (

@@ -227,7 +227,7 @@ const PriceList = () => {
 
       <footer className="price-footer">
         <div>
-          <strong>♻ ScrapBuddy</strong>
+          <strong>♻ Scrapify</strong>
           <p>India's trusted platform to sell scrap online. Clean India, green India.</p>
         </div>
         <div>
@@ -251,12 +251,12 @@ const PriceList = () => {
         <div>
           <h3>Contact Us</h3>
           <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@scrapbuddy.in">hello@scrapbuddy.in</a>
+          <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
           <p>Greater Noida, Uttar Pradesh</p>
         </div>
       </footer>
       <div className="price-copybar">
-        <span>© 2026 ScrapBuddy. All rights reserved.</span>
+        <span>© 2026 Scrapify. All rights reserved.</span>
         <span>Proudly made in India 🇮🇳</span>
         <span>A small step towards a better tomorrow ♻</span>
       </div>

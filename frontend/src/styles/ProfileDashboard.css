@@ -1049,7 +1049,7 @@
   --profile-primary: #078238;
   --profile-primary-strong: #05662d;
   --profile-primary-soft: #eef8ef;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 248px) minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   background:
     radial-gradient(circle at 100% 0, rgba(220, 252, 231, 0.4), transparent 28%),
@@ -1139,6 +1139,7 @@
 .customer-sidebar {
   top: 64px;
   height: calc(100vh - 64px);
+  width: 100%;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -1215,7 +1216,8 @@
   padding: 0 16px;
   text-indent: 0;
   white-space: normal;
-  overflow: visible;
+  overflow-wrap: anywhere;
+  overflow: hidden;
 }
 
 .customer-sidebar nav button span,
@@ -1254,11 +1256,18 @@
   margin-top: 10px;
   padding: 16px;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .sidebar-help span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(168, 223, 113, 0.14);
   color: #a8df71;
-  font-size: 1.45rem;
+  font-size: 1rem;
 }
 
 .sidebar-help strong {
@@ -1586,6 +1595,10 @@
 }
 
 @media (max-width: 1280px) {
+  .scrap-dashboard {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
   .dashboard-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

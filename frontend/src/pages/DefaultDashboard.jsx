@@ -154,7 +154,7 @@ const DefaultDashboard = () => {
  </section>
 
 
- <section className="assurance-band" aria-label="Why customers choose ScrapBuddy">
+ <section className="assurance-band" aria-label="Why customers choose Scrapify">
  {assuranceCards.map((item) => (
  <article key={item.title}>
  <span>{item.icon}</span>
@@ -186,7 +186,7 @@ const DefaultDashboard = () => {
 
  <footer className="site-footer" id="contact">
  <div className="footer-brand">
- <strong><span>♻</span> ScrapBuddy</strong>
+ <strong><span>♻</span> Scrapify</strong>
  <p>India's trusted platform to sell scrap online. Clean homes, fair rates, greener cities.</p>
  </div>
  <div>
@@ -204,7 +204,7 @@ const DefaultDashboard = () => {
  <div>
  <h3>Contact Us</h3>
  <a href="tel:+919999999999">+91 99999 99999</a>
- <a href="mailto:hello@scrapbuddy.in">hello@scrapbuddy.in</a>
+ <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
  <p>Greater Noida, Uttar Pradesh</p>
  </div>
  </footer>

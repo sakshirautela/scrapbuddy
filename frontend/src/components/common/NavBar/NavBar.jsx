@@ -35,7 +35,7 @@ const NavBar = ({ activePage = "", showUserChip = false, className = "" }) => {
     <header className={`app-navbar ${className}`.trim()}>
       <Link className="app-navbar-brand" to="/">
         <span>♻</span>
-        ScrapBuddy
+        Scrapify
       </Link>
 
       <nav className="app-navbar-links" aria-label="Primary navigation">

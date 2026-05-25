@@ -6,7 +6,7 @@ const AdminSidebar = ({ activeTab, isOpen = false, onClose, onSelectTab }) => (
     <div className="shop-brand">
       <div className="brand-mark" aria-hidden="true">♻</div>
       <div>
-        <strong>ScrapBuddy</strong>
+        <strong>Scrapify</strong>
         <span>Admin Panel</span>
       </div>
       <button className="sidebar-close" type="button" onClick={onClose} aria-label="Close menu">

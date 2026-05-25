@@ -72,7 +72,7 @@ const authApi = {
   forgotPassword: async (email) => {
     const response = await apiClient.post('/api/auth/password/forgot', {
       to: email,
-      subject: 'ScrapBuddy password reset',
+      subject: 'Scrapify password reset',
       body: 'Password reset requested'
     });
     return response.data;

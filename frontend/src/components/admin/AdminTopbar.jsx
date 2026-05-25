@@ -51,7 +51,7 @@ const AdminTopbar = ({
           <span className="admin-avatar">{adminInitial}</span>
           <span className="admin-user">
             <strong>{adminName}</strong>
-            <small>{user?.email || "admin@scrapbuddy.com"}</small>
+            <small>{user?.email || "admin@scrapify.com"}</small>
           </span>
           <span>⌄</span>
         </button>

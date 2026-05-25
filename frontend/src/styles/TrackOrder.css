@@ -1,5 +1,7 @@
 .track-page {
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 0 14%, rgba(220, 252, 231, 0.42), transparent 24%),
     radial-gradient(circle at 100% 16%, rgba(220, 252, 231, 0.42), transparent 24%),
@@ -35,6 +37,7 @@
 .track-status-card,
 .track-info-card,
 .track-footer {
+  min-width: 0;
   border: 1px solid #e0e8e3;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.96);
@@ -418,7 +421,7 @@
 
 .track-footer {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 26px;
   border-radius: 0;
   border-left: 0;

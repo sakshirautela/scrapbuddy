@@ -247,6 +247,7 @@ button {
 
 .admin-profile-menu {
   position: relative;
+  min-width: 0;
 }
 
 .admin-profile-trigger {
@@ -273,11 +274,14 @@ button {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: min(320px, 90vw);
+  width: min(320px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  z-index: 80;
   border: 1px solid var(--admin-border);
   border-radius: 8px;
   background: #ffffff;
   box-shadow: var(--admin-shadow);
+  overflow: hidden;
   padding: 14px;
 }
 
@@ -285,8 +289,31 @@ button {
   display: flex;
   gap: 12px;
   align-items: center;
+  min-width: 0;
   border-bottom: 1px solid var(--admin-border);
   padding-bottom: 12px;
+}
+
+.profile-dropdown-header > div,
+.admin-user {
+  min-width: 0;
+}
+
+.admin-user strong,
+.admin-user small,
+.profile-dropdown-header strong,
+.profile-dropdown-header p,
+.profile-details dt,
+.profile-details dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-user small {
+  max-width: min(220px, 24vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-dropdown-header p,
@@ -340,6 +367,7 @@ button {
 }
 
 .admin-card {
+  min-width: 0;
   padding: 22px;
 }
 
@@ -741,6 +769,60 @@ button {
   font-weight: 950;
 }
 
+.table-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.table-title-row p {
+  margin: 6px 0 0;
+  color: var(--admin-muted);
+  font-size: 0.92rem;
+}
+
+.admin-filter-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 165px), 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-top: 18px;
+}
+
+.admin-filter-search {
+  grid-column: span 2;
+}
+
+.admin-filter-field {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.admin-filter-field span {
+  color: var(--admin-muted);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.admin-filter-field input,
+.admin-filter-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--admin-text);
+  padding: 0 12px;
+}
+
+.admin-filter-clear {
+  min-width: 92px;
+}
+
 .rate-items-table table,
 .admin-table {
   width: 100%;
@@ -1031,6 +1113,10 @@ button {
   .order-detail-admin-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .admin-filter-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -1138,8 +1224,17 @@ button {
   .rate-category-row,
   .order-detail-admin-grid,
   .order-detail-form-grid,
-  .rate-admin-actions {
+  .rate-admin-actions,
+  .admin-filter-panel {
     grid-template-columns: 1fr;
+  }
+
+  .table-title-row {
+    display: grid;
+  }
+
+  .admin-filter-search {
+    grid-column: auto;
   }
 
   .search-box,

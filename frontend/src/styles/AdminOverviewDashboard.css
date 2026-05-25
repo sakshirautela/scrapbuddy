@@ -391,6 +391,7 @@
 
 .admin-profile-menu {
   position: relative;
+  min-width: 0;
 }
 
 .admin-profile-trigger {
@@ -416,6 +417,7 @@
 
 .admin-user {
   display: grid;
+  min-width: 0;
   text-align: left;
   line-height: 1.25;
 }
@@ -425,27 +427,46 @@
 }
 
 .admin-user small {
+  max-width: min(220px, 24vw);
+  overflow: hidden;
   color: #687487;
   font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-profile-dropdown {
   position: absolute;
   right: 0;
   top: calc(100% + 12px);
-  width: 280px;
-  z-index: 20;
+  width: min(320px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  z-index: 80;
   padding: 16px;
   border: 1px solid #dfe7e1;
   border-radius: 18px;
   background: #fff;
   box-shadow: 0 20px 50px rgba(13, 43, 29, 0.16);
+  overflow: hidden;
 }
 
 .profile-dropdown-header {
   display: flex;
   gap: 12px;
   align-items: center;
+  min-width: 0;
+}
+
+.profile-dropdown-header > div {
+  min-width: 0;
+}
+
+.profile-dropdown-header strong,
+.profile-dropdown-header p,
+.profile-details dt,
+.profile-details dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .profile-details {
@@ -458,8 +479,13 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
   color: #687487;
   font-size: 13px;
+}
+
+.profile-details dd {
+  text-align: right;
 }
 
 .-profile-button,
