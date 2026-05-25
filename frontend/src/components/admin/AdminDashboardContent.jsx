@@ -4,6 +4,7 @@ import AdminOverview from "./dashboard/AdminOverview";
 import CategoriesManager from "./CategoriesManager";
 import CitiesManager from "./CitiesManager";
 import OrdersTable from "./OrdersTable";
+import SupportSettings from "./SupportSettings";
 import { menuItems } from "../../utils/adminDashboard";
 
 const AdminDashboardContent = ({
@@ -60,6 +61,10 @@ const AdminDashboardContent = ({
         currentAdminId={ordersProps.currentAdminId}
       />
     );
+  }
+
+  if (activeTab === "support" || activeTab === "settings") {
+    return <SupportSettings />;
   }
 
   return (

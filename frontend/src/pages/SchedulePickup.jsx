@@ -7,6 +7,7 @@ import cityApi from "../api/cityApi";
 import addressApi from "../api/addressApi";
 import { useAuth } from "../context/AuthContext";
 import orderPickupImage from "../assets/order.pickup.png";
+import { getSupportEmailHref, getSupportPhoneHref, getSupportSettings } from "../utils/supportSettings";
 import "../styles/SchedulePickup.css";
 
 const steps = [
@@ -54,6 +55,7 @@ const getSavedAddressLabel = (address) => {
 const SchedulePickup = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const support = getSupportSettings();
 
   const [activeStep, setActiveStep] = useState(0);
   const [paymentMode, setPaymentMode] = useState("UPI / Cashless");
@@ -761,9 +763,9 @@ const SchedulePickup = () => {
 
         <div>
           <h3>Contact Us</h3>
-          <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
-          <p>Greater Noida, Uttar Pradesh</p>
+          <a href={getSupportPhoneHref(support.phone)}>{support.phone}</a>
+          <a href={getSupportEmailHref(support.email)}>{support.email}</a>
+          <p>{support.address}</p>
         </div>
       </footer>
 

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import NavBar from "../components/common/NavBar/NavBar";
 import orderApi from "../api/orderApi";
 import { formatOrderCategoryPairs } from "../utils/orderCategories";
+import { getSupportEmailHref, getSupportPhoneHref, getSupportSettings } from "../utils/supportSettings";
 import "../styles/TrackOrder.css";
 
 const formatDateTime = (value) => {
@@ -73,6 +74,7 @@ const TrackOrder = () => {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const support = getSupportSettings();
 
   const requestedOn = formatDateTime(order?.createdDateTime || order?.pickupDate);
   const etaText = useMemo(() => {
@@ -234,7 +236,7 @@ const TrackOrder = () => {
             </div>
             <div className="help-box">
               <span>☏</span>
-              <p><b>Need Help?</b><br />Chat with us or call our support team.</p>
+              <p><b>{support.helpTitle}</b><br />{support.helpMessage}</p>
             </div>
           </article>
         </section>
@@ -271,8 +273,8 @@ const TrackOrder = () => {
         </div>
         <div>
           <h3>Contact Us</h3>
-          <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
+          <a href={getSupportPhoneHref(support.phone)}>{support.phone}</a>
+          <a href={getSupportEmailHref(support.email)}>{support.email}</a>
         </div>
       </footer>
       <div className="track-copybar">

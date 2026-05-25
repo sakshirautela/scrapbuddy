@@ -979,6 +979,62 @@
   background: #fff;
 }
 
+.support-settings-card {
+  padding: 22px;
+  border: 1px solid #dfe7e1;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(13, 43, 29, 0.08);
+}
+
+.support-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.support-settings-grid label {
+  display: grid;
+  gap: 7px;
+  color: #687487;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.support-settings-grid label.full {
+  grid-column: 1 / -1;
+}
+
+.support-settings-grid input,
+.support-settings-grid textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cfe0d5;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 12px;
+  text-transform: none;
+}
+
+.support-settings-message {
+  margin: 14px 0 0;
+  color: #0d8741;
+  font-weight: 800;
+}
+
+.support-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
 .city-card-header {
   display: flex;
   align-items: flex-start;
@@ -1217,7 +1273,8 @@
   .admin-stats-grid,
   .admin-main-grid,
   .admin-work-grid,
-  .admin-side-insights {
+  .admin-side-insights,
+  .support-settings-grid {
     grid-template-columns: 1fr;
   }
 

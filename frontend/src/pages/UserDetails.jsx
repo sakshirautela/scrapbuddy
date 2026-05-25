@@ -8,6 +8,7 @@ import authApi from "../api/authApi";
 import { updateUser } from "../api/userApi";
 import AddressForm from "../components/input/Address";
 import NavBar from "../components/common/NavBar/NavBar";
+import { getSupportEmailHref, getSupportPhoneHref, getSupportSettings } from "../utils/supportSettings";
 import "../styles/ProfileDashboard.css";
 const baseSidebarItems = [
   { key: "profile", label: "Overview", icon: "⌂" },
@@ -85,6 +86,7 @@ const formatOrderItems = (order = {}) => {
 };
 
 const ProfileDashboard = () => {
+  const support = getSupportSettings();
   const [activeTab, setActiveTab] = useState("profile");
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -1251,8 +1253,8 @@ const renderProfileSettings = () => (
         </div>
         <div>
           <h3>Contact Us</h3>
-          <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
+          <a href={getSupportPhoneHref(support.phone)}>{support.phone}</a>
+          <a href={getSupportEmailHref(support.email)}>{support.email}</a>
         </div>
       </footer>
 

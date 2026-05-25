@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import "../styles/DefaultHome.css";
 import recyclePickupHero from "../assets/image.png";
+import { getSupportEmailHref, getSupportPhoneHref, getSupportSettings } from "../utils/supportSettings";
 
 import NavBar from "../components/common/NavBar/NavBar";
 
@@ -88,6 +89,7 @@ const testimonials = [
 
 const DefaultDashboard = () => {
  const navigate = useNavigate();
+ const support = getSupportSettings();
 
  return (
  <main className="scrapbuddy-site">
@@ -204,9 +206,9 @@ const DefaultDashboard = () => {
  </div>
  <div>
  <h3>Contact Us</h3>
- <a href="tel:+919999999999">+91 99999 99999</a>
- <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
- <p>Greater Noida, Uttar Pradesh</p>
+ <a href={getSupportPhoneHref(support.phone)}>{support.phone}</a>
+ <a href={getSupportEmailHref(support.email)}>{support.email}</a>
+ <p>{support.address}</p>
  </div>
  </footer>
  </main>

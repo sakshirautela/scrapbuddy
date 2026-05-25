@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import NavBar from "../components/common/NavBar/NavBar";
 import apiClient from "../utils/apiClient";
+import { getSupportEmailHref, getSupportPhoneHref, getSupportSettings } from "../utils/supportSettings";
 import "../styles/PriceList.css";
 
 const getCategoryName = (category) => category?.category || category?.name || "Uncategorized";
@@ -42,6 +43,7 @@ const PriceList = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const support = getSupportSettings();
 
   useEffect(() => {
     let isMounted = true;
@@ -250,9 +252,9 @@ const PriceList = () => {
         </div>
         <div>
           <h3>Contact Us</h3>
-          <a href="tel:+919876543210">+91 98765 43210</a>
-          <a href="mailto:hello@scrapify.in">hello@scrapify.in</a>
-          <p>Greater Noida, Uttar Pradesh</p>
+          <a href={getSupportPhoneHref(support.phone)}>{support.phone}</a>
+          <a href={getSupportEmailHref(support.email)}>{support.email}</a>
+          <p>{support.address}</p>
         </div>
       </footer>
       <div className="price-copybar">

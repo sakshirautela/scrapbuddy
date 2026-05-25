@@ -1,17 +1,17 @@
 import React from "react";
 import { menuItems } from "../../utils/adminDashboard";
-
+const handleNavigate = () => {
+  window.location.href = "/";
+};
 const AdminSidebar = ({ activeTab, isOpen = false, onClose, onSelectTab }) => (
   <aside className={`shop-sidebar admin-overview-sidebar${isOpen ? " open" : ""}`} aria-label="Admin navigation">
     <div className="shop-brand">
       <div className="brand-mark" aria-hidden="true">♻</div>
       <div>
-        <strong>Scrapify</strong>
-        <span>Admin Panel</span>
+        <button className="brand-name" type="button" onClick={handleNavigate}>
+          <strong>Scrapify</strong>
+        </button>
       </div>
-      <button className="sidebar-close" type="button" onClick={onClose} aria-label="Close menu">
-        x
-      </button>
     </div>
     <nav>
       {menuItems.map((item) => (
