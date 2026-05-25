@@ -39,7 +39,28 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
     [orders, currentAdminId]
   );
 
-  const addressesToShow = addresses.length > 0 ? addresses : assignedAddresses;
+  const orderAddresses = useMemo(
+    () => orders
+      .map((order) => order.address)
+      .filter(Boolean),
+    [orders]
+  );
+
+  const savedAddressKeys = useMemo(
+    () => new Set(addresses.map(getAddressKey)),
+    [addresses]
+  );
+
+  const orderAddressKeys = useMemo(
+    () => new Set(orderAddresses.map(getAddressKey)),
+    [orderAddresses]
+  );
+
+  const addressesToShow = useMemo(
+    () => [...addresses, ...orderAddresses, ...assignedAddresses],
+    [addresses, orderAddresses, assignedAddresses]
+  );
+
   const uniqueAddresses = useMemo(
     () => Array.from(
       new Map(addressesToShow.map((address) => [getAddressKey(address), address])).values()
@@ -75,6 +96,8 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
     return uniqueAddresses.filter((address) => {
       const addressKey = getAddressKey(address);
       const isAssignedToMe = assignedAddressKeys.has(addressKey);
+      const isSavedAddress = savedAddressKeys.has(addressKey);
+      const isOrderAddress = orderAddressKeys.has(addressKey);
       const receiverName = [address.receiverFirstName, address.receiverLastName]
         .filter(Boolean)
         .join(" ");
@@ -102,6 +125,14 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
         return false;
       }
 
+      if (filters.source === "saved" && !isSavedAddress) {
+        return false;
+      }
+
+      if (filters.source === "orders" && !isOrderAddress) {
+        return false;
+      }
+
       if (filters.city !== "all" && address.city !== filters.city) {
         return false;
       }
@@ -116,7 +147,7 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
 
       return true;
     });
-  }, [uniqueAddresses, assignedAddressKeys, filters]);
+  }, [uniqueAddresses, assignedAddressKeys, savedAddressKeys, orderAddressKeys, filters]);
 
   return (
     <section className="admin-card table-card">
@@ -124,7 +155,7 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
         <div>
           <h2>Customer Addresses</h2>
           <p>
-            Showing {filteredAddresses.length} of {uniqueAddresses.length} {uniqueAddresses.length === 1 ? "address" : "addresses"}
+            Showing {filteredAddresses.length} of {uniqueAddresses.length} customer {uniqueAddresses.length === 1 ? "address" : "addresses"}
           </p>
         </div>
       </div>
@@ -142,6 +173,8 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
           <span>Source</span>
           <select value={filters.source} onChange={(event) => updateFilter("source", event.target.value)}>
             <option value="all">All addresses</option>
+            <option value="saved">Saved addresses</option>
+            <option value="orders">Order addresses</option>
             <option value="assigned">Assigned to me</option>
             <option value="unassigned">Not assigned to me</option>
           </select>

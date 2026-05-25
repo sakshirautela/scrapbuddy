@@ -43,7 +43,7 @@ public class PhoneOtpService {
         // SEND SMS API HERE
 
         System.out.println(
-                "ScrapBuddy verification OTP for " + phone + ": " + otp + " (valid for 5 minutes)");
+                "Scrapify verification OTP for " + phone + ": " + otp + " (valid for 5 minutes)");
 
         return otp;
     }

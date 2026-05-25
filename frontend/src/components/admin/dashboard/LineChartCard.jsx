@@ -17,7 +17,7 @@ const LineChartCard = ({ series = [] }) => {
         <h2>Pickup Requests Overview</h2>
         <select aria-label="Chart range">
           <option>Daily</option>
-          <option>Weekly</option>
+          {/* <option>Weekly</option> */}
         </select>
       </div>
       <div className="line-chart" aria-label="Pickup requests chart">

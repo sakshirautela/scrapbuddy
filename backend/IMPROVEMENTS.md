@@ -2,7 +2,7 @@
 
 ## Summary of Changes
 
-This document outlines all improvements made to the service and controller layers of the ScrapBuddy Backend API.
+This document outlines all improvements made to the service and controller layers of the Scrapify Backend API.
 
 ---
 
@@ -204,7 +204,7 @@ public String home() {
 @GetMapping
 public ResponseEntity<Map<String, Object>> home() {
     Map<String, Object> response = new HashMap<>();
-    response.put("message", "Welcome to ScrapBuddy Backend API");
+    response.put("message", "Welcome to Scrapify Backend API");
     response.put("timestamp", LocalDateTime.now());
     response.put("status", "API is running");
     response.put("version", "1.0");

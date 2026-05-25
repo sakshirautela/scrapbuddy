@@ -4,7 +4,7 @@ services:
     container_name: postgres-db
     restart: always
     environment:
-      POSTGRES_DB: scrapbuddy
+      POSTGRES_DB: scrapify
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: secret
     ports:

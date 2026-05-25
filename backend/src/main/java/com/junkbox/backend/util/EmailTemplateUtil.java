@@ -52,7 +52,7 @@ public class EmailTemplateUtil {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>ScrapBuddy</h1>
+                        <h1>Scrapify</h1>
                         <p>""" + subject +
                     """
                     </p>
@@ -65,8 +65,8 @@ public class EmailTemplateUtil {
                         <div class="divider"></div>
                     </div>
                     <div class="footer">
-                        <p>&copy; 2024 ScrapBuddy. All rights reserved.</p>
-                        <p>Questions? Contact us at support@scrapbuddy.com</p>
+                        <p>&copy; 2024 Scrapify. All rights reserved.</p>
+                        <p>Questions? Contact us at support@scrapify.com</p>
                     </div>
                 </div>
             </body>
@@ -81,7 +81,7 @@ public class EmailTemplateUtil {
 
         return switch (type) {
             case ORDER_PLACED -> """
-                    <p style="color: #333; margin-bottom: 15px;">Thank you for placing your order with ScrapBuddy! We've received your order and are processing it.</p>
+                    <p style="color: #333; margin-bottom: 15px;">Thank you for placing your order with Scrapify! We've received your order and are processing it.</p>
                     <div class="message-box">
                         """ + message + """
                     </div>
@@ -89,7 +89,7 @@ public class EmailTemplateUtil {
                         <strong>Order Details:</strong>
                         """ + orderDetails + """
                     </div>
-                    <p style="margin-top: 20px; color: #666;">You can track your order status in your ScrapBuddy dashboard.</p>
+                    <p style="margin-top: 20px; color: #666;">You can track your order status in your Scrapify dashboard.</p>
                     """;
 
             case ORDER_ACCEPTED -> """
@@ -113,7 +113,7 @@ public class EmailTemplateUtil {
                         <strong>Completion Details:</strong>
                        \s""" + orderDetails + """
                     </div>
-                    <p style="margin-top: 20px; color: #666;">Thank you for using ScrapBuddy!</p>
+                    <p style="margin-top: 20px; color: #666;">Thank you for using Scrapify!</p>
                     """;
 
             case PICKUP_SCHEDULED -> """
@@ -188,13 +188,13 @@ public class EmailTemplateUtil {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>ScrapBuddy</h1>
+                        <h1>Scrapify</h1>
                         <p>Password Reset Request</p>
                     </div>
                     <div class="content">
                         <div style="color: #333;">Hi """ + userName + """
                         ,</div>
-                        <p style="color: #333; margin: 20px 0;">We received a request to reset your ScrapBuddy account password.</p>
+                        <p style="color: #333; margin: 20px 0;">We received a request to reset your Scrapify account password.</p>
                         <div class="otp-box">
                             <p style="color: #666; margin-bottom: 10px; font-size: 14px;">Your One-Time Password (OTP):</p>
                             <div class="otp">""" + otp + """
@@ -204,13 +204,13 @@ public class EmailTemplateUtil {
                          minutes.</p>
                         <div class="warning">
                             <strong>⚠ Security Warning:</strong><br>
-                            Do not share this OTP with anyone. ScrapBuddy support will never ask for your OTP.
+                            Do not share this OTP with anyone. Scrapify support will never ask for your OTP.
                         </div>
                         <p style="color: #666; margin-top: 20px;">If you did not request a password reset, please ignore this email and your password will remain unchanged.</p>
                     </div>
                     <div class="footer">
-                        <p>&copy; 2024 ScrapBuddy. All rights reserved.</p>
-                        <p>Questions? Contact us at support@scrapbuddy.com</p>
+                        <p>&copy; 2024 Scrapify. All rights reserved.</p>
+                        <p>Questions? Contact us at support@scrapify.com</p>
                     </div>
                 </div>
             </body>

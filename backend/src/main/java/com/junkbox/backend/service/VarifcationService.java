@@ -41,16 +41,16 @@ public class VarifcationService {
                 new SimpleMailMessage();
 
         message.setTo(normalizedEmail);
-        message.setSubject("Verify your ScrapBuddy email");
+        message.setSubject("Verify your Scrapify email");
         message.setText(
                 "Hi,\n\n"
-                        + "Use this OTP to verify your email address for your ScrapBuddy account:\n\n"
+                        + "Use this OTP to verify your email address for your Scrapify account:\n\n"
                         + otp + "\n\n"
                         + "This OTP is valid for 5 minutes.\n"
-                        + "Do not share this code with anyone. ScrapBuddy support will never ask for your OTP.\n\n"
+                        + "Do not share this code with anyone. Scrapify support will never ask for your OTP.\n\n"
                         + "If you did not request this code, you can ignore this email.\n\n"
                         + "Thanks,\n"
-                        + "ScrapBuddy Team"
+                        + "Scrapify Team"
         );
 
         mailSender.send(message);

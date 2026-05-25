@@ -50,6 +50,10 @@ const AdminDashboard = () => {
     if (activeTab === "orders") {
       fetchOrders();
     }
+
+    if (activeTab === "addresses") {
+      fetchAddresses();
+    }
   }, [activeTab]);
 
   useEffect(() => {
@@ -118,6 +122,15 @@ const AdminDashboard = () => {
       const status = err.response?.status;
       const detail = status ? ` (${status})` : "";
       setError(`Failed to load orders${detail}`);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      const response = await apiClient.get("/api/addresses");
+      setAddresses(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error(err);
     }
   };
 

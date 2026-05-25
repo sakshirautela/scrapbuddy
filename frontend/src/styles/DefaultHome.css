@@ -32,7 +32,7 @@ select {
   font: inherit;
 }
 
-.scrapbuddy-site {
+.scrapify-site {
   min-height: 100vh;
   max-width: 100%;
   overflow-x: hidden;
@@ -792,7 +792,7 @@ select {
 }
 
 /* Scrap marketplace home layout */
-.scrapbuddy-site {
+.scrapify-site {
   background:
     radial-gradient(circle at 0 18%, rgba(187, 247, 208, 0.38), transparent 24%),
     radial-gradient(circle at 100% 22%, rgba(220, 252, 231, 0.65), transparent 28%),

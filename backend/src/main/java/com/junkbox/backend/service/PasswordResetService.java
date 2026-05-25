@@ -95,18 +95,18 @@ public class PasswordResetService {
         String displayName = getDisplayName(user);
 
         message.setTo(user.getEmail());
-        message.setSubject("Reset your ScrapBuddy password");
+        message.setSubject("Reset your Scrapify password");
 
         message.setText(
                 "Hi " + displayName + ",\n\n"
-                        + "We received a request to reset your ScrapBuddy account password.\n\n"
+                        + "We received a request to reset your Scrapify account password.\n\n"
                         + "Your password reset OTP is:\n\n"
                         + otp + "\n\n"
                         + "This OTP is valid for 10 minutes.\n"
-                        + "Do not share this code with anyone. ScrapBuddy support will never ask for your OTP.\n\n"
+                        + "Do not share this code with anyone. Scrapify support will never ask for your OTP.\n\n"
                         + "If you did not request a password reset, ignore this email and your password will stay unchanged.\n\n"
                         + "Thanks,\n"
-                        + "ScrapBuddy Team"
+                        + "Scrapify Team"
         );
         return message;
     }

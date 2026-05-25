@@ -92,7 +92,7 @@ const DefaultDashboard = () => {
  const support = getSupportSettings();
 
  return (
- <main className="scrapbuddy-site">
+ <main className="scrapify-site">
  <NavBar activePage="Home" />
 
  <section className="hero-panel" style={{ "--hero-image": `url(${recyclePickupHero})` }}>

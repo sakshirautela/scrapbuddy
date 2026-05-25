@@ -571,19 +571,19 @@ public class OrderService {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(receiverEmail);
-        message.setSubject("Delivery OTP for ScrapBuddy pickup #" + order.getId());
+        message.setSubject("Delivery OTP for Scrapify pickup #" + order.getId());
         message.setText(
                 "Hi,\n\n"
-                        + "Your ScrapBuddy pickup is ready for completion. Share this OTP with the pickup admin only after your scrap has been weighed and the final amount has been confirmed.\n\n"
+                        + "Your Scrapify pickup is ready for completion. Share this OTP with the pickup admin only after your scrap has been weighed and the final amount has been confirmed.\n\n"
                         + "Order #" + order.getId() + "\n"
                         + "Delivery OTP: " + otp + "\n"
                         + "Valid for: 5 minutes\n"
                         + "Pickup date: " + formatPickupDate(order) + "\n"
                         + "Pickup window: " + formatPickupWindow(order) + "\n"
                         + "Estimated weight: " + formatWeight(order.getEstimateWeight()) + "\n\n"
-                        + "Do not share this OTP before completion. ScrapBuddy support will never ask for your OTP outside the pickup flow.\n\n"
+                        + "Do not share this OTP before completion. Scrapify support will never ask for your OTP outside the pickup flow.\n\n"
                         + "Thanks,\n"
-                        + "ScrapBuddy Team"
+                        + "Scrapify Team"
         );
 
         mailSender.send(message);
@@ -629,10 +629,10 @@ public class OrderService {
 
     private String getAdminAssignmentSubject(Orders order, String event) {
         if ("removed".equals(event)) {
-            return "Removed from ScrapBuddy pickup #" + order.getId();
+            return "Removed from Scrapify pickup #" + order.getId();
         }
 
-        return "Assigned to ScrapBuddy pickup #" + order.getId();
+        return "Assigned to Scrapify pickup #" + order.getId();
     }
 
     private String getAdminAssignmentBody(Orders order, User admin, String event) {
@@ -648,7 +648,7 @@ public class OrderService {
                 + "Address: " + formatAddress(order.getAddress()) + "\n\n"
                 + getAdminAssignmentFooter(event) + "\n\n"
                 + "Thanks,\n"
-                + "ScrapBuddy Team";
+                + "Scrapify Team";
     }
 
     private String getAdminAssignmentMessage(String event) {
@@ -683,10 +683,10 @@ public class OrderService {
 
     private String getOrderEmailSubject(Orders order, String event) {
         return switch (event) {
-            case "created" -> "ScrapBuddy pickup #" + order.getId() + " created";
-            case "rescheduled" -> "ScrapBuddy pickup #" + order.getId() + " rescheduled";
-            case "cancelled" -> "ScrapBuddy pickup #" + order.getId() + " cancelled";
-            default -> "ScrapBuddy pickup #" + order.getId() + " updated";
+            case "created" -> "Scrapify pickup #" + order.getId() + " created";
+            case "rescheduled" -> "Scrapify pickup #" + order.getId() + " rescheduled";
+            case "cancelled" -> "Scrapify pickup #" + order.getId() + " cancelled";
+            default -> "Scrapify pickup #" + order.getId() + " updated";
         };
     }
 
@@ -702,7 +702,7 @@ public class OrderService {
                 + "Address: " + formatAddress(order.getAddress()) + "\n\n"
                 + getOrderEventFooter(event) + "\n\n"
                 + "Thanks,\n"
-                + "ScrapBuddy Team";
+                + "Scrapify Team";
     }
 
     private String getOrderEventMessage(String event) {
@@ -718,9 +718,9 @@ public class OrderService {
 
     private String getOrderEventFooter(String event) {
         return switch (event) {
-            case "cancelled" -> "If this cancellation was not expected, please contact ScrapBuddy support.";
-            case "created" -> "You can track this pickup from your ScrapBuddy dashboard.";
-            default -> "You can view the latest status from your ScrapBuddy dashboard.";
+            case "cancelled" -> "If this cancellation was not expected, please contact Scrapify support.";
+            case "created" -> "You can track this pickup from your Scrapify dashboard.";
+            default -> "You can view the latest status from your Scrapify dashboard.";
         };
     }
 

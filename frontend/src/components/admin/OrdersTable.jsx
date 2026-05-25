@@ -283,9 +283,35 @@ const OrdersTable = ({
     new Set(orders.map((order) => order.address?.city).filter(Boolean))
   ).sort();
 
-  const categoryOptions = Array.from(
-    new Set(orders.map((order) => getOrderCategoryPath(order)).filter((value) => value && value !== "-"))
-  ).sort();
+  const categoryOptions = categories
+    .map((category) => ({
+      id: String(category.id),
+      name: getCategoryName(category),
+    }))
+    .filter((category) => category.id && category.name)
+    .sort((first, second) => first.name.localeCompare(second.name));
+
+  const isOrderInCategory = (order, categoryId) => {
+    if (!categoryId || categoryId === "all") {
+      return true;
+    }
+
+    if (String(order.categoryID || "") === String(categoryId)) {
+      return true;
+    }
+
+    const pairs = order.categorySubcategoryPairs;
+
+    if (Array.isArray(pairs)) {
+      return pairs.some((category) => String(category.id || category.categoryId || "") === String(categoryId));
+    }
+
+    if (pairs && typeof pairs === "object") {
+      return Object.keys(pairs).some((id) => String(id) === String(categoryId));
+    }
+
+    return false;
+  };
 
   const filteredOrders = orders.filter((order) => {
     const orderId = getOrderId(order);
@@ -334,7 +360,7 @@ const OrdersTable = ({
       return false;
     }
 
-    if (filters.category !== "all" && category !== filters.category) {
+    if (filters.category !== "all" && !isOrderInCategory(order, filters.category)) {
       return false;
     }
 
@@ -670,7 +696,7 @@ const OrdersTable = ({
           <select value={filters.category} onChange={(event) => updateFilter("category", event.target.value)}>
             <option value="all">All categories</option>
             {categoryOptions.map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category.id} value={category.id}>{category.name}</option>
             ))}
           </select>
         </label>
