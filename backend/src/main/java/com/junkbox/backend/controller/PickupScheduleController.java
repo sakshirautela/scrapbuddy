@@ -61,10 +61,12 @@ public class PickupScheduleController {
     @GetMapping("/track/{id}")
     public ResponseEntity<?> trackOrder(
             @PathVariable Long id,
-            @RequestParam String phone) {
+            @RequestParam(required = false) String phone) {
 
         try {
-            OrderResponse response = orderService.trackOrder(id, phone);
+            OrderResponse response = (phone == null || phone.trim().isEmpty())
+                    ? orderService.getOrderById(id)
+                    : orderService.trackOrder(id, phone);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

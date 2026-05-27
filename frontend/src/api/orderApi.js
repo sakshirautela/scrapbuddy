@@ -35,10 +35,9 @@ const orderApi = {
     );
   },
 
-  trackOrder: async (id, phone) => {
+  trackOrder: async (id) => {
     return await apiClient.get(
-      `/api/orders/track/${id}`,
-      { params: { phone } }
+      `/api/orders/track/${id}`
     );
   },
 

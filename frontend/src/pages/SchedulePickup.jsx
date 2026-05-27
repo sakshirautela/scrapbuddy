@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import CategoriesWithSubCat from "../components/input/CategoriesWithSubCat";
 import NavBar from "../components/common/NavBar/NavBar";
 import orderApi from "../api/orderApi";
@@ -53,7 +52,6 @@ const getSavedAddressLabel = (address) => {
 };
 
 const SchedulePickup = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const support = getSupportSettings();
 

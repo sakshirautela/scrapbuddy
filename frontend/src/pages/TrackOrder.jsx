@@ -70,7 +70,6 @@ const formatOrderId = (value) => {
 
 const TrackOrder = () => {
   const [orderId, setOrderId] = useState("");
-  const [phone, setPhone] = useState("");
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -90,10 +89,9 @@ const TrackOrder = () => {
   const handleTrack = async (event) => {
     event.preventDefault();
     const cleanOrderId = orderId.trim().replace(/^#?ORD/i, "").replace(/^SB/i, "");
-    const cleanPhone = phone.trim();
 
-    if (!cleanOrderId || !cleanPhone) {
-      setError("Enter both order ID and phone number");
+    if (!cleanOrderId) {
+      setError("Enter your order ID");
       return;
     }
 
@@ -102,19 +100,14 @@ const TrackOrder = () => {
       return;
     }
 
-    if (cleanPhone.replace(/\D/g, "").length < 10) {
-      setError("Enter a valid phone number");
-      return;
-    }
-
     try {
       setLoading(true);
       setError("");
-      const response = await orderApi.trackOrder(cleanOrderId, cleanPhone);
+      const response = await orderApi.trackOrder(cleanOrderId);
       setOrder(response.data);
     } catch (err) {
       setOrder(null);
-      setError(err.message || "No order found for this order ID and phone number");
+      setError(err.message || "No order found for this order ID");
     } finally {
       setLoading(false);
     }
@@ -133,7 +126,7 @@ const TrackOrder = () => {
         <span>▣</span>
         <div>
           <h2>Track Your Pickup</h2>
-          <p>Enter your Order ID and pickup phone number to see the status of your pickup.</p>
+          <p>Enter your Order ID to see the status of your pickup.</p>
           <form className="track-search-form" onSubmit={handleTrack}>
             <input
               value={orderId}
@@ -144,7 +137,7 @@ const TrackOrder = () => {
               {loading ? "Tracking..." : "Track Order  →"}
             </button>
           </form>
-          {error ? <span className="track-example error">{error}</span> : <span className="track-example">Example: ORD0012 and 9876543210</span>}
+          {error ? <span className="track-example error">{error}</span> : <span className="track-example">Example: ORD0012</span>}
         </div>
       </section>
 
@@ -244,7 +237,7 @@ const TrackOrder = () => {
       ) : (
         <section className="track-empty-state">
           <h2>Enter your pickup details to track the order</h2>
-          <p>Order details are shown only after the order ID and pickup phone number match.</p>
+          <p>Order details are shown after a matching order ID is found.</p>
         </section>
       )}
 
