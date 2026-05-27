@@ -522,7 +522,7 @@ const SchedulePickup = () => {
                   </div>
                 </section>
 
-                <aside className="schedule-payment">
+                {/* <aside className="schedule-payment">
                   <h3>Payment Preference</h3>
 
                   {["UPI / Cashless", "Cash on Pickup"].map((mode) => (
@@ -555,7 +555,7 @@ const SchedulePickup = () => {
                       <small>We never share your information with anyone.</small>
                     </div>
                   </div>
-                </aside>
+                </aside> */}
 
                 <div className="schedule-actions">
                   <button className="schedule-next" type="button" onClick={goNext}>
