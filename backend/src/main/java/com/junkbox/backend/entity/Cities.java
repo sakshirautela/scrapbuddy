@@ -1,5 +1,6 @@
 package com.junkbox.backend.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,4 +20,6 @@ public class Cities {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String name;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean deleted = false;
 }

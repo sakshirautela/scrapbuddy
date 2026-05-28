@@ -29,4 +29,6 @@ public class Categories {
     private LocalDateTime updatedDateTime;
     private Long createdUserID;
     private Long updatedCategoryID;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean deleted = false;
 }

@@ -230,7 +230,7 @@ public class OrderService {
             throw new IllegalArgumentException("Admin ID is required");
         }
 
-        User assignedAdmin = userRepository.findById(request.getAdminId())
+        User assignedAdmin = userRepository.findByIdAndDeletedFalse(request.getAdminId())
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found with ID: " + request.getAdminId()));
 
         if (!isAdminRole(assignedAdmin.getRole())) {
@@ -264,7 +264,7 @@ public class OrderService {
 
         User removedAdmin = order.getPickscheduleById() == null
                 ? null
-                : userRepository.findById(order.getPickscheduleById()).orElse(null);
+                : userRepository.findByIdAndDeletedFalse(order.getPickscheduleById()).orElse(null);
 
         order.setPickscheduleById(null);
         order.setUpdatedByUserID(currentAdminId);
@@ -411,6 +411,7 @@ public class OrderService {
 
         if (requestAddress.getId() != null) {
             Address existingAddress = addressRepo.findById(requestAddress.getId())
+                    .filter(address -> !address.isDeleted())
                     .orElseThrow(() -> new ResourceNotFoundException("Address not found with ID: " + requestAddress.getId()));
 
             if (currentUser != null
@@ -423,7 +424,7 @@ public class OrderService {
         }
 
         if (currentUser != null) {
-            for (Address existingAddress : addressRepo.findAllByUserId(currentUser.getId())) {
+            for (Address existingAddress : addressRepo.findAllByUserIdAndDeletedFalse(currentUser.getId())) {
                 if (isSameAddress(existingAddress, requestAddress)) {
                     return existingAddress;
                 }
@@ -563,7 +564,7 @@ public class OrderService {
             return null;
         }
 
-        return userRepository.findById(createdByUserId).orElse(null);
+        return userRepository.findByIdAndDeletedFalse(createdByUserId).orElse(null);
     }
 
     private void sendDeliveryOtpEmail(Orders order, String otp) {
@@ -1009,7 +1010,7 @@ public class OrderService {
     }
 
     private List<OrderResponse> getOrdersForUser(Long id) {
-        User requestedUser = userRepository.findById(id)
+        User requestedUser = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
         LinkedHashMap<Long, Orders> userOrdersById = new LinkedHashMap<>();
@@ -1081,8 +1082,8 @@ public class OrderService {
             return GUEST_USER_ID;
         }
 
-        User user = userRepository.findByUsername(authentication.getName())
-                .orElseGet(() -> userRepository.findByEmail(authentication.getName()).orElse(null));
+        User user = userRepository.findByUsernameAndDeletedFalse(authentication.getName())
+                .orElseGet(() -> userRepository.findByEmailAndDeletedFalse(authentication.getName()).orElse(null));
 
         if (user == null) {
             return GUEST_USER_ID;
@@ -1101,8 +1102,8 @@ public class OrderService {
             return null;
         }
 
-        return userRepository.findByUsername(authentication.getName())
-                .orElseGet(() -> userRepository.findByEmail(authentication.getName()).orElse(null));
+        return userRepository.findByUsernameAndDeletedFalse(authentication.getName())
+                .orElseGet(() -> userRepository.findByEmailAndDeletedFalse(authentication.getName()).orElse(null));
     }
 
     private Long getAuthenticatedUserId() {
@@ -1115,7 +1116,7 @@ public class OrderService {
             throw new IllegalArgumentException("Authenticated admin is required");
         }
 
-        User user = userRepository.findByUsername(authentication.getName())
+        User user = userRepository.findByUsernameAndDeletedFalse(authentication.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));
 
         return user.getId();

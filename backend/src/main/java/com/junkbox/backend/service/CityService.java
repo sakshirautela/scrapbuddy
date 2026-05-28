@@ -25,19 +25,19 @@ public class CityService {
     }
 
     public CityResponse getCityById(Long id) {
-        Cities city = cityRepo.findById(id)
+        Cities city = cityRepo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with ID: " + id));
         return mapToResponse(city);
     }
 
     public List<CityResponse> getAllCities() {
-        return cityRepo.findAll().stream()
+        return cityRepo.findAllByDeletedFalse().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     public CityResponse updateCity(Long id, CityRequest request) {
-        Cities city = cityRepo.findById(id)
+        Cities city = cityRepo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with ID: " + id));
         city.setName(request.getName());
         Cities updatedCity = cityRepo.save(city);
@@ -45,9 +45,10 @@ public class CityService {
     }
 
     public void deleteCity(Long id) {
-        Cities city = cityRepo.findById(id)
+        Cities city = cityRepo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with ID: " + id));
-        cityRepo.delete(city);
+        city.setDeleted(true);
+        cityRepo.save(city);
     }
 
     private CityResponse mapToResponse(Cities city) {

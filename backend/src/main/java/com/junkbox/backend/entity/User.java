@@ -42,6 +42,8 @@ public class User {
     private String lastName;
     private Date createdDate;
     private Time createdTime;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean deleted = false;
 
     public void setUsr() {
 

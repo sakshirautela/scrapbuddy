@@ -23,4 +23,6 @@ public class SubCategories {
     private Long subCreatedUserID;
     private float price;
     private Long updatedSubCategoryID;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean deleted = false;
 }

@@ -62,10 +62,10 @@ public class PasswordResetService {
     }
     public boolean sendPasswordResetMail(MailBody mailBody) {
 
-        Optional<User> userOpt = userRepository.findByUsername(mailBody.getTo());
+        Optional<User> userOpt = userRepository.findByUsernameAndDeletedFalse(mailBody.getTo());
 
         if (userOpt.isEmpty()) {
-            userOpt = userRepository.findByEmail(mailBody.getTo());
+            userOpt = userRepository.findByEmailAndDeletedFalse(mailBody.getTo());
         }
 
         if (userOpt.isEmpty()) {
