@@ -4,6 +4,7 @@ import com.junkbox.backend.dto.request.CategoryRequest;
 import com.junkbox.backend.dto.response.CategoryResponse;
 import com.junkbox.backend.dto.response.SubCategoryResponse;
 import com.junkbox.backend.entity.Categories;
+import com.junkbox.backend.entity.SubCategories;
 import com.junkbox.backend.exception.ResourceNotFoundException;
 import com.junkbox.backend.repository.CategoriesRepo;
 import com.junkbox.backend.repository.SubCategoryRepo;
@@ -69,15 +70,22 @@ public class CategoryService {
 
         Categories category = findCategoryById(id);
 
-        subCategoryRepo.deleteAllByCategoryId(id);
+        List<SubCategories> subCategories = subCategoryRepo.findAllByCategoryIdAndDeletedFalse(id);
+        subCategories.forEach(subCategory -> {
+            subCategory.setDeleted(true);
+            subCategory.setUpdatedDateTime(LocalDateTime.now());
+        });
+        subCategoryRepo.saveAll(subCategories);
 
-        categoriesRepo.delete(category);
+        category.setDeleted(true);
+        category.setUpdatedDateTime(LocalDateTime.now());
+        categoriesRepo.save(category);
     }
 
     // GET ALL CATEGORIES
     public List<CategoryResponse> getAllCategories() {
 
-        return categoriesRepo.findAll().stream().map(category -> mapToResponse(category, null)).collect(Collectors.toList());
+        return categoriesRepo.findAllByDeletedFalse().stream().map(category -> mapToResponse(category, null)).collect(Collectors.toList());
     }
 
     // GET CATEGORY BY ID
@@ -91,7 +99,7 @@ public class CategoryService {
     // GET ALL CATEGORIES WITH SUBCATEGORIES
     public List<CategoryResponse> getAllCategoriesWithSubCategories() {
 
-        List<Categories> categories = categoriesRepo.findAll();
+        List<Categories> categories = categoriesRepo.findAllByDeletedFalse();
         return categories.stream()
                 .map(category -> {
                     List<SubCategoryResponse> subCategories = subCategoryService.getSubCategoryByCategoryId(category.getId());
@@ -103,7 +111,7 @@ public class CategoryService {
     // COMMON FIND METHOD
     private Categories findCategoryById(Long id) {
 
-        return categoriesRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + id));
+        return categoriesRepo.findByIdAndDeletedFalse(id).orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + id));
     }
 
     // VALIDATION

@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 
 public interface AddressRepo extends JpaRepository<Address, Long > {
-    List<Address> findAllByUserId(Long userId);
+    List<Address> findAllByDeletedFalse();
+    List<Address> findAllByUserIdAndDeletedFalse(Long userId);
 }

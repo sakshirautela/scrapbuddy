@@ -23,8 +23,8 @@ public class NotificationService {
     public boolean sendNewOrderPlacedMail(MailBody mailBody) {
 
         String recipient = normalizeEmail(mailBody.getTo());
-        Optional<User> userOpt = userRepository.findByEmail(recipient)
-                .or(() -> userRepository.findByUsername(recipient));
+        Optional<User> userOpt = userRepository.findByEmailAndDeletedFalse(recipient)
+                .or(() -> userRepository.findByUsernameAndDeletedFalse(recipient));
         if (userOpt.isEmpty()) {
             return false;
         }

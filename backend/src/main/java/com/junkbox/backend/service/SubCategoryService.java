@@ -46,13 +46,13 @@ public class SubCategoryService {
     // GET ALL SUBCATEGORIES
     public List<SubCategoryResponse> getAllSubCategories() {
 
-        return subCategoryRepo.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        return subCategoryRepo.findAllByDeletedFalse().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     // GET SUBCATEGORY BY ID
     public SubCategoryResponse getSubCategoryById(Long id) {
 
-        SubCategories subCategory = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
+        SubCategories subCategory = findSubCategoryById(id);
 
         return mapToResponse(subCategory);
     }
@@ -60,7 +60,7 @@ public class SubCategoryService {
     // GET SUBCATEGORIES BY CATEGORY ID
     public List<SubCategoryResponse> getSubCategoryByCategoryId(Long categoryId) {
 
-        return subCategoryRepo.findAllByCategoryId(categoryId).stream()
+        return subCategoryRepo.findAllByCategoryIdAndDeletedFalse(categoryId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -70,7 +70,7 @@ public class SubCategoryService {
 
         validateRequest(request);
 
-        SubCategories subCategory = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
+        SubCategories subCategory = findSubCategoryById(id);
 
         mapRequestToEntity(request, subCategory);
 
@@ -86,9 +86,17 @@ public class SubCategoryService {
     // DELETE SUBCATEGORY
     public void deleteSubCategory(Long id) {
 
-        SubCategories subCategory = subCategoryRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
+        SubCategories subCategory = findSubCategoryById(id);
 
-        subCategoryRepo.delete(subCategory);
+        subCategory.setDeleted(true);
+        subCategory.setUpdatedDateTime(LocalDateTime.now());
+        subCategoryRepo.save(subCategory);
+    }
+
+    private SubCategories findSubCategoryById(Long id) {
+        return subCategoryRepo.findById(id)
+                .filter(subCategory -> !subCategory.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with ID: " + id));
     }
 
     // VALIDATION
@@ -102,7 +110,7 @@ public class SubCategoryService {
             throw new IllegalArgumentException("Category ID is required");
         }
 
-        if (categoriesRepo.findById(request.getCategoryId()).isEmpty()) {
+        if (categoriesRepo.findByIdAndDeletedFalse(request.getCategoryId()).isEmpty()) {
             throw new IllegalArgumentException("Category not found with ID: " + request.getCategoryId());
         }
 

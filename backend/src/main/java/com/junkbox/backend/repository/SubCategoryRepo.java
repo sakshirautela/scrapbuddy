@@ -9,7 +9,8 @@ import java.util.List;
 @Repository
 
 public interface SubCategoryRepo extends JpaRepository<SubCategories, Long> {
-    List<SubCategories> findAllByCategoryId(Long id);
+    List<SubCategories> findAllByDeletedFalse();
+    List<SubCategories> findAllByCategoryIdAndDeletedFalse(Long id);
 
-    void deleteAllByCategoryId(Long id);
+    List<SubCategories> findAllByCategoryId(Long id);
 }

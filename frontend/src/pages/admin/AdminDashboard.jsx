@@ -52,7 +52,7 @@ const AdminDashboard = () => {
     }
 
     if (activeTab === "addresses") {
-      fetchAddresses();
+      fetchCustomerAddresses();
     }
   }, [activeTab]);
 
@@ -125,10 +125,15 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchAddresses = async () => {
+  const fetchCustomerAddresses = async () => {
     try {
-      const response = await apiClient.get("/api/addresses");
-      setAddresses(Array.isArray(response.data) ? response.data : []);
+      const [addressesResponse, ordersResponse] = await Promise.all([
+        apiClient.get("/api/addresses"),
+        orderApi.getAllOrders(),
+      ]);
+
+      setAddresses(Array.isArray(addressesResponse.data) ? addressesResponse.data : []);
+      setOrders(Array.isArray(ordersResponse.data) ? ordersResponse.data : []);
     } catch (err) {
       console.error(err);
     }

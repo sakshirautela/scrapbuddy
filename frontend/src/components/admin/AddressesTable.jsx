@@ -11,6 +11,16 @@ const getAddressKey = (address = {}) =>
       address.zip,
     ].filter(Boolean).join("|");
 
+const getOrderId = (order = {}) => order.id ?? order.orderId ?? order.orderID;
+
+const getRowKey = (row = {}) => {
+  if (row.source === "order") {
+    return `order-${row.orderId || row.index}-${getAddressKey(row.address)}`;
+  }
+
+  return `saved-${getAddressKey(row.address)}`;
+};
+
 const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => {
   const [filters, setFilters] = useState({
     search: "",
@@ -20,67 +30,59 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
     country: "all",
   });
 
-  const assignedAddressKeys = useMemo(
-    () => new Set(
-      orders
-        .filter((order) => String(order.pickscheduleById || "") === String(currentAdminId || ""))
-        .map((order) => order.address)
+  const addressRows = useMemo(
+    () => [
+      ...addresses
         .filter(Boolean)
-        .map(getAddressKey)
+        .map((address, index) => ({
+          address,
+          index,
+          source: "saved",
+          sourceLabel: "Saved",
+          isAssignedToMe: false,
+        })),
+      ...orders
+        .map((order, index) => {
+          if (!order.address) {
+            return null;
+          }
+
+          const orderId = getOrderId(order);
+
+          return {
+            address: order.address,
+            index,
+            orderId,
+            source: "order",
+            sourceLabel: orderId ? `Order #${orderId}` : "Order",
+            isAssignedToMe: String(order.pickscheduleById || "") === String(currentAdminId || ""),
+          };
+        })
+        .filter(Boolean),
+    ],
+    [addresses, orders, currentAdminId]
+  );
+
+  const uniqueSavedAddresses = useMemo(
+    () => Array.from(
+      new Map(addresses.filter(Boolean).map((address) => [getAddressKey(address), address])).values()
     ),
-    [orders, currentAdminId]
-  );
-
-  const assignedAddresses = useMemo(
-    () => orders
-      .filter((order) => String(order.pickscheduleById || "") === String(currentAdminId || ""))
-      .map((order) => order.address)
-      .filter(Boolean),
-    [orders, currentAdminId]
-  );
-
-  const orderAddresses = useMemo(
-    () => orders
-      .map((order) => order.address)
-      .filter(Boolean),
-    [orders]
-  );
-
-  const savedAddressKeys = useMemo(
-    () => new Set(addresses.map(getAddressKey)),
     [addresses]
   );
 
-  const orderAddressKeys = useMemo(
-    () => new Set(orderAddresses.map(getAddressKey)),
-    [orderAddresses]
-  );
-
-  const addressesToShow = useMemo(
-    () => [...addresses, ...orderAddresses, ...assignedAddresses],
-    [addresses, orderAddresses, assignedAddresses]
-  );
-
-  const uniqueAddresses = useMemo(
-    () => Array.from(
-      new Map(addressesToShow.map((address) => [getAddressKey(address), address])).values()
-    ),
-    [addressesToShow]
-  );
-
   const cityOptions = useMemo(
-    () => Array.from(new Set(uniqueAddresses.map((address) => address.city).filter(Boolean))).sort(),
-    [uniqueAddresses]
+    () => Array.from(new Set(addressRows.map((row) => row.address.city).filter(Boolean))).sort(),
+    [addressRows]
   );
 
   const stateOptions = useMemo(
-    () => Array.from(new Set(uniqueAddresses.map((address) => address.state).filter(Boolean))).sort(),
-    [uniqueAddresses]
+    () => Array.from(new Set(addressRows.map((row) => row.address.state).filter(Boolean))).sort(),
+    [addressRows]
   );
 
   const countryOptions = useMemo(
-    () => Array.from(new Set(uniqueAddresses.map((address) => address.country).filter(Boolean))).sort(),
-    [uniqueAddresses]
+    () => Array.from(new Set(addressRows.map((row) => row.address.country).filter(Boolean))).sort(),
+    [addressRows]
   );
 
   const updateFilter = (name, value) => {
@@ -93,11 +95,8 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
   const filteredAddresses = useMemo(() => {
     const normalizedSearch = filters.search.trim().toLowerCase();
 
-    return uniqueAddresses.filter((address) => {
-      const addressKey = getAddressKey(address);
-      const isAssignedToMe = assignedAddressKeys.has(addressKey);
-      const isSavedAddress = savedAddressKeys.has(addressKey);
-      const isOrderAddress = orderAddressKeys.has(addressKey);
+    return addressRows.filter((row) => {
+      const { address } = row;
       const receiverName = [address.receiverFirstName, address.receiverLastName]
         .filter(Boolean)
         .join(" ");
@@ -117,19 +116,19 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
         return false;
       }
 
-      if (filters.source === "assigned" && !isAssignedToMe) {
+      if (filters.source === "assigned" && !row.isAssignedToMe) {
         return false;
       }
 
-      if (filters.source === "unassigned" && isAssignedToMe) {
+      if (filters.source === "unassigned" && row.isAssignedToMe) {
         return false;
       }
 
-      if (filters.source === "saved" && !isSavedAddress) {
+      if (filters.source === "saved" && row.source !== "saved") {
         return false;
       }
 
-      if (filters.source === "orders" && !isOrderAddress) {
+      if (filters.source === "orders" && row.source !== "order") {
         return false;
       }
 
@@ -147,7 +146,7 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
 
       return true;
     });
-  }, [uniqueAddresses, assignedAddressKeys, savedAddressKeys, orderAddressKeys, filters]);
+  }, [addressRows, filters]);
 
   return (
     <section className="admin-card table-card">
@@ -155,7 +154,8 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
         <div>
           <h2>Customer Addresses</h2>
           <p>
-            Showing {filteredAddresses.length} of {uniqueAddresses.length} customer {uniqueAddresses.length === 1 ? "address" : "addresses"}
+            Showing {filteredAddresses.length} of {addressRows.length} customer {addressRows.length === 1 ? "address" : "addresses"}
+            {" "}({orders.filter((order) => order.address).length} from orders, {uniqueSavedAddresses.length} saved)
           </p>
         </div>
       </div>
@@ -232,19 +232,21 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
               <th>State</th>
               <th>Zip</th>
               <th>Country</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody>
             {filteredAddresses.length === 0 ? (
-              <tr><td colSpan="8">No addresses found</td></tr>
+              <tr><td colSpan="9">No addresses found</td></tr>
             ) : (
-              filteredAddresses.map((address) => {
+              filteredAddresses.map((row) => {
+                const { address } = row;
                 const receiverName = [address.receiverFirstName, address.receiverLastName]
                   .filter(Boolean)
                   .join(" ");
 
                 return (
-                  <tr key={getAddressKey(address)}>
+                  <tr key={getRowKey(row)}>
                     <td>{formatValue(receiverName)}</td>
                     <td>{formatValue(address.receiverPhone)}</td>
                     <td>{formatValue(address.receiverEmail)}</td>
@@ -253,6 +255,7 @@ const AddressesTable = ({ addresses = [], orders = [], currentAdminId = 0 }) => 
                     <td>{formatValue(address.state)}</td>
                     <td>{formatValue(address.zip)}</td>
                     <td>{formatValue(address.country)}</td>
+                    <td>{row.sourceLabel}</td>
                   </tr>
                 );
               })

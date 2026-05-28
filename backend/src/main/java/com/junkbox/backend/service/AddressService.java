@@ -50,7 +50,7 @@ public class AddressService {
     // GET ALL ADDRESSES
     public List<AddressResponse> getAllAddress() {
 
-        return addressRepo.findAll()
+        return addressRepo.findAllByDeletedFalse()
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -61,7 +61,7 @@ public class AddressService {
 
         User user = getCurrentUser();
 
-        return addressRepo.findAllByUserId(user.getId())
+        return addressRepo.findAllByUserIdAndDeletedFalse(user.getId())
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -95,13 +95,15 @@ public class AddressService {
 
         Address address = findAddressById(id);
 
-        addressRepo.delete(address);
+        address.setDeleted(true);
+        addressRepo.save(address);
     }
 
     // COMMON FIND METHOD
     private Address findAddressById(Long id) {
 
         return addressRepo.findById(id)
+                .filter(address -> !address.isDeleted())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Address not found with ID: " + id));
@@ -121,10 +123,10 @@ public class AddressService {
 
         String principal = authentication.getName();
 
-        Optional<User> user = userRepository.findByUsername(principal);
+        Optional<User> user = userRepository.findByUsernameAndDeletedFalse(principal);
 
         if (user.isEmpty()) {
-            user = userRepository.findByEmail(principal);
+            user = userRepository.findByEmailAndDeletedFalse(principal);
         }
 
         return user.orElseThrow(() ->

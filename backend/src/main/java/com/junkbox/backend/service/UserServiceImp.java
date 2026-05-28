@@ -27,7 +27,7 @@ public class UserServiceImp {
     private final VarifcationService varifcationService;
 
     public void sendLoginOtp(String phone) {
-        User user = repo.findByPhone(phone)
+        User user = repo.findByPhoneAndDeletedFalse(phone)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
         phoneOtpService.sendOtp(phone);
     }
@@ -38,7 +38,7 @@ public class UserServiceImp {
             throw new IllegalArgumentException("Invalid or expired OTP");
         }
 
-        User user = repo.findByPhone(phone)
+        User user = repo.findByPhoneAndDeletedFalse(phone)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
 
         return mapToResponse(user);
@@ -47,6 +47,7 @@ public class UserServiceImp {
     public List<UserResponse> getAllUsers() {
         return repo.findAll()
                 .stream()
+                .filter(user -> !user.isDeleted())
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -58,16 +59,16 @@ public class UserServiceImp {
         String phone = normalizePhone(request.getPhone());
         String role = normalizeAssignableRole(request.getRole());
 
-        repo.findByEmail(email).ifPresent(existingUser -> {
+        repo.findByEmailAndDeletedFalse(email).ifPresent(existingUser -> {
             throw new IllegalArgumentException("Email already exists: " + email);
         });
 
-        repo.findByUsername(email).ifPresent(existingUser -> {
+        repo.findByUsernameAndDeletedFalse(email).ifPresent(existingUser -> {
             throw new IllegalArgumentException("Username already exists: " + email);
         });
 
         if (!phone.isEmpty()) {
-            repo.findByPhone(phone).ifPresent(existingUser -> {
+            repo.findByPhoneAndDeletedFalse(phone).ifPresent(existingUser -> {
                 throw new IllegalArgumentException("Phone already exists: " + phone);
             });
         }
@@ -87,7 +88,7 @@ public class UserServiceImp {
     }
 
     public UserResponse updateUserRole(Long id, String role) {
-        User user = repo.findById(id)
+        User user = repo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
         user.setRole(normalizeAssignableRole(role));
@@ -101,7 +102,7 @@ public class UserServiceImp {
         validateRegisterRequest(request);
         String email = request.getEmail().trim().toLowerCase();
 
-        if (repo.findByUsername(email).isPresent()) {
+        if (repo.findByUsernameAndDeletedFalse(email).isPresent()) {
 
             throw new IllegalArgumentException("Username already exists: " + email);
         }
@@ -140,7 +141,7 @@ public class UserServiceImp {
 
         validateUserRequest(request);
 
-        User user = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        User user = repo.findByIdAndDeletedFalse(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
         String email = normalizeEmail(request.getEmail());
         String phone = normalizePhone(request.getPhone());
         boolean emailChanged = !email.equals(normalizeEmail(user.getEmail()));
@@ -152,13 +153,13 @@ public class UserServiceImp {
 
             varifcationService.verifyOtp(email, request.getEmailOtp().trim());
 
-            repo.findByEmail(email)
+            repo.findByEmailAndDeletedFalse(email)
                     .filter(existingUser -> !existingUser.getId().equals(id))
                     .ifPresent(existingUser -> {
                         throw new IllegalArgumentException("Email already exists: " + email);
                     });
 
-            repo.findByUsername(email)
+            repo.findByUsernameAndDeletedFalse(email)
                     .filter(existingUser -> !existingUser.getId().equals(id))
                     .ifPresent(existingUser -> {
                         throw new IllegalArgumentException("Email already exists: " + email);
@@ -176,7 +177,7 @@ public class UserServiceImp {
 
             phoneOtpService.verifyOtp(phone, request.getPhoneOtp().trim());
 
-            repo.findByPhone(phone)
+            repo.findByPhoneAndDeletedFalse(phone)
                     .filter(existingUser -> !existingUser.getId().equals(id))
                     .ifPresent(existingUser -> {
                         throw new IllegalArgumentException("Phone already exists: " + phone);
@@ -203,15 +204,15 @@ public class UserServiceImp {
     // GET USER BY ID
     public UserResponse getUserById(Long id) {
 
-        User user = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        User user = repo.findByIdAndDeletedFalse(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
         return mapToResponse(user);
     }
 
     // GET USER BY USERNAME
     public UserResponse getUserByUsername(String username) {
-        User user = repo.findByUsername(username)
-                .or(() -> repo.findByEmail(username))
+        User user = repo.findByUsernameAndDeletedFalse(username)
+                .or(() -> repo.findByEmailAndDeletedFalse(username))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
         return mapToResponse(user);
     }
@@ -219,6 +220,7 @@ public class UserServiceImp {
     public List<UserResponse> getAdmins() {
         return repo.findAll()
                 .stream()
+                .filter(user -> !user.isDeleted())
                 .filter(user -> isAdminRole(user.getRole()))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -226,8 +228,14 @@ public class UserServiceImp {
 
     // DELETE USER
     public void deleteUser(Long id) {
-        User user = repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
-        repo.delete(user);
+        User user = repo.findByIdAndDeletedFalse(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        String deletedSuffix = ".deleted." + id;
+        user.setDeleted(true);
+        user.setVerified(false);
+        user.setEmail(user.getEmail() == null ? null : user.getEmail() + deletedSuffix);
+        user.setUsername(user.getUsername() == null ? null : user.getUsername() + deletedSuffix);
+        user.setPhone(user.getPhone() == null ? null : user.getPhone() + deletedSuffix);
+        repo.save(user);
     }
 
     // VALIDATE REGISTER REQUEST
