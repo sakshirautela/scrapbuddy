@@ -7,9 +7,7 @@ import com.junkbox.backend.entity.User;
 import com.junkbox.backend.repository.PasswordTokenRepository;
 import com.junkbox.backend.repository.UserRepository;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,14 +23,14 @@ public class PasswordResetService {
 
     private final PasswordTokenRepository resetTokenRepository;
 
-    private  final JavaMailSender mailSender;
+    private final MailService mailService;
 
     private final PasswordEncoder passwordEncoder;
 
-    public PasswordResetService(UserRepository userRepository, PasswordTokenRepository resetTokenRepository, JavaMailSender mailSender, PasswordEncoder passwordEncoder) {
+    public PasswordResetService(UserRepository userRepository, PasswordTokenRepository resetTokenRepository, MailService mailService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.resetTokenRepository = resetTokenRepository;
-        this.mailSender = mailSender;
+        this.mailService = mailService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -80,13 +78,9 @@ public class PasswordResetService {
         token.setExpiresAt(LocalDateTime.now().plusMinutes(10));
         resetTokenRepository.save(token);
 
-        if (mailSender == null) {
-            return false;
-        }
-
         SimpleMailMessage message = getMessage(userOpt.get(), otp);
 
-        mailSender.send(message);
+        mailService.send(message);
         return true;
     }
 

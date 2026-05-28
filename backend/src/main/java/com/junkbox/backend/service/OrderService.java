@@ -11,7 +11,6 @@ import com.junkbox.backend.repository.*;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.access.AccessDeniedException;
@@ -36,7 +35,7 @@ public class OrderService {
     private final AddressRepo addressRepo;
     private final UserRepository userRepository;
     private final PhoneOtpService phoneOtpService;
-    private final JavaMailSender mailSender;
+    private final MailService mailService;
     private final CategoryService categoryService;
     private final SubCategoryService subCategoryService;
 
@@ -45,14 +44,14 @@ public class OrderService {
             AddressRepo addressRepo,
             UserRepository userRepository,
             PhoneOtpService phoneOtpService,
-            JavaMailSender mailSender,
+            MailService mailService,
             CategoryService categoryService,
             SubCategoryService subCategoryService) {
         this.ordersRepo = ordersRepo;
         this.addressRepo = addressRepo;
         this.userRepository = userRepository;
         this.phoneOtpService = phoneOtpService;
-        this.mailSender = mailSender;
+        this.mailService = mailService;
         this.categoryService = categoryService;
         this.subCategoryService = subCategoryService;
     }
@@ -587,13 +586,13 @@ public class OrderService {
                         + "Scrapify Team"
         );
 
-        mailSender.send(message);
+        mailService.send(message);
     }
 
     private void sendOrderLifecycleEmail(Orders order, String event) {
         String receiverEmail = getOrderContactEmail(order);
 
-        if (mailSender == null || isBlank(receiverEmail)) {
+        if (isBlank(receiverEmail)) {
             return;
         }
 
@@ -602,16 +601,11 @@ public class OrderService {
         message.setSubject(getOrderEmailSubject(order, event));
         message.setText(getOrderEmailBody(order, event));
 
-        try {
-            mailSender.send(message);
-        } catch (RuntimeException exception) {
-            System.err.println("Failed to send order " + event + " email for order #"
-                    + order.getId() + ": " + exception.getMessage());
-        }
+        mailService.send(message);
     }
 
     private void sendAdminAssignmentEmail(Orders order, User admin, String event) {
-        if (mailSender == null || admin == null || isBlank(admin.getEmail())) {
+        if (admin == null || isBlank(admin.getEmail())) {
             return;
         }
 
@@ -620,12 +614,7 @@ public class OrderService {
         message.setSubject(getAdminAssignmentSubject(order, event));
         message.setText(getAdminAssignmentBody(order, admin, event));
 
-        try {
-            mailSender.send(message);
-        } catch (RuntimeException exception) {
-            System.err.println("Failed to send admin " + event + " email for order #"
-                    + order.getId() + ": " + exception.getMessage());
-        }
+        mailService.send(message);
     }
 
     private String getAdminAssignmentSubject(Orders order, String event) {

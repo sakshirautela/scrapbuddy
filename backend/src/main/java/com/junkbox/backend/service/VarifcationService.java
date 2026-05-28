@@ -3,19 +3,18 @@ package com.junkbox.backend.service;
 import com.junkbox.backend.entity.EmailOtp;
 import com.junkbox.backend.repository.EmailOtpRepo;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
 public class VarifcationService {
-    private final JavaMailSender mailSender;
+    private final MailService mailService;
     private final PasswordResetService passwordResetService;
     private final EmailOtpRepo otpRepo;
 
-    public VarifcationService(JavaMailSender mailSender, PasswordResetService passwordResetService, EmailOtpRepo otpRepo) {
-        this.mailSender = mailSender;
+    public VarifcationService(MailService mailService, PasswordResetService passwordResetService, EmailOtpRepo otpRepo) {
+        this.mailService = mailService;
         this.passwordResetService = passwordResetService;
         this.otpRepo = otpRepo;
     }
@@ -56,7 +55,7 @@ public class VarifcationService {
                         + "Scrapify Team"
         );
 
-        mailSender.send(message);
+        mailService.send(message);
     }
 
     public boolean verifyOtp(String email, String otp) {

@@ -5,7 +5,6 @@ import com.junkbox.backend.entity.User;
 import com.junkbox.backend.repository.UserRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,10 +12,10 @@ import java.util.Optional;
 @Service
 public class NotificationService {
 
-    private  final JavaMailSender mailSender;
+    private final MailService mailService;
     private final UserRepository userRepository;
-    public NotificationService(JavaMailSender mailSender, UserRepository userRepository) {
-        this.mailSender = mailSender;
+    public NotificationService(MailService mailService, UserRepository userRepository) {
+        this.mailService = mailService;
         this.userRepository = userRepository;
     }
 
@@ -30,7 +29,7 @@ public class NotificationService {
         }
         SimpleMailMessage message = getMessage(userOpt.get(), mailBody);
 
-        mailSender.send(message);
+        mailService.send(message);
         return true;
     }
 
