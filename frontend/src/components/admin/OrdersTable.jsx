@@ -77,7 +77,7 @@ const OrdersTable = ({
       return categoryName;
     }
 
-    return `${categoryName} -> ${subCategoryName}${price}`;
+    return `${subCategoryName}${price}`;
   };
 
   const getCreatedByText = (order) => {

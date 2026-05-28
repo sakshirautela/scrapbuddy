@@ -13,7 +13,31 @@ const steps = [
   "Address Details",
   "Scrap Category",
   "Preferred Date & Time",
-  "Review & Confirm",
+  // "Review & Confirm",
+];
+
+const timeRange = [
+  {
+    id: "morning",
+    label: "Morning",
+    description: "8 AM - 12 PM",
+    startTime: "08:00",
+    endTime: "12:00",
+  },
+  {
+    id: "afternoon",
+    label: "Afternoon",
+    description: "12 PM - 4 PM",
+    startTime: "12:00",
+    endTime: "16:00",
+  },
+  {
+    id: "evening",
+    label: "Evening",
+    description: "4 PM - 8 PM",
+    startTime: "16:00",
+    endTime: "20:00",
+  },
 ];
 
 const benefits = [
@@ -51,12 +75,19 @@ const getSavedAddressLabel = (address) => {
     .join(" - ");
 };
 
+const getTodayDateValue = () => {
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  return today.toISOString().slice(0, 10);
+};
+
+const toApiTime = (value) => (value?.length === 5 ? `${value}:00` : value);
+
 const SchedulePickup = () => {
   const { user } = useAuth();
   const support = getSupportSettings();
 
   const [activeStep, setActiveStep] = useState(0);
-  const [paymentMode, setPaymentMode] = useState("UPI / Cashless");
 
   const [cities, setCities] = useState([]);
   const [citySearch, setCitySearch] = useState("");
@@ -188,6 +219,10 @@ const SchedulePickup = () => {
           },
         ];
 
+  const selectedTimeSlot = timeRange.find(
+    (time) => time.startTime === formData.startRange && time.endTime === formData.endRange
+  );
+
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -229,6 +264,14 @@ const SchedulePickup = () => {
 
   const handleCategorySelect = (items) => {
     setSelectedScraps(items);
+  };
+
+  const handleTimeSlotSelect = (slot) => {
+    setFormData((current) => ({
+      ...current,
+      startRange: slot.startTime,
+      endRange: slot.endTime,
+    }));
   };
 
   const buildCategorySubcategoryMap = () =>
@@ -314,9 +357,9 @@ const SchedulePickup = () => {
 
     const payload = {
       status: "Created",
-      pickupDate: `${formData.pickupDate}T${formData.startRange}:00`,
-      startRange: `${formData.startRange}:00`,
-      endRange: `${formData.endRange}:00`,
+      pickupDate: `${formData.pickupDate}T${toApiTime(formData.startRange)}`,
+      startRange: toApiTime(formData.startRange),
+      endRange: toApiTime(formData.endRange),
       estimateWeight: Number(formData.estimateWeight),
 
       categoryIDsWithSubcatIDs: buildCategorySubcategoryMap(),
@@ -591,28 +634,39 @@ const SchedulePickup = () => {
                       name="pickupDate"
                       value={formData.pickupDate}
                       onChange={handleChange}
+                      min={getTodayDateValue()}
                     />
                   </label>
 
-                  <label className="schedule-field">
-                    Start Time
-                    <input
-                      type="time"
-                      name="startRange"
-                      value={formData.startRange}
-                      onChange={handleChange}
-                    />
-                  </label>
+                  <div className="schedule-field pickup-slot-field">
+                    <span>Pickup Time</span>
 
-                  <label className="schedule-field">
-                    End Time
-                    <input
-                      type="time"
-                      name="endRange"
-                      value={formData.endRange}
-                      onChange={handleChange}
-                    />
-                  </label>
+                    <div className="pickup-slot-grid" role="radiogroup" aria-label="Pickup time slot">
+                      {timeRange.map((time) => {
+                        const isSelected = selectedTimeSlot?.id === time.id;
+
+                        return (
+                          <button
+                            key={time.id}
+                            type="button"
+                            className={`pickup-slot-option ${isSelected ? "active" : ""}`}
+                            onClick={() => handleTimeSlotSelect(time)}
+                            role="radio"
+                            aria-checked={isSelected}
+                          >
+                            <span>{time.label}</span>
+                            <strong>{time.description}</strong>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <small>
+                      {selectedTimeSlot
+                        ? `Selected: ${selectedTimeSlot.description}`
+                        : "Choose a convenient pickup window."}
+                    </small>
+                  </div>
 
                   <label className="schedule-field">
                     Estimated Weight
@@ -628,15 +682,15 @@ const SchedulePickup = () => {
                   </label>
                 </div>
 
-                <div className="schedule-actions">
+                {/* <div className="schedule-actions">
                   <button className="schedule-next" type="button" onClick={goNext}>
                     Review Order →
                   </button>
-                </div>
+                </div> */}
               </section>
             ) : null}
 
-            {activeStep === 3 ? (
+            {/* {activeStep === 3 ? (
               <section>
                 <h2>Review & Confirm</h2>
 
@@ -649,7 +703,7 @@ const SchedulePickup = () => {
                   {isSubmitting ? "Confirming..." : "Confirm Pickup →"}
                 </button>
               </section>
-            ) : null}
+            ) : null} */}
           </div>
         </div>
 

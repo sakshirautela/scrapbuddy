@@ -5,6 +5,7 @@ import CategoriesManager from "./CategoriesManager";
 import CitiesManager from "./CitiesManager";
 import OrdersTable from "./OrdersTable";
 import SupportSettings from "./SupportSettings";
+import UserRoleManager from "./UserRoleManager";
 import { menuItems } from "../../utils/adminDashboard";
 
 const AdminDashboardContent = ({
@@ -18,6 +19,7 @@ const AdminDashboardContent = ({
   admins,
   categories,
   cities,
+  onUsersChanged,
   onSelectTab,
 }) => {
   if (loading) {
@@ -65,6 +67,10 @@ const AdminDashboardContent = ({
 
   if (activeTab === "support" || activeTab === "settings") {
     return <SupportSettings />;
+  }
+
+  if (activeTab === "field-executives") {
+    return <UserRoleManager onUsersChanged={onUsersChanged} />;
   }
 
   return (

@@ -43,6 +43,58 @@ public class UserServiceImp {
 
         return mapToResponse(user);
     }
+
+    public List<UserResponse> getAllUsers() {
+        return repo.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public UserResponse createUserByAdmin(@Valid UserRequest request) {
+        validateAdminCreateRequest(request);
+
+        String email = normalizeEmail(request.getEmail());
+        String phone = normalizePhone(request.getPhone());
+        String role = normalizeAssignableRole(request.getRole());
+
+        repo.findByEmail(email).ifPresent(existingUser -> {
+            throw new IllegalArgumentException("Email already exists: " + email);
+        });
+
+        repo.findByUsername(email).ifPresent(existingUser -> {
+            throw new IllegalArgumentException("Username already exists: " + email);
+        });
+
+        if (!phone.isEmpty()) {
+            repo.findByPhone(phone).ifPresent(existingUser -> {
+                throw new IllegalArgumentException("Phone already exists: " + phone);
+            });
+        }
+
+        User user = new User();
+        user.setUsername(email);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setFirstName(request.getFirstName().trim());
+        user.setLastName(request.getLastName() == null ? "" : request.getLastName().trim());
+        user.setRole(role);
+        user.setVerified(true);
+        user.setCreatedDate(new Date());
+
+        return mapToResponse(repo.save(user));
+    }
+
+    public UserResponse updateUserRole(Long id, String role) {
+        User user = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+
+        user.setRole(normalizeAssignableRole(role));
+
+        return mapToResponse(repo.save(user));
+    }
+
     // REGISTER USER
     public UserResponse register(RegisterRequest request) {
 
@@ -136,7 +188,7 @@ public class UserServiceImp {
         user.setLastName(request.getLastName());
 
         user.setPhone(phone);
-user.setUsername(email);
+        user.setUsername(email);
         user.setEmail(email);
 
         if (!email.equals(normalizeEmail(user.getUsername()))) {
@@ -236,6 +288,59 @@ user.setUsername(email);
 
             throw new IllegalArgumentException("Email cannot be empty");
         }
+    }
+
+    private void validateAdminCreateRequest(UserRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("User request cannot be null");
+        }
+
+        if (request.getFirstName() == null || request.getFirstName().trim().isEmpty()) {
+            throw new IllegalArgumentException("First name cannot be empty");
+        }
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty");
+        }
+
+        if (request.getPassword().length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+
+        normalizeAssignableRole(request.getRole());
+    }
+
+    private String normalizeAssignableRole(String role) {
+        if (role == null || role.trim().isEmpty()) {
+            return "USER";
+        }
+
+        String normalizedRole = role.trim().toUpperCase();
+
+        if ("ROLE_USER".equals(normalizedRole)) {
+            return "USER";
+        }
+
+        if ("ROLE_ADMIN".equals(normalizedRole)) {
+            return "ADMIN";
+        }
+
+        if ("SUPERADMIN".equals(normalizedRole) || "ROLE_SUPERADMIN".equals(normalizedRole)
+                || "ROLE_SUPER_ADMIN".equals(normalizedRole)) {
+            return "SUPER_ADMIN";
+        }
+
+        if ("USER".equals(normalizedRole)
+                || "ADMIN".equals(normalizedRole)
+                || "SUPER_ADMIN".equals(normalizedRole)) {
+            return normalizedRole;
+        }
+
+        throw new IllegalArgumentException("Role must be USER, ADMIN, or SUPER_ADMIN");
     }
 
     // MAP ENTITY -> RESPONSE DTO

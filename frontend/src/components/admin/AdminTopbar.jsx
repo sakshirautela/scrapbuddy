@@ -26,20 +26,20 @@ const AdminTopbar = ({
     <div className="topbar-right">
       <label className="admin-date-filter">
         <span aria-hidden="true" />
-        <select aria-label="Dashboard date range">
+        {/* <select aria-label="Dashboard date range">
           <option>12 May 2025 - 18 May 2025</option>
           <option>This month</option>
           <option>Last 30 days</option>
-        </select>
+        </select> */}
       </label>
-      <label className="admin-search">
+      {/* <label className="admin-search">
         <input type="search" placeholder="Search requests, customers, executives..." />
         <span aria-hidden="true" />
       </label>
       <button className="notification-button" type="button">
         <span aria-hidden="true" />
         <span>5</span>
-      </button>
+      </button> */}
       <div className="admin-profile-menu">
         <button
           className="admin-profile-trigger"

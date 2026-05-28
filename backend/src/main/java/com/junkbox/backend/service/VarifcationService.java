@@ -22,6 +22,9 @@ public class VarifcationService {
 
     public void sendOtp(String email) {
         String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
 
         String otp = passwordResetService.generateOTP();
 

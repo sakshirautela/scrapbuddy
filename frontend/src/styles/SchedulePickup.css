@@ -386,6 +386,69 @@
   padding: 0 14px;
 }
 
+.pickup-slot-field {
+  grid-column: 1 / -1;
+}
+
+.pickup-slot-field > span {
+  color: #172033;
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.pickup-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pickup-slot-option {
+  min-height: 74px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  cursor: pointer;
+  padding: 12px;
+  text-align: left;
+}
+
+.pickup-slot-option:hover,
+.pickup-slot-option:focus-visible {
+  border-color: #078238;
+  outline: none;
+}
+
+.pickup-slot-option.active {
+  border-color: #078238;
+  background: #f0f8ef;
+  box-shadow: inset 3px 0 0 #078238;
+}
+
+.pickup-slot-option span,
+.pickup-slot-option strong {
+  display: block;
+}
+
+.pickup-slot-option span {
+  color: #607084;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.pickup-slot-option strong {
+  color: #172033;
+  font-size: 1rem;
+}
+
+.pickup-slot-field small {
+  color: #607084;
+  font-size: 0.86rem;
+}
+
 .schedule-payment {
   display: grid;
   align-content: start;
@@ -706,6 +769,7 @@
   .schedule-benefits,
   .schedule-steps,
   .schedule-form-grid,
+  .pickup-slot-grid,
   .schedule-bottom-strip,
   .schedule-footer {
     grid-template-columns: 1fr;

@@ -25,6 +25,40 @@ public class UserController {
         this.jwtUtil = jwtUtil;
     }
 
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(userServiceImp.getAllUsers());
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserRequest request) {
+        try {
+            UserResponse response = userServiceImp.createUserByAdmin(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create user");
+        }
+    }
+
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestBody UserRequest request) {
+        try {
+            UserResponse response = userServiceImp.updateUserRole(id, request.getRole());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update user role");
+        }
+    }
+
     // UPDATE USER
     @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")

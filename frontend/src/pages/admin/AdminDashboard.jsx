@@ -134,6 +134,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchAdmins = async () => {
+    try {
+      const response = await apiClient.get("/api/users/admins");
+      setAdmins(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const requireAdminSession = (resourceName) => {
     const token = localStorage.getItem("token");
 
@@ -643,6 +652,7 @@ const AdminDashboard = () => {
             admins={admins}
             categories={categories}
             cities={cities}
+            onUsersChanged={fetchAdmins}
             onSelectTab={setActiveTab}
           />
         </main>
