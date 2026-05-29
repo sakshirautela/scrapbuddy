@@ -1,4 +1,5 @@
 {
+  "homepage": "https://sakshirautela.github.io/scrapbuddy",
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
@@ -15,7 +16,6 @@
     "react-select": "^5.10.2",
     "web-vitals": "^2.1.4"
   },
-  "homepage": "https://sakshirautela.github.io/scrapbuddy",
   "scripts": {
   "start": "react-scripts start",
   "build": "react-scripts build",
