@@ -31,8 +31,9 @@ public class VerficationController {
             @RequestParam String email) {
 
         try {
-            varifcationService.sendOtp(email);
-            return ResponseEntity.ok(Map.of("message", "OTP sent"));
+            String otp=varifcationService.sendOtp(email);
+//            return ResponseEntity.ok(Map.of("message", "OTP sent"));
+            return ResponseEntity.ok(Map.of("message", otp));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (DataAccessException e) {

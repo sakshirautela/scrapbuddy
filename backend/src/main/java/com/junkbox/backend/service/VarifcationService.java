@@ -19,7 +19,7 @@ public class VarifcationService {
         this.otpRepo = otpRepo;
     }
 
-    public void sendOtp(String email) {
+    public String sendOtp(String email) {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail.isBlank()) {
             throw new IllegalArgumentException("Email is required");
@@ -56,6 +56,7 @@ public class VarifcationService {
         );
 
         mailService.send(message);
+        return otp;
     }
 
     public boolean verifyOtp(String email, String otp) {
