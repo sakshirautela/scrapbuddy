@@ -1,15 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import PrivateRoute from './PrivateRoute';
-import RoleProtectedRoute from './RoleProtectedRoute';
-import RoleNameEnum from '../enums/RoleNameEnum';
-import DefaultDashboard from '../pages/DefaultDashboard';
-import AdminDashboard from '../pages/admin/AdminDashboard';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import Login from '../components/auth/Login/Login';
 import Register from '../components/auth/Register/Register';
 import ProfileDashboard from '../pages/UserDetails';
-import ForgotPassword from '../components/auth/ForgotPassword/ForgetPassword';
 import ResetPassword from '../components/auth/ResetPassword/ResetPassword';
 function AppRoutes() {
   const { user } = useAuth();

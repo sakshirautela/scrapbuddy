@@ -19,44 +19,47 @@ public class VarifcationService {
         this.otpRepo = otpRepo;
     }
 
-    public String sendOtp(String email) {
-        String normalizedEmail = normalizeEmail(email);
-        if (normalizedEmail.isBlank()) {
-            throw new IllegalArgumentException("Email is required");
+    public void sendOtp(String email) {
+        try {
+            String normalizedEmail = normalizeEmail(email);
+            if (normalizedEmail.isBlank()) {
+                throw new IllegalArgumentException("Email is required");
+            }
+
+            String otp = passwordResetService.generateOTP();
+
+            EmailOtp emailOtp = new EmailOtp();
+
+            emailOtp.setEmail(normalizedEmail);
+            emailOtp.setOtp(otp);
+
+            emailOtp.setExpiryTime(
+                    LocalDateTime.now().plusMinutes(5));
+
+            emailOtp.setVerified(false);
+
+            otpRepo.save(emailOtp);
+
+            SimpleMailMessage message =
+                    new SimpleMailMessage();
+
+            message.setTo(normalizedEmail);
+            message.setSubject("Verify your Scrapify email");
+            message.setText(
+                    "Hi,\n\n"
+                            + "Use this OTP to verify your email address for your Scrapify account:\n\n"
+                            + otp + "\n\n"
+                            + "This OTP is valid for 5 minutes.\n"
+                            + "Do not share this code with anyone. Scrapify support will never ask for your OTP.\n\n"
+                            + "If you did not request this code, you can ignore this email.\n\n"
+                            + "Thanks,\n"
+                            + "Scrapify Team"
+            );
+
+            mailService.send(message);
+        }catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        String otp = passwordResetService.generateOTP();
-
-        EmailOtp emailOtp = new EmailOtp();
-
-        emailOtp.setEmail(normalizedEmail);
-        emailOtp.setOtp(otp);
-
-        emailOtp.setExpiryTime(
-                LocalDateTime.now().plusMinutes(5));
-
-        emailOtp.setVerified(false);
-
-        otpRepo.save(emailOtp);
-
-        SimpleMailMessage message =
-                new SimpleMailMessage();
-
-        message.setTo(normalizedEmail);
-        message.setSubject("Verify your Scrapify email");
-        message.setText(
-                "Hi,\n\n"
-                        + "Use this OTP to verify your email address for your Scrapify account:\n\n"
-                        + otp + "\n\n"
-                        + "This OTP is valid for 5 minutes.\n"
-                        + "Do not share this code with anyone. Scrapify support will never ask for your OTP.\n\n"
-                        + "If you did not request this code, you can ignore this email.\n\n"
-                        + "Thanks,\n"
-                        + "Scrapify Team"
-        );
-
-        mailService.send(message);
-        return otp;
     }
 
     public boolean verifyOtp(String email, String otp) {
