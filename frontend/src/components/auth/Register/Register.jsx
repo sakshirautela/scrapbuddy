@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import FormInput from '../../common/FormInput/FormInput';
@@ -21,9 +21,29 @@ function Register() {
   const [otp, setOtp] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [resendingOtp, setResendingOtp] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpMessage, setOtpMessage] = useState('');
   const [passwordStrength, setPasswordStrength] = useState(0);
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setResendCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const startResendCooldown = () => {
+    setResendCooldown(30);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -50,11 +70,35 @@ function Register() {
     try {
       await authApi.sendRegistrationOtp(formData.email);
       setStep('verify-otp');
+      setOtpMessage('Verification code sent.');
+      startResendCooldown();
     } catch (err) {
       const errorMessage = typeof err === 'string' ? err : err.message || 'Failed to send verification code';
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || resendingOtp) {
+      return;
+    }
+
+    setResendingOtp(true);
+    setErrors((current) => ({ ...current, otp: '', submit: '' }));
+    setOtpMessage('');
+
+    try {
+      await authApi.sendRegistrationOtp(formData.email);
+      setOtp('');
+      setOtpMessage('A new verification code has been sent.');
+      startResendCooldown();
+    } catch (err) {
+      const errorMessage = typeof err === 'string' ? err : err.message || 'Failed to resend verification code';
+      setErrors({ otp: errorMessage });
+    } finally {
+      setResendingOtp(false);
     }
   };
 
@@ -99,6 +143,8 @@ function Register() {
   const handleBackToRegister = () => {
     setStep('register');
     setOtp('');
+    setOtpMessage('');
+    setResendCooldown(0);
     setErrors({});
   };
 
@@ -216,6 +262,7 @@ function Register() {
             <>
               <div className="otp-info">
                 <p>We've sent a verification code to <strong>{formData.email}</strong></p>
+                {otpMessage ? <small>{otpMessage}</small> : null}
               </div>
 
               <FormInput
@@ -241,6 +288,18 @@ function Register() {
                 loading={loading}
               >
                 {loading ? 'Verifying...' : 'Verify & Complete'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={handleResendOtp}
+                loading={resendingOtp}
+                disabled={loading || resendCooldown > 0}
+              >
+                {resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s` : 'Resend OTP'}
               </Button>
 
               <Button

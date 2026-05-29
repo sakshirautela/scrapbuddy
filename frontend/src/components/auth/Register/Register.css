@@ -68,6 +68,14 @@
   font-size: 0.92rem;
 }
 
+.otp-info small {
+  display: block;
+  margin-top: 6px;
+  color: #166534;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
 .password-strength {
   display: flex;
   align-items: center;

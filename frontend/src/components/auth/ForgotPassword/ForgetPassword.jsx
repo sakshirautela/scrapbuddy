@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import authApi from '../../../api/authApi';
 import './ForwardPassword.css';
 import { useNavigate } from 'react-router-dom';
@@ -10,9 +10,27 @@ function ForgotPassword() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendingOtp, setResendingOtp] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [isLinkSent, setIsLinkSent] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setResendCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const startResendCooldown = () => {
+    setResendCooldown(30);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,11 +45,33 @@ function ForgotPassword() {
 
       setMessage('OTP sent successfully to your email');
       setIsLinkSent(true);
+      startResendCooldown();
 
     } catch (err) {
       setError(err.message || 'Failed to send OTP');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendingOtp || resendCooldown > 0) {
+      return;
+    }
+
+    setError('');
+    setMessage('');
+    setResendingOtp(true);
+
+    try {
+      await authApi.forgotPassword(email);
+      setOtp('');
+      setMessage('A new OTP has been sent to your email');
+      startResendCooldown();
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP');
+    } finally {
+      setResendingOtp(false);
     }
   };
 
@@ -89,6 +129,19 @@ function ForgotPassword() {
               className="verify-btn"
             >
               Verify OTP
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              className="resend-otp-btn"
+              disabled={loading || resendingOtp || resendCooldown > 0}
+            >
+              {resendingOtp
+                ? 'Resending...'
+                : resendCooldown > 0
+                  ? `Resend OTP in ${resendCooldown}s`
+                  : 'Resend OTP'}
             </button>
           </>
         )}
