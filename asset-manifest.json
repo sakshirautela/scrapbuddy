@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/scrapbuddy/static/css/main.24dfe967.css",
-    "main.js": "/scrapbuddy/static/js/main.4f3b0122.js",
+    "main.js": "/scrapbuddy/static/js/main.101c04be.js",
     "static/js/453.20359781.chunk.js": "/scrapbuddy/static/js/453.20359781.chunk.js",
     "static/media/image.png": "/scrapbuddy/static/media/image.61fbf84b15da27cf411d.png",
     "static/media/order.pickup.png": "/scrapbuddy/static/media/order.pickup.4bd8321acd53474ccc40.png",
     "index.html": "/scrapbuddy/index.html",
     "main.24dfe967.css.map": "/scrapbuddy/static/css/main.24dfe967.css.map",
-    "main.4f3b0122.js.map": "/scrapbuddy/static/js/main.4f3b0122.js.map",
+    "main.101c04be.js.map": "/scrapbuddy/static/js/main.101c04be.js.map",
     "453.20359781.chunk.js.map": "/scrapbuddy/static/js/453.20359781.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.24dfe967.css",
-    "static/js/main.4f3b0122.js"
+    "static/js/main.101c04be.js"
   ]
 }
