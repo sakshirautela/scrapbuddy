@@ -112,12 +112,6 @@ public class PasswordResetService {
 
         return fullName.isEmpty() ? "there" : fullName;
     }
-
-    @Scheduled(fixedRate = 3_600_000) // runs every hour
-    public void clearExpiredTokens() {
-        resetTokenRepository.deleteAllByExpiresAtBefore(LocalDateTime.now());
-    }
-
     public Boolean validateToken(String token) {
         Optional<PasswordResetToken> tokenOpt = resetTokenRepository.findByOtp(token);
         return tokenOpt.isPresent() && !tokenOpt.get().isExpired();

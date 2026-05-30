@@ -124,13 +124,15 @@ function Register() {
       const response = await register(formData);
       
       const userRole = (response.user?.role || response.role || '').toLowerCase();
-      if (userRole === 'admin' || userRole === 'superadmin' || userRole === 'super_admin') {
-        navigate('/AdminDashboard');
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else if (userRole === 'superadmin' || userRole === 'super_admin') {
+        navigate('/superadmin');
       } else if (userRole === 'user') {
-        navigate('/DefaultDashboard');
+        navigate('/');
       } else {
         // Default redirect
-        navigate('/DefaultDashboard');
+        navigate('/');
       }
     } catch (err) {
       const errorMessage = typeof err === 'string' ? err : err.message || 'Registration failed';
@@ -319,7 +321,7 @@ function Register() {
         <div className="register-footer">
           <p>
             Already have an account?{' '}
-            <a href="/login" className="link link-primary">
+            <a href="#/login" className="link link-primary">
               Sign in
             </a>
           </p>

@@ -218,6 +218,8 @@ public class OrderService {
         Orders updatedOrder = ordersRepo.save(order);
 
         sendOrderLifecycleEmail(updatedOrder, "accepted");
+        userRepository.findByIdAndDeletedFalse(adminId)
+                .ifPresent(admin -> sendUserAdminAssignmentEmail(updatedOrder, admin));
 
         return mapToResponse(updatedOrder);
     }
@@ -249,6 +251,7 @@ public class OrderService {
         Orders updatedOrder = ordersRepo.save(order);
 
         sendAdminAssignmentEmail(updatedOrder, assignedAdmin, "assigned");
+        sendUserAdminAssignmentEmail(updatedOrder, assignedAdmin);
 
         return mapToResponse(updatedOrder);
     }
@@ -617,6 +620,21 @@ public class OrderService {
         mailService.send(message);
     }
 
+    private void sendUserAdminAssignmentEmail(Orders order, User admin) {
+        String receiverEmail = getOrderContactEmail(order);
+
+        if (isBlank(receiverEmail)) {
+            return;
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(receiverEmail);
+        message.setSubject("Admin assigned to Scrapify pickup #" + order.getId());
+        message.setText(getUserAdminAssignmentBody(order, admin));
+
+        mailService.send(message);
+    }
+
     private String getAdminAssignmentSubject(Orders order, String event) {
         if ("removed".equals(event)) {
             return "Removed from Scrapify pickup #" + order.getId();
@@ -655,6 +673,23 @@ public class OrderService {
         }
 
         return "Keep the customer updated and request the delivery OTP only when the pickup is ready for completion.";
+    }
+
+    private String getUserAdminAssignmentBody(Orders order, User admin) {
+        return "Hi " + getOrderCustomerName(order) + ",\n\n"
+                + "An admin has been assigned to your pickup request.\n\n"
+                + "Pickup details:\n"
+                + "Order ID: #" + order.getId() + "\n"
+                + "Status: " + formatStatus(order.getStatus()) + "\n"
+                + "Pickup date: " + formatPickupDate(order) + "\n"
+                + "Pickup window: " + formatPickupWindow(order) + "\n\n"
+                + "Assigned admin details:\n"
+                + "Name: " + getUserDisplayName(admin) + "\n"
+                + "Email: " + formatContactValue(admin.getEmail()) + "\n"
+                + "Phone: " + formatContactValue(admin.getPhone()) + "\n\n"
+                + "You can view the latest status from your Scrapify dashboard.\n\n"
+                + "Thanks,\n"
+                + "Scrapify Team";
     }
 
     private String getOrderContactEmail(Orders order) {
@@ -709,7 +744,8 @@ public class OrderService {
     private String getOrderEventFooter(String event) {
         return switch (event) {
             case "cancelled" -> "If this cancellation was not expected, please contact Scrapify support.";
-            case "created" -> "You can track this pickup from your Scrapify dashboard.";
+            case "created" ->
+                    "Final pricing may vary after pickup based on actual weight, scrap quality, and current rates. You can track this pickup from your Scrapify dashboard.";
             default -> "You can view the latest status from your Scrapify dashboard.";
         };
     }
@@ -796,6 +832,10 @@ public class OrderService {
 
     private String formatWeight(Float weight) {
         return weight == null ? "-" : weight + " kg";
+    }
+
+    private String formatContactValue(String value) {
+        return isBlank(value) ? "-" : value.trim();
     }
 
     // MAP REQUEST DTO -> ENTITY

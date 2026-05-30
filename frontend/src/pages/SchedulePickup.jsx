@@ -794,23 +794,23 @@ const SchedulePickup = () => {
 
         <div>
           <h3>Company</h3>
-          <a href="/">About Us</a>
-          <a href="/">Careers</a>
-          <a href="/">Privacy Policy</a>
+          <a href="#/">About Us</a>
+          <a href="#/">Careers</a>
+          <a href="#/">Privacy Policy</a>
         </div>
 
         <div>
           <h3>Services</h3>
-          <a href="/schedule-pickup">Schedule Pickup</a>
-          <a href="/price-list">Price List</a>
-          <a href="/track-order">Track Order</a>
+          <a href="#/schedule-pickup">Schedule Pickup</a>
+          <a href="#/price-list">Price List</a>
+          <a href="#/track-order">Track Order</a>
         </div>
 
         <div>
           <h3>Help</h3>
-          <a href="/">FAQ</a>
-          <a href="/">How It Works</a>
-          <a href="/">Blog</a>
+          <a href="#/">FAQ</a>
+          <a href="#/">How It Works</a>
+          <a href="#/">Blog</a>
         </div>
 
         <div>

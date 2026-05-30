@@ -26,177 +26,113 @@ public class AddressService {
     private final AddressRepo addressRepo;
     private final UserRepository userRepository;
 
-    public AddressService(AddressRepo addressRepo,
-                          UserRepository userRepository) {
+    public AddressService(AddressRepo addressRepo, UserRepository userRepository) {
         this.addressRepo = addressRepo;
         this.userRepository = userRepository;
     }
 
     // CREATE ADDRESS
     public AddressResponse createAddress(@Valid AddressRequest request) {
-
         validateAddress(request);
-
         Address address = new Address();
-
         mapRequestToEntity(request, address);
         address.setUser(getCurrentUser());
-
         Address savedAddress = addressRepo.save(address);
-
         return mapToResponse(savedAddress);
     }
 
     // GET ALL ADDRESSES
     public List<AddressResponse> getAllAddress() {
-
-        return addressRepo.findAllByDeletedFalse()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return addressRepo.findAllByDeletedFalse().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     // GET CURRENT USER ADDRESSES
     public List<AddressResponse> getCurrentUserAddresses() {
-
         User user = getCurrentUser();
-
-        return addressRepo.findAllByUserIdAndDeletedFalse(user.getId())
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return addressRepo.findAllByUserIdAndDeletedFalse(user.getId()).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     // GET ADDRESS BY ID
     public AddressResponse getAddressById(Long id) {
-
         Address address = findAddressById(id);
-
         return mapToResponse(address);
     }
 
     // UPDATE ADDRESS
-    public AddressResponse updateAddress(Long id,
-                                         @Valid AddressRequest request) {
-
+    public AddressResponse updateAddress(Long id, @Valid AddressRequest request) {
         validateAddress(request);
-
         Address address = findAddressById(id);
-
         mapRequestToEntity(request, address);
-
         Address updatedAddress = addressRepo.save(address);
-
         return mapToResponse(updatedAddress);
     }
 
     // DELETE ADDRESS
-    public void deleteAddress(Long id) {
-
+    public void softDeleteAddress(Long id) {
         Address address = findAddressById(id);
-
         address.setDeleted(true);
         addressRepo.save(address);
     }
 
     // COMMON FIND METHOD
     private Address findAddressById(Long id) {
-
-        return addressRepo.findById(id)
-                .filter(address -> !address.isDeleted())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Address not found with ID: " + id));
+        return addressRepo.findById(id).filter(address -> !address.isDeleted()).orElseThrow(() -> new ResourceNotFoundException("Address not found with ID: " + id));
     }
 
     private User getCurrentUser() {
-
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null
-                || authentication.getName() == null
-                || "anonymousUser".equals(authentication.getName())
-                || !authentication.isAuthenticated()) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || "anonymousUser".equals(authentication.getName()) || !authentication.isAuthenticated()) {
             throw new IllegalArgumentException("Authenticated user is required");
         }
-
         String principal = authentication.getName();
-
         Optional<User> user = userRepository.findByUsernameAndDeletedFalse(principal);
-
         if (user.isEmpty()) {
             user = userRepository.findByEmailAndDeletedFalse(principal);
         }
-
-        return user.orElseThrow(() ->
-                new ResourceNotFoundException("User not found: " + principal));
+        return user.orElseThrow(() -> new ResourceNotFoundException("User not found: " + principal));
     }
 
     // VALIDATION
     private void validateAddress(AddressRequest request) {
-
         if (request == null) {
-            throw new IllegalArgumentException(
-                    "Address request cannot be null");
+            throw new IllegalArgumentException("Address request cannot be null");
         }
-
         if (isBlank(request.getReceiverFirstName())) {
-            throw new IllegalArgumentException(
-                    "Receiver first name cannot be empty");
+            throw new IllegalArgumentException("Receiver first name cannot be empty");
         }
-
         if (isBlank(request.getReceiverPhone())) {
-            throw new IllegalArgumentException(
-                    "Receiver phone cannot be empty");
+            throw new IllegalArgumentException("Receiver phone cannot be empty");
         }
-
         if (isBlank(request.getCity())) {
-            throw new IllegalArgumentException(
-                    "City cannot be empty");
+            throw new IllegalArgumentException("City cannot be empty");
         }
-
         if (isBlank(request.getCountry())) {
-            throw new IllegalArgumentException(
-                    "Country cannot be empty");
+            throw new IllegalArgumentException("Country cannot be empty");
         }
     }
 
     // REUSABLE STRING CHECK
     private boolean isBlank(String value) {
-
         return value == null || value.trim().isEmpty();
     }
 
     // MAP REQUEST DTO -> ENTITY
-    private void mapRequestToEntity(AddressRequest request,
-                                    Address address) {
+    private void mapRequestToEntity(AddressRequest request, Address address) {
 
         address.setApartment(request.getApartment());
         address.setCity(request.getCity());
         address.setState(request.getState());
         address.setZip(request.getZip());
         address.setCountry(request.getCountry());
-
-        address.setReceiverFirstName(
-                request.getReceiverFirstName());
-
-        address.setReceiverLastName(
-                request.getReceiverLastName());
-
-        address.setReceiverPhone(
-                request.getReceiverPhone());
-
-        address.setReceiverEmail(
-                request.getReceiverEmail());
-
-        address.setCountryCode(
-                request.getCountryCode());
+        address.setReceiverFirstName(request.getReceiverFirstName());
+        address.setReceiverLastName(request.getReceiverLastName());
+        address.setReceiverPhone(request.getReceiverPhone());
+        address.setReceiverEmail(request.getReceiverEmail());
+        address.setCountryCode(request.getCountryCode());
     }
 
     // MAP ENTITY -> RESPONSE DTO
     private AddressResponse mapToResponse(Address address) {
-
         return getAddressResponse(address);
     }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/auth/Login/Login';
 import Signup from './components/auth/Register/Register'; 
 import ForgotPassword from './components/auth/ForgotPassword/ForgetPassword';
@@ -76,6 +76,8 @@ function App() {
                 <SuperAdminDashboard />
               </RoleProtectedRoute>
             } />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Router>

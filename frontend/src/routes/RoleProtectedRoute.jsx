@@ -25,7 +25,7 @@ const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
       if (userRole === 'admin') {
         return <Navigate to="/admin" />;
       } else if (userRole === 'superadmin' || userRole === 'super_admin') {
-        return <Navigate to="/super-admin" />;
+        return <Navigate to="/superadmin" />;
       } else {
         return <Navigate to="/user" />;
       }

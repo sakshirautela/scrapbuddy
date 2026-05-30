@@ -118,7 +118,7 @@ const DefaultDashboard = () => {
  <button className="hero-primary" type="button" onClick={() => navigate("/schedule-pickup")}>
  Book Pickup <span>→</span>
  </button>
- <a className="hero-secondary" href="/price-list">View Prices</a>
+ <a className="hero-secondary" href="#/price-list">View Prices</a>
  </div>
  </div>
 
@@ -138,7 +138,7 @@ const DefaultDashboard = () => {
  </article>
  ))}
  </div>
- <a className="price-list-link" href="/price-list">View Full Price List →</a>
+ <a className="price-list-link" href="#/price-list">View Full Price List →</a>
  </section>
 
  <section className="process-section" id="how-it-works">
@@ -196,13 +196,13 @@ const DefaultDashboard = () => {
  <h3>Company</h3>
  <a href="#services">About Us</a>
  <a href="#how-it-works">How It Works</a>
- <a href="/price-list">Price List</a>
+ <a href="#/price-list">Price List</a>
  </div>
  <div>
  <h3>Services</h3>
- <a href="/schedule-pickup">Schedule Pickup</a>
- <a href="/track-order">Track Order</a>
- <a href="/bulk-pickup">Bulk Pickup</a>
+ <a href="#/schedule-pickup">Schedule Pickup</a>
+ <a href="#/track-order">Track Order</a>
+ <a href="#/">Bulk Pickup</a>
  </div>
  <div>
  <h3>Contact Us</h3>

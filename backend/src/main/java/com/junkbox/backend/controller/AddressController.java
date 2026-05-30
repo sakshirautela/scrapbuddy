@@ -17,14 +17,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/addresses")
+@RequestMapping("api/addresses")
 @RequiredArgsConstructor
 public class AddressController {
 
     private final AddressService addressService;
 
-    // CREATE ADDRESS
-    @PostMapping
+    @PostMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AddressResponse> createAddress(
             @Valid @RequestBody AddressRequest request) {
@@ -36,7 +35,7 @@ public class AddressController {
                 .body(response);
     }
 
-    // GET ALL ADDRESSES (ADMIN ONLY)
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<AddressResponse>> getAllAddresses() {
@@ -47,7 +46,8 @@ public class AddressController {
         return ResponseEntity.ok(addresses);
     }
 
-    // GET CURRENT USER ADDRESSES
+
+
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<AddressResponse>> getMyAddresses() {
@@ -58,7 +58,7 @@ public class AddressController {
         return ResponseEntity.ok(addresses);
     }
 
-    // GET ADDRESS BY ID
+
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AddressResponse> getAddressById(
@@ -83,15 +83,15 @@ public class AddressController {
         return ResponseEntity.ok(response);
     }
 
-    // DELETE ADDRESS
 
+    // DELETE ADDRESS
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> deleteAddress(
             @PathVariable Long id) {
 
-        addressService.deleteAddress(id);
+        addressService.softDeleteAddress(id);
 
-        return ResponseEntity.ok("Address deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 }
