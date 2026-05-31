@@ -72,6 +72,7 @@ const ProfileDashboard = () => {
   const [profileError, setProfileError] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [sendingProfileOtp, setSendingProfileOtp] = useState({ email: false, phone: false });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const { user, logout, updateCurrentUser } = useAuth();
   const navigate = useNavigate();
@@ -1112,19 +1113,6 @@ const renderProfileSettings = () => (
       </section>
 
       <section className="dashboard-lower-grid">
-        <article className="invite-card profile-panel">
-          <div>
-            <h2>Invite Friends</h2>
-            {/* <p>Invite your friends to Scrapify and earn reward points when they complete their first pickup.</p>
-            <div className="referral-box">
-              <span>Your Referral Code</span>
-              <strong>{(user?.username || "SCRAPBUDDY").toUpperCase().slice(0, 8)}100</strong>
-              <button type="button">Copy</button>
-            </div> */}
-          </div>
-          <div className="invite-art">♻</div>
-        </article>
-
         <article className="eco-card profile-panel">
           <h2>Your Eco Impact <span>♧</span></h2>
           <p>You are making a real difference.</p>
@@ -1140,9 +1128,16 @@ const renderProfileSettings = () => (
   );
 
   return (
-    <div className="user-profile-layout scrap-dashboard">
+    <div
+      className={`user-profile-layout scrap-dashboard${
+        sidebarOpen ? "" : " sidebar-collapsed"
+      }`}
+    >
       <SideNav
         ariaLabel="Profile navigation"
+        brandIcon={(displayName || "U").charAt(0).toUpperCase()}
+        brandTitle={displayName}
+        brandSubtitle="Profile"
         className="profile-sidebar customer-sidebar"
         items={sidebarItems}
         activeKey={activeTab}
@@ -1154,11 +1149,9 @@ const renderProfileSettings = () => (
 
           setActiveTab(item.key);
         }}
-        footerAction={{
-          icon: "↪",
-          label: "Logout",
-          onClick: handleLogout,
-        }}
+        onToggle={() => setSidebarOpen((current) => !current)}
+        toggleLabel={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+        toggleIcon={sidebarOpen ? "☰" : "☰"}
       />
 
       <section className="profile-main">

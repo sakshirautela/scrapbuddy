@@ -3,7 +3,14 @@ import React from "react";
 import SideNav from "../common/SideNav/SideNav";
 import { menuItems } from "../../utils/adminDashboard";
 
-const AdminSidebar = ({ activeTab, isOpen = false, onClose, onSelectTab }) => {
+const AdminSidebar = ({
+  activeTab,
+  isCollapsed = false,
+  isMobileOpen = false,
+  onCloseMobile,
+  onSelectTab,
+  onToggleCollapse,
+}) => {
   const adminItems = menuItems.map((item) => ({
     ...item,
     iconClass: `admin-nav-icon ${item.icon}`,
@@ -12,11 +19,17 @@ const AdminSidebar = ({ activeTab, isOpen = false, onClose, onSelectTab }) => {
   return (
     <SideNav
       ariaLabel="Admin navigation"
-      className={`shop-sidebar admin-overview-sidebar${isOpen ? " open" : ""}`}
+      brandIcon="♻"
+      brandTitle="Scrapify"
+      brandSubtitle="Admin Panel"
+      className={`shop-sidebar admin-overview-sidebar${isMobileOpen ? " open" : ""}`}
       items={adminItems}
       activeKey={activeTab}
       onSelect={(item) => onSelectTab(item.key)}
-      onClose={onClose}
+      onClose={onCloseMobile}
+      onToggle={onToggleCollapse}
+      toggleLabel={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      toggleIcon={isCollapsed ? ">" : "☰"}
     />
   );
 };

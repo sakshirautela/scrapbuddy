@@ -8,11 +8,34 @@ const SideNav = ({
   activeKey,
   onSelect,
   onClose,
-  footerAction,
+  onToggle,
+  brandIcon,
+  brandTitle,
+  brandSubtitle,
+  toggleIcon = "×",
+  toggleLabel = "Toggle sidebar",
   ariaLabel = "Sidebar navigation",
 }) => {
   return (
     <aside className={`app-side-nav ${className}`.trim()} aria-label={ariaLabel}>
+      <div className="app-side-nav-header">
+        {brandTitle ? (
+          <div className="app-side-nav-brand">
+            {brandIcon ? <span aria-hidden="true">{brandIcon}</span> : null}
+            <div className="app-side-nav-brand-text">
+              <strong>{brandTitle}</strong>
+              {brandSubtitle ? <small>{brandSubtitle}</small> : null}
+            </div>
+          </div>
+        ) : null}
+
+        {onToggle ? (
+          <button className="sidebar-close" type="button" onClick={onToggle} aria-label={toggleLabel}>
+            {toggleIcon}
+          </button>
+        ) : null}
+      </div>
+
       <nav className="app-side-nav-list">
         {items.map((item) => (
           <button
@@ -34,13 +57,6 @@ const SideNav = ({
           </button>
         ))}
       </nav>
-
-      {footerAction ? (
-        <button className="app-side-nav-footer" type="button" onClick={footerAction.onClick}>
-          <span aria-hidden="true">{footerAction.icon}</span>
-          {footerAction.label}
-        </button>
-      ) : null}
     </aside>
   );
 };

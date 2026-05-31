@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from "react";
-import { getCategoryIcon, getCategoryName, getRateIcon } from "../../../utils/adminDashboard";
+import { getCategoryIcon, getCategoryName } from "../../../utils/adminDashboard";
 
 const CategoryList = ({
   categories,
@@ -21,14 +21,12 @@ const CategoryList = ({
         const itemCount = subCategories.length;
 
         return (
-          <div className={isActive ? "rate-category-row expanded" : "rate-category-row"} key={category.id}>
+          <div className="rate-category-row" key={category.id}>
             <button
               className={isActive ? "rate-category active" : "rate-category"}
               type="button"
-              aria-expanded={isActive}
               onClick={() => onSelectCategory(String(category.id))}
             >
-              <span className="rate-category-chevron">{isActive ? "v" : ">"}</span>
               <span className="rate-category-icon">{getCategoryIcon(name)}</span>
               <span>
                 <strong>{name}</strong>
@@ -58,27 +56,6 @@ const CategoryList = ({
                 </div>
               ) : null}
             </div>
-            {isActive ? (
-              <div className="rate-category-children">
-                {subCategories.length === 0 ? (
-                  <span className="rate-category-child empty">No subcategories yet</span>
-                ) : (
-                  subCategories.map((item) => {
-                    const itemName = item.subCategory || "Scrap item";
-
-                    return (
-                      <span className="rate-category-child" key={item.id}>
-                        <span className="rate-category-child-name">
-                          <span className="rate-category-child-icon">{getRateIcon(itemName)}</span>
-                          {itemName}
-                        </span>
-                        <em>₹ {Number(item.price || 0)}</em>
-                      </span>
-                    );
-                  })
-                )}
-              </div>
-            ) : null}
           </div>
         );
       })

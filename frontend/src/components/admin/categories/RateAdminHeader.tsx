@@ -14,10 +14,6 @@ const RateAdminHeader = ({ selectedState }) => (
         <strong>200</strong>
         <small>Min. Pickup Value</small>
       </article>
-      <article className="summary-card summary-violet">
-        <span>⌖</span>
-        {selectedState ? <strong>{selectedState}</strong> : null}
-      </article>
     </div>
   </header>
 );

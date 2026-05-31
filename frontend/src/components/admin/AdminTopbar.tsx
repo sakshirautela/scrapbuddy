@@ -15,7 +15,7 @@ const AdminTopbar = ({
 }) => (
   <header className="shop-topbar">
     <div className="topbar-left">
-      <button className="menu-button" type="button" onClick={onToggleMenu} aria-label="Open menu">
+      <button className="menu-button" type="button" onClick={onToggleMenu} aria-label="Toggle menu">
         ☰
       </button>
       <div>

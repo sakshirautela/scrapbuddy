@@ -201,6 +201,22 @@ const CategoriesManager = ({
               </button>
             </header>
             <label className="admin-modal-field">
+              <span>Category</span>
+              <select
+                name="category"
+                value={subCategoryForm.category}
+                onChange={(event) => onSubCategoryFormChange("category", event.target.value)}
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.category}>
+                    {category.category}
+                    {console.log(category)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="admin-modal-field">
               <span>Subcategory name</span>
               <input
                 type="text"

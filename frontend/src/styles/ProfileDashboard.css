@@ -1828,6 +1828,7 @@
 /* Fixed profile shell: same geometry as the admin sidebar. */
 .user-profile-layout.scrap-dashboard {
   --profile-sidebar-width: 268px;
+  --profile-sidebar-collapsed-width: 72px;
   display: block;
   width: 100%;
   max-width: 100vw;
@@ -1842,6 +1843,7 @@
   height: calc(100vh - 64px);
   overflow-x: hidden;
   overflow-y: auto;
+  transition: width 180ms ease;
 }
 
 .user-profile-layout.scrap-dashboard .profile-main {
@@ -1851,6 +1853,37 @@
   margin-left: var(--profile-sidebar-width);
   overflow-x: hidden;
   overflow-y: auto;
+  transition: margin-left 180ms ease, width 180ms ease, max-width 180ms ease;
+}
+
+.user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar {
+  width: var(--profile-sidebar-collapsed-width);
+}
+
+.user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-header {
+  justify-content: center;
+  gap: 0;
+}
+
+.user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-brand {
+  display: none;
+}
+
+.user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-item {
+  justify-content: center;
+  gap: 0;
+  font-size: 0;
+  padding: 0;
+}
+
+.user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-icon {
+  font-size: 1rem;
+}
+
+.user-profile-layout.scrap-dashboard.sidebar-collapsed .profile-main {
+  width: calc(100vw - var(--profile-sidebar-collapsed-width));
+  max-width: calc(100vw - var(--profile-sidebar-collapsed-width));
+  margin-left: var(--profile-sidebar-collapsed-width);
 }
 
 @media (max-width: 1280px) {
@@ -1872,6 +1905,26 @@
     width: auto;
     height: auto;
     overflow: visible;
+  }
+
+  .user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar {
+    width: auto;
+  }
+
+  .user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-header {
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-brand {
+    display: flex;
+  }
+
+  .user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-item {
+    justify-content: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    padding: 0 12px;
   }
 
   .user-profile-layout.scrap-dashboard .profile-main {
