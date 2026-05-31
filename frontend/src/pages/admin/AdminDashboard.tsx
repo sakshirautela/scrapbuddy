@@ -37,13 +37,29 @@ const AdminDashboard = () => {
         isSidebarCollapsed ? " sidebar-collapsed" : ""
       }${isMobileSidebarOpen ? " mobile-sidebar-open" : ""}`}
     >
+      <button
+        className="admin-mobile-sidebar-toggle"
+        type="button"
+        onClick={() => setIsMobileSidebarOpen(true)}
+        aria-label="Open admin navigation"
+      >
+        ☰
+      </button>
+
       <AdminSidebar
         activeTab={activeTab}
         isCollapsed={isSidebarCollapsed}
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         onSelectTab={setActiveTab}
-        onToggleCollapse={() => setIsSidebarCollapsed((current) => !current)}
+        onToggleSidebar={() => {
+          if (window.innerWidth <= 760) {
+            setIsMobileSidebarOpen((current) => !current);
+            return;
+          }
+
+          setIsSidebarCollapsed((current) => !current);
+        }}
       />
       {isMobileSidebarOpen ? (
         <button

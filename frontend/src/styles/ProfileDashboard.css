@@ -1886,6 +1886,10 @@
   margin-left: var(--profile-sidebar-collapsed-width);
 }
 
+.profile-mobile-sidebar-toggle {
+  display: none;
+}
+
 @media (max-width: 1280px) {
   .user-profile-layout.scrap-dashboard {
     --profile-sidebar-width: 220px;
@@ -1901,14 +1905,25 @@
   }
 
   .user-profile-layout.scrap-dashboard .customer-sidebar {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 90;
+    width: min(310px, 86vw);
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 0;
+    transform: translateX(0);
+    transition: transform 180ms ease;
+  }
+
+  .user-profile-layout.scrap-dashboard .customer-sidebar .app-side-nav-list {
+    grid-template-columns: 1fr;
   }
 
   .user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar {
-    width: auto;
+    width: min(310px, 86vw);
+    transform: translateX(-105%);
   }
 
   .user-profile-layout.scrap-dashboard.sidebar-collapsed .customer-sidebar .app-side-nav-header {
@@ -1927,11 +1942,90 @@
     padding: 0 12px;
   }
 
+  .profile-mobile-sidebar-toggle {
+    position: fixed;
+    top: 76px;
+    left: 12px;
+    z-index: 70;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #dce6f2;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #102033;
+    box-shadow: 0 12px 28px rgba(16, 32, 51, 0.14);
+    font-size: 1.1rem;
+    font-weight: 900;
+  }
+
+  .user-profile-layout.scrap-dashboard:not(.sidebar-collapsed) .profile-mobile-sidebar-toggle {
+    display: none;
+  }
+
+  .user-profile-layout.scrap-dashboard:not(.sidebar-collapsed)::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+    background: rgba(15, 23, 42, 0.36);
+  }
+
+  .user-profile-layout.scrap-dashboard:not(.sidebar-collapsed) .customer-sidebar {
+    box-shadow: 18px 0 50px rgba(15, 35, 65, 0.18);
+  }
+
   .user-profile-layout.scrap-dashboard .profile-main {
     width: 100%;
     max-width: 100%;
     height: auto;
     margin-left: 0;
     overflow: visible;
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-content {
+    padding: 14px 10px 20px;
+  }
+
+  .dashboard-welcome,
+  .profile-panel,
+  .profile-card,
+  .orders-panel,
+  .earnings-panel,
+  .addresses-panel,
+  .settings-panel {
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .dashboard-welcome h1,
+  .profile-panel h2,
+  .profile-card h2 {
+    font-size: 1.1rem;
+  }
+
+  .dashboard-welcome p {
+    font-size: 0.9rem;
+  }
+
+  .user-profile-layout.scrap-dashboard .customer-sidebar {
+    padding: 12px 10px;
+  }
+
+  .user-profile-layout.scrap-dashboard .customer-sidebar .app-side-nav-list {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-actions,
+  .address-actions,
+  .pickup-edit-actions,
+  .settings-actions {
+    align-items: stretch;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr;
   }
 }

@@ -9,7 +9,7 @@ const AdminSidebar = ({
   isMobileOpen = false,
   onCloseMobile,
   onSelectTab,
-  onToggleCollapse,
+  onToggleSidebar,
 }) => {
   const adminItems = menuItems.map((item) => ({
     ...item,
@@ -27,9 +27,9 @@ const AdminSidebar = ({
       activeKey={activeTab}
       onSelect={(item) => onSelectTab(item.key)}
       onClose={onCloseMobile}
-      onToggle={onToggleCollapse}
+      onToggle={onToggleSidebar}
       toggleLabel={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-      toggleIcon={isCollapsed ? ">" : "☰"}
+      toggleIcon="☰"
     />
   );
 };

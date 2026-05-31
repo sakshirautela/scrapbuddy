@@ -72,7 +72,7 @@ const ProfileDashboard = () => {
   const [profileError, setProfileError] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [sendingProfileOtp, setSendingProfileOtp] = useState({ email: false, phone: false });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 980);
 
   const { user, logout, updateCurrentUser } = useAuth();
   const navigate = useNavigate();
@@ -158,12 +158,6 @@ const ProfileDashboard = () => {
     setProfileMessage("");
     setProfileError("");
   }, [user]);
-
-  const handleLogout = async () => {
-    await logout();
-    localStorage.clear();
-    navigate("/");
-  };
 
   const isProfileEmailChanged =
     String(profileDraft.email || "").trim().toLowerCase() !== String(user?.email || "").trim().toLowerCase();
@@ -1133,6 +1127,15 @@ const renderProfileSettings = () => (
         sidebarOpen ? "" : " sidebar-collapsed"
       }`}
     >
+      <button
+        className="profile-mobile-sidebar-toggle"
+        type="button"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open profile navigation"
+      >
+        ☰
+      </button>
+
       <SideNav
         ariaLabel="Profile navigation"
         brandIcon={(displayName || "U").charAt(0).toUpperCase()}
@@ -1148,6 +1151,9 @@ const renderProfileSettings = () => (
           }
 
           setActiveTab(item.key);
+          if (window.innerWidth <= 980) {
+            setSidebarOpen(false);
+          }
         }}
         onToggle={() => setSidebarOpen((current) => !current)}
         toggleLabel={sidebarOpen ? "Close sidebar" : "Open sidebar"}
