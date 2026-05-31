@@ -1,0 +1,76 @@
+.app-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 16% 96%, rgba(155, 217, 98, 0.26), transparent 22%),
+    linear-gradient(160deg, #093e29 0%, #022e20 58%, #011e17 100%);
+}
+
+.app-side-nav-list {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.app-side-nav .app-side-nav-item,
+.app-side-nav .app-side-nav-footer {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 0 16px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.app-side-nav .app-side-nav-item:hover,
+.app-side-nav .app-side-nav-item.active,
+.app-side-nav .app-side-nav-footer:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.app-side-nav .app-side-nav-icon,
+.app-side-nav .admin-nav-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-grid;
+  place-items: center;
+  color: inherit;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.app-side-nav .app-side-nav-footer {
+  margin-top: auto;
+  color: #ffd8d8;
+}
+
+@media (max-width: 1180px) {
+  .app-side-nav .app-side-nav-item,
+  .app-side-nav .app-side-nav-footer {
+    gap: 10px;
+    border-radius: 13px;
+    font-size: 13px;
+    padding: 0 12px;
+  }
+}

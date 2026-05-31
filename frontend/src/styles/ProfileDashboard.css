@@ -16,27 +16,32 @@
 }
 
 .user-profile-layout {
-  min-height: 100vh;
+  height: calc(100vh - 64px);
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: 268px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   background: var(--profile-bg);
   color: var(--profile-text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .profile-sidebar {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  z-index: 40;
   min-width: 0;
-  height: 100vh;
+  width: 268px;
+  height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--profile-border);
   background: rgba(255, 255, 255, 0.84);
   backdrop-filter: blur(18px);
   padding: 18px 14px;
+  overflow-y: auto;
 }
 
 .profile-brand {
@@ -115,6 +120,10 @@
 
 .profile-main {
   min-width: 0;
+  margin-left: 268px;
+  height: calc(100vh - 64px);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .profile-topbar {
@@ -1137,9 +1146,12 @@
 }
 
 .customer-sidebar {
+  position: fixed;
   top: 64px;
+  left: 0;
+  z-index: 40;
   height: calc(100vh - 64px);
-  width: 100%;
+  width: 268px;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -1149,6 +1161,7 @@
   box-shadow: none;
   padding: 22px 14px;
   color: #ffffff;
+  overflow-y: auto;
 }
 
 .customer-sidebar .profile-brand {
@@ -1596,7 +1609,16 @@
 
 @media (max-width: 1280px) {
   .scrap-dashboard {
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-sidebar,
+  .profile-sidebar {
+    width: 220px;
+  }
+
+  .profile-main {
+    margin-left: 220px;
   }
 
   .dashboard-stat-grid {
@@ -1631,6 +1653,12 @@
     display: block;
   }
 
+  .profile-main {
+    margin-left: 0;
+    height: auto;
+    overflow: visible;
+  }
+
   .customer-topnav {
     padding: 10px 14px;
     flex-wrap: wrap;
@@ -1643,6 +1671,7 @@
   .customer-sidebar {
     position: static;
     height: auto;
+    width: auto;
     display: block;
     margin: 12px;
     overflow: visible;
@@ -1793,5 +1822,63 @@
 
   .dashboard-stat-card strong {
     font-size: 1.12rem;
+  }
+}
+
+/* Fixed profile shell: same geometry as the admin sidebar. */
+.user-profile-layout.scrap-dashboard {
+  --profile-sidebar-width: 268px;
+  display: block;
+  width: 100%;
+  max-width: 100vw;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.user-profile-layout.scrap-dashboard .customer-sidebar {
+  position: fixed;
+  inset: 64px auto 0 0;
+  width: var(--profile-sidebar-width);
+  height: calc(100vh - 64px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.user-profile-layout.scrap-dashboard .profile-main {
+  width: calc(100vw - var(--profile-sidebar-width));
+  max-width: calc(100vw - var(--profile-sidebar-width));
+  height: calc(100vh - 64px);
+  margin-left: var(--profile-sidebar-width);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (max-width: 1280px) {
+  .user-profile-layout.scrap-dashboard {
+    --profile-sidebar-width: 220px;
+  }
+}
+
+@media (max-width: 980px) {
+  .user-profile-layout.scrap-dashboard {
+    display: block;
+    height: auto;
+    min-height: calc(100vh - 64px);
+    overflow: visible;
+  }
+
+  .user-profile-layout.scrap-dashboard .customer-sidebar {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .user-profile-layout.scrap-dashboard .profile-main {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin-left: 0;
+    overflow: visible;
   }
 }

@@ -1,0 +1,16 @@
+// @ts-nocheck
+import './Loader.css';
+
+function Loader({ size = 'md', fullScreen = false }) {
+  if (fullScreen) {
+    return (
+      <div className="loader-fullscreen">
+        <div className={`loader loader-${size}`}></div>
+      </div>
+    );
+  }
+
+  return <div className={`loader loader-${size}`}></div>;
+}
+
+export default Loader;
