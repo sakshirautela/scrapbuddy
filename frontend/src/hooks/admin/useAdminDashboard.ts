@@ -36,6 +36,8 @@ export const useAdminDashboard = (navigate) => {
   const [selectedState, setSelectedState] = useState("");
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [categorySaving, setCategorySaving] = useState(false);
+  const [subCategorySaving, setSubCategorySaving] = useState(false);
   const [error, setError] = useState("");
 
   const user = getStoredUser();
@@ -191,6 +193,8 @@ export const useAdminDashboard = (navigate) => {
       return false;
     }
 
+    setCategorySaving(true);
+
     try {
       const payload = {
         category: categoryForm.category.trim(),
@@ -221,6 +225,8 @@ export const useAdminDashboard = (navigate) => {
     } catch (err) {
       window.alert(err.message || "Failed to save category");
       return false;
+    } finally {
+      setCategorySaving(false);
     }
   };
 
@@ -282,6 +288,8 @@ export const useAdminDashboard = (navigate) => {
       return false;
     }
 
+    setSubCategorySaving(true);
+
     try {
       const payload = {
         subCategory: subCategoryForm.subCategory.trim(),
@@ -321,6 +329,8 @@ export const useAdminDashboard = (navigate) => {
     } catch (err) {
       window.alert(err.message || "Failed to save subcategory");
       return false;
+    } finally {
+      setSubCategorySaving(false);
     }
   };
 
@@ -592,6 +602,8 @@ export const useAdminDashboard = (navigate) => {
     onCategoryCancel: handleCategoryCancel,
     onSubCategorySubmit: handleSubCategorySubmit,
     onSubCategoryCancel: handleSubCategoryCancel,
+    categorySaving,
+    subCategorySaving,
     onSelectCategory: setSelectedCategoryId,
     onCategoryEdit: handleCategoryEdit,
     onCategoryDelete: handleCategoryDelete,

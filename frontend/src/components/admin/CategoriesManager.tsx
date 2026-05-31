@@ -5,6 +5,7 @@ import CategoriesToolbar from "./categories/CategoriesToolbar";
 import CategoryList from "./categories/CategoryList";
 import RateAdminHeader from "./categories/RateAdminHeader";
 import SubCategoryTable from "./categories/SubCategoryTable";
+import Loader from "../common/Loader/Loader";
 
 const CategoriesManager = ({
   categories,
@@ -26,6 +27,8 @@ const CategoriesManager = ({
   onCategoryDelete,
   onSubCategoryEdit,
   onSubCategoryDelete,
+  categorySaving,
+  subCategorySaving,
 }) => {
   const [activeRateTab, setActiveRateTab] = useState("categories");
   const [searchTerm, setSearchTerm] = useState("");
@@ -175,11 +178,27 @@ const CategoriesManager = ({
               />
             </label>
             <div className="admin-modal-actions">
-              <button className="admin-secondary" type="button" onClick={handleCategoryCancelClick}>
+              <button
+                className="admin-secondary"
+                type="button"
+                onClick={handleCategoryCancelClick}
+                disabled={categorySaving}
+              >
                 Cancel
               </button>
-              <button className="admin-primary" type="button" onClick={handleCategorySubmitClick}>
-                {editingCategoryId ? "Update category" : "Add category"}
+              <button
+                className="admin-primary"
+                type="button"
+                onClick={handleCategorySubmitClick}
+                disabled={categorySaving}
+              >
+                {categorySaving ? (
+                  <Loader inline size="sm" label={editingCategoryId ? "Updating..." : "Creating..."} />
+                ) : editingCategoryId ? (
+                  "Update category"
+                ) : (
+                  "Add category"
+                )}
               </button>
             </div>
           </section>
@@ -238,11 +257,27 @@ const CategoriesManager = ({
               />
             </label>
             <div className="admin-modal-actions">
-              <button className="admin-secondary" type="button" onClick={handleSubCategoryCancelClick}>
+              <button
+                className="admin-secondary"
+                type="button"
+                onClick={handleSubCategoryCancelClick}
+                disabled={subCategorySaving}
+              >
                 Cancel
               </button>
-              <button className="admin-primary" type="button" onClick={handleSubCategorySubmitClick}>
-                {editingSubCategoryId ? "Update subcategory" : "Add subcategory"}
+              <button
+                className="admin-primary"
+                type="button"
+                onClick={handleSubCategorySubmitClick}
+                disabled={subCategorySaving}
+              >
+                {subCategorySaving ? (
+                  <Loader inline size="sm" label={editingSubCategoryId ? "Updating..." : "Creating..."} />
+                ) : editingSubCategoryId ? (
+                  "Update subcategory"
+                ) : (
+                  "Add subcategory"
+                )}
               </button>
             </div>
           </section>
