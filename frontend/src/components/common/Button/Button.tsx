@@ -22,7 +22,7 @@ function Button({
     >
       {loading ? (
         <>
-          <Loader size="sm" />
+          <Loader size="sm" inline />
           <span className="ml-2">Loading...</span>
         </>
       ) : (

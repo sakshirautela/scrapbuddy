@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import cityApi from "../api/cityApi";
+import Loader from "../components/common/Loader/Loader";
 import { getCategoryName, getSubCategoryName } from "../utils/adminDashboard";
 import "../styles/AdminDashboard.css";
 
@@ -403,7 +404,11 @@ const AdminDashboard = () => {
 
   const renderMainContent = () => {
     if (loading) {
-      return <section className="admin-card loading-card">Loading admin data...</section>;
+      return (
+        <section className="admin-card loading-card">
+          <Loader size="lg" label="Loading admin data..." />
+        </section>
+      );
     }
 
     if (error) {

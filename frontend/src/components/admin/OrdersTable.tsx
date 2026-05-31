@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState } from "react";
+import Loader from "../common/Loader/Loader";
 import { formatDateTime, formatValue, getAddressSummary, getCategoryName } from "../../utils/adminDashboard";
 import { formatOrderCategoryPairs } from "../../utils/orderCategories";
 
@@ -260,7 +261,12 @@ const OrdersTable = ({
 
   const getAssignmentButtonText = (orderId, fallback) =>
     assignmentSavingByOrder[orderId]
-      ? "Saving..."
+      ? (
+        <>
+          <Loader size="sm" inline />
+          Saving...
+        </>
+      )
       : fallback;
 
   const selectedOrder = orders.find(

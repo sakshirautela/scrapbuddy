@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import authApi from '../../../api/authApi';
+import Loader from '../../common/Loader/Loader';
 import './ResetPassword.css';
 
 function ResetPassword() {
@@ -97,7 +98,14 @@ const handleNavigate = () => {
         />
 
         <button type="submit" disabled={loading} onClick={handleNavigate}>
-          {loading ? 'Resetting...' : 'Reset Password'}
+          {loading ? (
+            <>
+              <Loader size="sm" inline />
+              Resetting...
+            </>
+          ) : (
+            'Reset Password'
+          )}
         </button>
 
       </form>

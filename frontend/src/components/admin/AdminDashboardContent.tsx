@@ -7,6 +7,7 @@ import CitiesManager from "./CitiesManager";
 import OrdersTable from "./OrdersTable";
 import SupportSettings from "./SupportSettings";
 import UserRoleManager from "./UserRoleManager";
+import Loader from "../common/Loader/Loader";
 import { menuItems } from "../../utils/adminDashboard";
 
 const AdminDashboardContent = ({
@@ -24,7 +25,11 @@ const AdminDashboardContent = ({
   onSelectTab,
 }) => {
   if (loading) {
-    return <section className="admin-card loading-card">Loading admin data...</section>;
+    return (
+      <section className="admin-card loading-card">
+        <Loader size="lg" label="Loading admin data..." />
+      </section>
+    );
   }
 
   if (error) {

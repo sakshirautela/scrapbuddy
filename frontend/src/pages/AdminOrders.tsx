@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import orderApi from "../api/orderApi";
 import AdminOrderCard from "../components/admin/orders/AdminOrderCard";
 import AdminOrderEditModal from "../components/admin/orders/AdminOrderEditModal";
+import Loader from "../components/common/Loader/Loader";
 import "../styles/AdminOrders.css";
 
 const AdminOrders = () => {
@@ -82,7 +83,11 @@ const AdminOrders = () => {
   };
 
   if (loading) {
-    return <h2>Loading...</h2>;
+    return (
+      <div className="admin-orders">
+        <Loader size="lg" label="Loading orders..." />
+      </div>
+    );
   }
 
   return (

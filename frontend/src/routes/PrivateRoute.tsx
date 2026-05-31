@@ -7,7 +7,7 @@ const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <Loader fullScreen />;
+    return <Loader fullScreen label="Checking your session..." />;
   }
 
   return user ? children : <Navigate to="/login" />;

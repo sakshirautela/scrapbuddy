@@ -27,7 +27,7 @@ export const useAdminDashboard = (navigate) => {
   const [addresses, setAddresses] = useState([]);
   const [cities, setCities] = useState([]);
   const [categoryForm, setCategoryForm] = useState({ category: "" });
-  const [subCategoryForm, setSubCategoryForm] = useState({ subCategory: "", price: "" });
+  const [subCategoryForm, setSubCategoryForm] = useState({ category: "", subCategory: "", price: "" });
   const [cityForm, setCityForm] = useState({ name: "" });
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [editingSubCategoryId, setEditingSubCategoryId] = useState(null);
@@ -49,6 +49,25 @@ export const useAdminDashboard = (navigate) => {
 
     return categories[0];
   }, [categories, selectedCategoryId]);
+
+  const findCategoryByFormValue = (value) =>
+    categories.find(
+      (category) =>
+        String(category.id) === String(value) ||
+        getCategoryName(category).toLowerCase() === String(value || "").toLowerCase()
+    );
+
+  const findParentCategoryForSubCategory = (subCategory) => {
+    const directCategory = findCategoryByFormValue(subCategory?.categoryId || subCategory?.categoryID);
+
+    if (directCategory) {
+      return directCategory;
+    }
+
+    return categories.find((category) =>
+      (category.subCategories || []).some((item) => String(item.id) === String(subCategory?.id))
+    );
+  };
 
   const requireAdminSession = (resourceName) => {
     const token = localStorage.getItem("token");
@@ -154,7 +173,7 @@ export const useAdminDashboard = (navigate) => {
 
   const handleSubCategoryCancel = () => {
     setEditingSubCategoryId(null);
-    setSubCategoryForm({ subCategory: "", price: "" });
+    setSubCategoryForm({ category: "", subCategory: "", price: "" });
   };
 
   const handleCityCancel = () => {
@@ -245,7 +264,10 @@ export const useAdminDashboard = (navigate) => {
       return false;
     }
 
-    if (!selectedCategory?.id) {
+    const formCategory = findCategoryByFormValue(subCategoryForm.category);
+    const targetCategory = formCategory || selectedCategory;
+
+    if (!targetCategory?.id) {
       window.alert("Please select a parent category");
       return false;
     }
@@ -264,32 +286,35 @@ export const useAdminDashboard = (navigate) => {
       const payload = {
         subCategory: subCategoryForm.subCategory.trim(),
         userId: Number(user.id),
-        categoryId: Number(selectedCategory.id),
+        categoryId: Number(targetCategory.id),
         price: Number(subCategoryForm.price),
       };
 
-      const savedSubCategory = editingSubCategoryId
+      const savedSubCategoryResponse = editingSubCategoryId
         ? await updateSubCategory(editingSubCategoryId, payload)
         : await createSubCategory(payload);
+      const savedSubCategory = {
+        ...savedSubCategoryResponse,
+        categoryId: savedSubCategoryResponse?.categoryId || targetCategory.id,
+      };
 
       setCategories((current) =>
         current.map((category) => {
-          if (String(category.id) !== String(selectedCategory.id)) {
-            return category;
-          }
-
-          const existingItems = category.subCategories || [];
+          const existingItems = (category.subCategories || []).filter(
+            (item) => String(item.id) !== String(editingSubCategoryId)
+          );
 
           return {
             ...category,
-            subCategories: editingSubCategoryId
-              ? existingItems.map((item) =>
-                  String(item.id) === String(editingSubCategoryId) ? savedSubCategory : item
-                )
-              : [...existingItems, savedSubCategory],
+            subCategories:
+              String(category.id) === String(targetCategory.id)
+                ? [...existingItems, savedSubCategory]
+                : existingItems,
           };
         })
       );
+
+      setSelectedCategoryId(String(targetCategory.id));
 
       handleSubCategoryCancel();
       return true;
@@ -300,9 +325,12 @@ export const useAdminDashboard = (navigate) => {
   };
 
   const handleSubCategoryEdit = (item) => {
+    const parentCategory = findParentCategoryForSubCategory(item) || selectedCategory;
+
     setEditingSubCategoryId(item.id);
-    setSelectedCategoryId(String(item.categoryId || selectedCategory?.id || ""));
+    setSelectedCategoryId(String(parentCategory?.id || ""));
     setSubCategoryForm({
+      category: parentCategory ? getCategoryName(parentCategory) : "",
       subCategory: item.subCategory || "",
       price: item.price || "",
     });
@@ -549,8 +577,17 @@ export const useAdminDashboard = (navigate) => {
     editingSubCategoryId,
     onCategoryFormChange: (name, value) =>
       setCategoryForm((current) => ({ ...current, [name]: value })),
-    onSubCategoryFormChange: (name, value) =>
-      setSubCategoryForm((current) => ({ ...current, [name]: value })),
+    onSubCategoryFormChange: (name, value) => {
+      if (name === "category") {
+        const nextCategory = findCategoryByFormValue(value);
+
+        if (nextCategory?.id) {
+          setSelectedCategoryId(String(nextCategory.id));
+        }
+      }
+
+      setSubCategoryForm((current) => ({ ...current, [name]: value }));
+    },
     onCategorySubmit: handleCategorySubmit,
     onCategoryCancel: handleCategoryCancel,
     onSubCategorySubmit: handleSubCategorySubmit,

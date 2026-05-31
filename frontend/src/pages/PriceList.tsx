@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import PublicFooter from "../components/common/PublicFooter/PublicFooter";
+import Loader from "../components/common/Loader/Loader";
 import apiClient from "../utils/apiClient";
 import { getCategoryName, getSubCategoryName } from "../utils/adminDashboard";
 import "../styles/PriceList.css";
@@ -158,7 +159,9 @@ const PriceList = () => {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="5">Loading price list...</td>
+                      <td className="loading-cell" colSpan="5">
+                        <Loader size="md" label="Loading price list..." />
+                      </td>
                     </tr>
                   ) : null}
                   {error ? (

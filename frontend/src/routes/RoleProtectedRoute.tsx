@@ -7,7 +7,7 @@ const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <Loader fullScreen />;
+    return <Loader fullScreen label="Checking permissions..." />;
   }
 
   if (!user) {

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from "react";
 import apiClient from "../../utils/apiClient";
+import Loader from "../common/Loader/Loader";
 
 const emptyForm = {
   firstName: "",
@@ -193,7 +194,14 @@ const UserRoleManager = ({ onUsersChanged }) => {
           </select>
         </label>
         <button className="admin-primary" type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Add User"}
+          {saving ? (
+            <>
+              <Loader size="sm" inline />
+              Saving...
+            </>
+          ) : (
+            "Add User"
+          )}
         </button>
       </form>
 
@@ -236,7 +244,9 @@ const UserRoleManager = ({ onUsersChanged }) => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="4">Loading users...</td>
+                <td className="loading-cell" colSpan="4">
+                  <Loader size="md" label="Loading users..." />
+                </td>
               </tr>
             ) : filteredUsers.length === 0 ? (
               <tr>

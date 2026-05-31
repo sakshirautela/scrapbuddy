@@ -10,6 +10,7 @@ import { updateUser } from "../api/userApi";
 import AddressForm from "../components/input/Address";
 import PublicFooter from "../components/common/PublicFooter/PublicFooter";
 import SideNav from "../components/common/SideNav/SideNav";
+import Loader from "../components/common/Loader/Loader";
 import { formatIndianDateTime, formatValue, getAddressSummary } from "../utils/formatters";
 import "../styles/ProfileDashboard.css";
 const baseSidebarItems = [
@@ -530,7 +531,7 @@ const renderEarnings = () => (
       <strong className="earnings-total">Rs {totalEarnings.toLocaleString("en-IN")}</strong>
     </div>
 
-    {loadingOrders ? <p className="profile-muted">Loading earnings...</p> : null}
+    {loadingOrders ? <Loader size="md" label="Loading earnings..." /> : null}
     {orderError ? <p className="profile-error">{orderError}</p> : null}
 
     {!loadingOrders && !orderError ? (
@@ -625,13 +626,22 @@ const renderAddresses = () => (
             Cancel
           </button>
           <button type="button" className="add-address-btn" onClick={handleSaveAddress} disabled={savingAddress}>
-            {savingAddress ? "Saving..." : editingAddressId ? "Update Address" : "Save Address"}
+            {savingAddress ? (
+              <>
+                <Loader size="sm" inline />
+                Saving...
+              </>
+            ) : editingAddressId ? (
+              "Update Address"
+            ) : (
+              "Save Address"
+            )}
           </button>
         </div>
       </div>
     ) : null}
 
-    {loadingAddresses ? <p className="profile-muted">Loading saved addresses...</p> : null}
+    {loadingAddresses ? <Loader size="md" label="Loading saved addresses..." /> : null}
 
     {!loadingAddresses ? (
       addresses.length > 0 ? (
@@ -727,7 +737,14 @@ const renderProfileSettings = () => (
               disabled={sendingProfileOtp.email}
               onClick={() => handleSendProfileOtp("email")}
             >
-              {sendingProfileOtp.email ? "Sending..." : "Send OTP"}
+              {sendingProfileOtp.email ? (
+                <>
+                  <Loader size="sm" inline />
+                  Sending...
+                </>
+              ) : (
+                "Send OTP"
+              )}
             </button>
             <input
               type="text"
@@ -765,7 +782,14 @@ const renderProfileSettings = () => (
               disabled={sendingProfileOtp.phone}
               onClick={() => handleSendProfileOtp("phone")}
             >
-              {sendingProfileOtp.phone ? "Sending..." : "Send OTP"}
+              {sendingProfileOtp.phone ? (
+                <>
+                  <Loader size="sm" inline />
+                  Sending...
+                </>
+              ) : (
+                "Send OTP"
+              )}
             </button>
             <input
               type="text"
@@ -789,7 +813,14 @@ const renderProfileSettings = () => (
 
     <div className="profile-settings-actions">
       <button type="button" className="add-address-btn" onClick={handleSaveProfile} disabled={savingProfile}>
-        {savingProfile ? "Saving..." : "Save Profile"}
+        {savingProfile ? (
+          <>
+            <Loader size="sm" inline />
+            Saving...
+          </>
+        ) : (
+          "Save Profile"
+        )}
       </button>
     </div>
   </section>
@@ -807,7 +838,7 @@ const renderProfileSettings = () => (
         ) : null}
       </div>
 
-      {loadingOrders ? <p className="profile-muted">Loading orders...</p> : null}
+      {loadingOrders ? <Loader size="md" label="Loading orders..." /> : null}
       {orderError ? <p className="profile-error">{orderError}</p> : null}
 
       {!loadingOrders ? (
@@ -857,7 +888,14 @@ const renderProfileSettings = () => (
                   Cancel
                 </button>
                 <button type="button" className="add-address-btn" onClick={handleSaveOrderChanges} disabled={savingOrder}>
-                  {savingOrder ? "Saving..." : "Save Changes"}
+                  {savingOrder ? (
+                    <>
+                      <Loader size="sm" inline />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </button>
               </div>
             </div>

@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CategoriesWithSubCat from "../components/input/CategoriesWithSubCat";
 import PublicFooter from "../components/common/PublicFooter/PublicFooter";
+import Loader from "../components/common/Loader/Loader";
 import orderApi from "../api/orderApi";
 import cityApi from "../api/cityApi";
 import addressApi from "../api/addressApi";
@@ -443,7 +444,9 @@ const SchedulePickup = () => {
                     <div className="saved-address-panel">
                       <div className="saved-address-header">
                         <strong>Saved Addresses</strong>
-                        <span>{isLoadingAddresses ? "Loading..." : `${savedAddresses.length} saved`}</span>
+                        <span>
+                          {isLoadingAddresses ? <Loader size="sm" inline /> : `${savedAddresses.length} saved`}
+                        </span>
                       </div>
 
                       {savedAddresses.length > 0 ? (
@@ -460,7 +463,11 @@ const SchedulePickup = () => {
                         </label>
                       ) : (
                         <p className="saved-address-empty">
-                          {isLoadingAddresses ? "Loading saved addresses..." : "No saved addresses yet. Add one below."}
+                          {isLoadingAddresses ? (
+                            <Loader size="sm" inline label="Loading saved addresses..." />
+                          ) : (
+                            "No saved addresses yet. Add one below."
+                          )}
                         </p>
                       )}
                     </div>

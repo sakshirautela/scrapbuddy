@@ -7,7 +7,7 @@ const GuestRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <Loader fullScreen />;
+    return <Loader fullScreen label="Loading..." />;
   }
 
   if (user) {

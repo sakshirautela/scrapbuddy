@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import authApi from '../../../api/authApi';
 import './ForwardPassword.css';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../common/Loader/Loader';
 
 function ForgotPassword() {
 
@@ -111,7 +112,14 @@ function ForgotPassword() {
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Sending...' : 'Send OTP'}
+          {loading ? (
+            <>
+              <Loader size="sm" inline />
+              Sending...
+            </>
+          ) : (
+            'Send OTP'
+          )}
         </button>
 
         {isLinkSent && (
@@ -139,7 +147,12 @@ function ForgotPassword() {
               disabled={loading || resendingOtp || resendCooldown > 0}
             >
               {resendingOtp
-                ? 'Resending...'
+                ? (
+                  <>
+                    <Loader size="sm" inline />
+                    Resending...
+                  </>
+                )
                 : resendCooldown > 0
                   ? `Resend OTP in ${resendCooldown}s`
                   : 'Resend OTP'}

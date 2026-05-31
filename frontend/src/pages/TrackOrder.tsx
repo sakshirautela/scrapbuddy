@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useMemo, useState } from "react";
 import PublicFooter from "../components/common/PublicFooter/PublicFooter";
+import Loader from "../components/common/Loader/Loader";
 import orderApi from "../api/orderApi";
 import { formatOrderCategoryPairs } from "../utils/orderCategories";
 import { formatIndianDateTime } from "../utils/formatters";
@@ -117,7 +118,14 @@ const TrackOrder = () => {
               placeholder="Order ID, for example ORD0012"
             />
             <button type="submit" disabled={loading}>
-              {loading ? "Tracking..." : "Track Order  →"}
+              {loading ? (
+                <>
+                  <Loader size="sm" inline />
+                  Tracking...
+                </>
+              ) : (
+                "Track Order  →"
+              )}
             </button>
           </form>
           {error ? <span className="track-example error">{error}</span> : <span className="track-example">Example: ORD0012</span>}
